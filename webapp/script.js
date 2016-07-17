@@ -450,13 +450,15 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
     };
 
     //RETRIEVE THE PHASE ID TO BRACKET NAME MAP
-    $scope.smashGG_brackets = []
-    $scope.smashGG_id_map = {}
+    $scope.smashGG_brackets = [];
+    $scope.smashGG_bracket_map = {};
     $scope.smashGG_populateBrackets(){
         $http.get(hostname + '/smashGgMap/' + $scope.postParams.data).
         success(function(data) {
-            $scope.smashGG_id_map = data;
+            $scope.smashGG_bracket_map = data;
         });
+
+        // TODO parse the brackets and store them in an object
     };
 });
 
