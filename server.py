@@ -801,6 +801,11 @@ class MatchesResource(restful.Resource):
 
         return return_dict
 
+class SmashGgMappingResource(restful.Resource):
+    def get(self, url):
+        event_id = SmashGGScraper.get_tournament_event_id_from_url(url)
+        id_map = SmashGGScraper.get_phasename_id_map(event_id)
+        return id_map
 
 class MergeListResource(restful.Resource):
     def get(self, region):
@@ -992,6 +997,8 @@ api.add_resource(TournamentListResource, '/<string:region>/tournaments')
 api.add_resource(TournamentResource, '/<string:region>/tournaments/<string:id>')
 api.add_resource(PendingTournamentResource, '/<string:region>/pending_tournaments/<string:id>')
 api.add_resource(FinalizeTournamentResource, '/<string:region>/tournaments/<string:id>/finalize')
+
+api.add_resource(SmashGgMappingResource, '/smashGgMap/<string:url>')
 
 api.add_resource(PendingTournamentListResource, '/<string:region>/tournaments/pending')
 api.add_resource(RankingsResource, '/<string:region>/rankings')

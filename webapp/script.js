@@ -378,7 +378,7 @@ app.controller("RankingsController", function($scope, $routeParams, $modal, Regi
     };
 });
 
-app.controller("TournamentsController", function($scope, $routeParams, $modal, RegionService, TournamentService, SessionService) {
+app.controller("TournamentsController", function($scope, $http, $routeParams, $modal, RegionService, TournamentService, SessionService) {
     RegionService.setRegion($routeParams.region);
     $scope.regionService = RegionService;
     $scope.tournamentService = TournamentService;
@@ -449,6 +449,15 @@ app.controller("TournamentsController", function($scope, $routeParams, $modal, R
         $scope.sessionService.authenticatedDelete(url, successCallback);
     };
 
+    //RETRIEVE THE PHASE ID TO BRACKET NAME MAP
+    $scope.smashGG_brackets = []
+    $scope.smashGG_id_map = {}
+    $scope.smashGG_populateBrackets(){
+        $http.get(hostname + '/smashGgMap/' + $scope.postParams.data).
+        success(function(data) {
+            $scope.smashGG_id_map = data;
+        });
+    };
 });
 
 app.controller("TournamentDetailController", function($scope, $routeParams, $http, $modal, RegionService, SessionService, PlayerService) {
