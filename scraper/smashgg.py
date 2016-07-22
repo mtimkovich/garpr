@@ -1,7 +1,6 @@
 import datetime
 import requests
 import os
-from model import MatchResult
 # from pyquery import PyQuery as pq
 from garprLogging.log import Log
 
@@ -89,7 +88,8 @@ class SmashGGScraper(object):
                 print 'Error: id {} not found in player list'.format(match.loser_id)
                 continue
 
-            return_match = MatchResult(winner.smash_tag, loser.smash_tag)
+            return_match = {'winner':winner.smash_tag,
+                            'loser':loser.smash_tag}
             return_matches.append(return_match)
 
         return return_matches

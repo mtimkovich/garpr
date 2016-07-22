@@ -1,6 +1,5 @@
 import os
 from bs4 import BeautifulSoup
-from model import MatchResult
 from dateutil import parser
 
 class TioScraper(object):
@@ -54,7 +53,8 @@ class TioScraper(object):
             try:
                 winner = player_map[winner_id]
                 loser = player_map[loser_id]
-                match_result = MatchResult(winner=winner, loser=loser)
+                match_result = {'winner':winner,
+                                'loser':loser}
 
                 if match.IsChampionship.text == 'True':
                     grand_finals_first_set = match_result
