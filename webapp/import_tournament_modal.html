@@ -42,7 +42,7 @@
                     <input type="text" class="form-control" ng-model="postParams.data" ng-change="smashGG_populateBrackets()">
                     <br/>
                     <p ng-repeat="bracket in smashGG_brackets" class="bracket_para">
-                        <input type="checkbox" class="smashGG_bracket_checkbox" id=""><p>{{ bracket.name }}</p><br/>
+                        <input type="checkbox" class="smashGG_bracket_checkbox" id="{{ bracket.name }}_checkbox"><p>{{ bracket.name }} <i>( {{ bracket.id }} )</i></p><br/>
                     </p>
                 </div>
                 <button type="submit" class="btn btn-primary" ng-disabled="disableButtons">Submit</button>

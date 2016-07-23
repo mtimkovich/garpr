@@ -361,6 +361,7 @@ class TournamentListResource(restful.Resource):
 
         type = args['type']
         data = args['data']
+        # TODO add variable to get the discluded_phases for smashGG brackets
         pending_tournament = None
 
         try:
@@ -374,7 +375,7 @@ class TournamentListResource(restful.Resource):
             elif type == 'challonge':
                 scraper = ChallongeScraper(data)
             elif type == 'smashgg':
-                scraper = SmashGGScraper(data)
+                scraper = SmashGGScraper(data, discluded_phases)
             else:
                 return "Unknown type", 400
             pending_tournament = PendingTournament.from_scraper(type, scraper, region)
@@ -998,6 +999,9 @@ api.add_resource(TournamentResource, '/<string:region>/tournaments/<string:id>')
 api.add_resource(PendingTournamentResource, '/<string:region>/pending_tournaments/<string:id>')
 api.add_resource(FinalizeTournamentResource, '/<string:region>/tournaments/<string:id>/finalize')
 
+# THIS CALL TAKES A SMASHGG BRACKET URL AND RETURNS A MAP OF BRACKETS IN THE SMASHGG EVENT TO THEIR PHASE IDS
+# THIS IS USEFUL FOR DISPLAYING THE INFORMATION TO THE USER SO THEY CAN CHOOSE ANY BRACKETS THEY DO NOT WISH
+# TO IMPORT
 api.add_resource(SmashGgMappingResource, '/smashGgMap/<string:url>')
 
 api.add_resource(PendingTournamentListResource, '/<string:region>/tournaments/pending')

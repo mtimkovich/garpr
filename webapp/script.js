@@ -455,10 +455,14 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
     $scope.smashGG_populateBrackets(){
         $http.get(hostname + '/smashGgMap/' + $scope.postParams.data).
         success(function(data) {
-            $scope.smashGG_bracket_map = data;
+            for(var key in data){
+                var bracket{
+                    name: data[key],
+                    id: key
+                };
+                $scope.smashGG_brackets.push(bracket);
+            };
         });
-
-        // TODO parse the brackets and store them in an object
     };
 });
 
