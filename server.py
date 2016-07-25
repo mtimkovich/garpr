@@ -362,6 +362,7 @@ class TournamentListResource(restful.Resource):
         type = args['type']
         data = args['data']
         # TODO add variable to get the discluded_phases for smashGG brackets
+        discluded_phases = args['discluded_phases']
         pending_tournament = None
 
         try:
