@@ -60,7 +60,7 @@ class RankingEntry(EmbeddedDocument):
 class Rating(EmbeddedDocument):
     region = ReferenceField('Region', required=True)
     mu = FloatField(required=True)
-    sigma = FloatField(required=True)
+    sigma = FloatField(required=True, default=0.)
 
     def __str__(self):
         return "(mu={:.2f},sigma={:.2f})".format(self.mu, self.sigma)
@@ -78,6 +78,33 @@ class Merge(Document):
     source_player = ReferenceField('Player', required=True)
     target_player = ReferenceField('Player', required=True)
     time = DateTimeField(required=True)
+
+    def clean(self):
+        source = self.source_player
+        target = self.target_player
+
+        # check: source and target different players
+        if source==target:
+            raise ValidationError("source and target must be different")
+
+        # check: source and target not already merged
+        if source.merged:
+            raise ValidationError("source is already merged")
+
+        if target.merged:
+            raise ValidationError("target is already merged")
+
+        # # check: source not in target merge_children or vice versa
+        # # (this should never happen)
+        # if (source in target.merge_children) or (target in source.merge_children):
+        #     raise ValidationError("source and target already merged")
+
+        # check: source and target have never played in same tournament
+        # (can't merge players who've played each other)
+        # TODO: reduce db calls for this
+        for tournament in Tournament.objects.exclude('raw'):
+            if source in tournament.players and target in tournament.players:
+                raise ValidationError("source and target have played in same tournament")
 
     def __str__(self):
         return "{} merged into {}".format(self.source_player, self.target_player)

@@ -1,11 +1,10 @@
-import unittest
 import mock
 import os
 import trueskill
+import unittest
 
 from datetime import datetime
-from mongoengine import connect, register_connection
-from pymongo import MongoClient
+from mongoengine import connect
 
 from config.config import Config
 from model import *
@@ -27,6 +26,66 @@ def connect_test_db():
 
 # TODO: refactor common initialization code (i.e. initializing players)
 #   to their own global routines
+
+def setUpRegions(test):
+    # prereqs: none
+    test.norcal = Region(id='norcal', display_name='Norcal')
+    test.texas = Region(id='texas', display_name='Texas')
+
+    test.norcal.save()
+    test.texas.save()
+
+def setUpPlayers(test):
+    # prereqs: none
+    test.player_1 = Player(name='gar')
+    test.player_2 = Player(name='sfat')
+    test.player_3 = Player(name='shroomed')
+    test.player_4 = Player(name='ppu')
+    test.player_5 = Player(name='ss')
+    test.player_6 = Player(name='hmw')
+
+    test.player_1.save()
+    test.player_2.save()
+    test.player_3.save()
+    test.player_4.save()
+    test.player_5.save()
+    test.player_6.save()
+
+def setUpTournament(test):
+    # prereqs: setUpRegions, setUpPlayers
+    test.match_1 = Match(winner=test.player_1, loser=test.player_2)
+    test.match_2 = Match(winner=test.player_3, loser=test.player_4)
+
+    test.name = 'tournament'
+    test.source_type = 'tio'
+    test.date = datetime(2016,1,1)
+    test.regions = [test.norcal, test.texas]
+    test.raw = 'raw'
+    test.players = [test.player_1, test.player_2, test.player_3, test.player_4]
+    test.matches = [test.match_1, test.match_2]
+
+    test.tournament = Tournament(
+                name=test.name,
+                source_type=test.source_type,
+                date=test.date,
+                regions=test.regions,
+                raw=test.raw,
+                players=test.players,
+                matches=test.matches)
+    test.tournament.save()
+
+def setUpUser(test):
+    # prereqs: setUpRegions
+    test.username = "bob"
+    test.salt = "test"
+    test.hashed_password = "test"
+    test.admin_regions = [test.norcal, test.texas]
+    test.user = User(username=test.username,
+                     salt=test.salt,
+                     hashed_password=test.hashed_password,
+                     admin_regions=test.admin_regions)
+    test.user.save()
+
 
 class TestAliasMapping:
     pass
@@ -83,7 +142,8 @@ class TestRating(unittest.TestCase):
     def setUp(self):
         connect_test_db()
 
-        self.norcal = Region(id='norcal', display_name='Norcal')
+        setUpRegions(self)
+
         self.rating = Rating(region=self.norcal,
                              mu=0.0,
                              sigma=1.0)
@@ -108,33 +168,66 @@ class TestMerge(unittest.TestCase):
     def setUp(self):
         connect_test_db()
 
-        self.p1 = Player(name="p1")
-        self.p2 = Player(name="p2")
-
-        self.p1.save()
-        self.p2.save()
-
-        self.user = User(username="bob",
-                         salt="test",
-                         hashed_password="test")
-        self.user.save()
+        setUpRegions(self)
+        setUpPlayers(self)
+        setUpTournament(self)
+        setUpUser(self)
 
         self.merge = Merge(requester=self.user,
-                           source_player=self.p1,
-                           target_player=self.p2,
+                           source_player=self.player_5,
+                           target_player=self.player_6,
                            time=datetime(2016,1,1))
+        self.merge.save()
+
+    def test_validate_not_same(self):
+        bad_merge = Merge(requester=self.user,
+                          source_player=self.player_5,
+                          target_player=self.player_5,
+                          time=datetime(2016,1,1))
+        with self.assertRaises(ValidationError) as cm:
+            bad_merge.save()
+        self.assertTrue("source and target must be different" in cm.exception.message)
+
+    def test_validate_not_merged(self):
+        bad_player = Player(name='garr', merged=True, merge_parent=self.player_1)
+        bad_player.save()
+
+        bad_merge = Merge(requester=self.user,
+                          source_player=bad_player,
+                          target_player=self.player_1,
+                          time=datetime(2016,1,1))
+        with self.assertRaises(ValidationError) as cm:
+            bad_merge.save()
+        self.assertTrue("source is already merged" in cm.exception.message)
+
+        bad_merge = Merge(requester=self.user,
+                               source_player=self.player_1,
+                               target_player=bad_player,
+                               time=datetime(2016,1,1))
+        with self.assertRaises(ValidationError) as cm:
+            bad_merge.save()
+        self.assertTrue("target is already merged" in cm.exception.message)
+
+    def test_validate_never_played(self):
+        bad_merge = Merge(requester=self.user,
+                          source_player=self.player_1,
+                          target_player=self.player_2,
+                          time=datetime(2016,1,1))
+        with self.assertRaises(ValidationError) as cm:
+            bad_merge.save()
+        self.assertTrue("source and target have played in same tournament" in cm.exception.message)
 
     def test_to_string(self):
         self.assertEqual(str(self.merge),
-                          "%s merged into %s" % (self.p1, self.p2))
+                          "%s merged into %s" % (self.player_5,
+                                                 self.player_6))
 
 
 class TestPlayer(unittest.TestCase):
     def setUp(self):
         connect_test_db()
 
-        self.player_1 = Player(name='gar')
-        self.player_1.save()
+        setUpPlayers(self)
 
     def test_clean(self):
         self.assertEqual(len(self.player_1.aliases), 1)
@@ -172,54 +265,18 @@ class TestRegion(unittest.TestCase):
     def setUp(self):
         connect_test_db()
 
-        self.norcal = Region(id='norcal', display_name="Northern California")
-        self.norcal.save()
+        setUpRegions(self)
 
     def test_to_string(self):
-        self.assertEqual(str(self.norcal), "Northern California (norcal)")
+        self.assertEqual(str(self.norcal), "Norcal (norcal)")
 
 class TestRanking(unittest.TestCase):
     def setUp(self):
         connect_test_db()
 
-        self.norcal = Region(id='norcal', display_name='Norcal')
-        self.texas = Region(id='texas', display_name='Texas')
-        self.norcal.save()
-        self.texas.save()
-
-        self.player_1 = Player(name='gar')
-        self.player_2 = Player(name='sfat')
-        self.player_3 = Player(name='shroomed')
-        self.player_4 = Player(name='ppu')
-        self.player_5 = Player(name='ss')
-        self.player_6 = Player(name='hmw')
-        self.player_1.save()
-        self.player_2.save()
-        self.player_3.save()
-        self.player_4.save()
-        self.player_5.save()
-        self.player_6.save()
-
-        self.match_1 = Match(winner=self.player_1, loser=self.player_2)
-        self.match_2 = Match(winner=self.player_3, loser=self.player_4)
-
-        self.name = 'tournament'
-        self.source_type = 'tio'
-        self.date = datetime(2016,1,1)
-        self.regions = [self.norcal, self.texas]
-        self.raw = 'raw'
-        self.players = [self.player_1, self.player_2, self.player_3, self.player_4]
-        self.matches = [self.match_1, self.match_2]
-
-        self.tournament = Tournament(
-                    name=self.name,
-                    source_type=self.source_type,
-                    date=self.date,
-                    regions=self.regions,
-                    raw=self.raw,
-                    players=self.players,
-                    matches=self.matches)
-        self.tournament.save()
+        setUpRegions(self)
+        setUpPlayers(self)
+        setUpTournament(self)
 
         self.ranking_entries = [RankingEntry(rank=1, player=self.player_1),
                                 RankingEntry(rank=2, player=self.player_3),
@@ -240,20 +297,8 @@ class TestSession(unittest.TestCase):
     def setUp(self):
         connect_test_db()
 
-        self.norcal = Region(id='norcal', display_name='Norcal')
-        self.texas = Region(id='texas', display_name='Texas')
-        self.norcal.save()
-        self.texas.save()
-
-        self.username = "bob"
-        self.salt = "test"
-        self.hashed_password = "test"
-        self.admin_regions = [self.norcal, self.texas]
-        self.user = User(username=self.username,
-                         salt=self.salt,
-                         hashed_password=self.hashed_password,
-                         admin_regions=self.admin_regions)
-        self.user.save()
+        setUpRegions(self)
+        setUpUser(self)
 
         self.session_id = 'abc123'
         self.session = Session(id=self.session_id,
@@ -267,46 +312,10 @@ class TestTournament(unittest.TestCase):
     def setUp(self):
         connect_test_db()
 
-        self.norcal = Region(id='norcal', display_name='Norcal')
-        self.texas = Region(id='texas', display_name='Texas')
+        setUpRegions(self)
+        setUpPlayers(self)
+        setUpTournament(self)
 
-        self.norcal.save()
-        self.texas.save()
-
-        self.player_1 = Player(name='gar')
-        self.player_2 = Player(name='sfat')
-        self.player_3 = Player(name='shroomed')
-        self.player_4 = Player(name='ppu')
-        self.player_5 = Player(name='ss')
-        self.player_6 = Player(name='hmw')
-
-        self.player_1.save()
-        self.player_2.save()
-        self.player_3.save()
-        self.player_4.save()
-        self.player_5.save()
-        self.player_6.save()
-
-        self.match_1 = Match(winner=self.player_1, loser=self.player_2)
-        self.match_2 = Match(winner=self.player_3, loser=self.player_4)
-
-        self.name = 'tournament'
-        self.source_type = 'tio'
-        self.date = datetime(2016,1,1)
-        self.regions = [self.norcal, self.texas]
-        self.raw = 'raw'
-        self.players = [self.player_1, self.player_2, self.player_3, self.player_4]
-        self.matches = [self.match_1, self.match_2]
-
-        self.tournament = Tournament(
-                    name=self.name,
-                    source_type=self.source_type,
-                    date=self.date,
-                    regions=self.regions,
-                    raw=self.raw,
-                    players=self.players,
-                    matches=self.matches)
-        self.tournament.save()
 
     def test_clean(self):
         self.assertEqual(len(self.tournament.orig_ids), len(self.tournament.players))
@@ -503,28 +512,8 @@ class TestPendingTournament(unittest.TestCase):
     def setUp(self):
         connect_test_db()
 
-        self.norcal = Region(id='norcal', display_name='Norcal')
-        self.texas = Region(id='texas', display_name='Texas')
-
-        self.norcal.save()
-        self.texas.save()
-
-        self.player_1 = Player(name='gar')
-        self.player_2 = Player(name='sfat')
-        self.player_3 = Player(name='shroomed')
-        self.player_4 = Player(name='ppu')
-        self.player_5 = Player(name='ss')
-        self.player_6 = Player(name='hmw')
-
-        self.player_1.save()
-        self.player_2.save()
-        self.player_3.save()
-        self.player_4.save()
-        self.player_5.save()
-        self.player_6.save()
-
-        self.match_1 = Match(winner=self.player_1, loser=self.player_2)
-        self.match_2 = Match(winner=self.player_3, loser=self.player_4)
+        setUpRegions(self)
+        setUpPlayers(self)
 
         self.alias_match_1 = AliasMatch(winner=self.player_1.name, loser=self.player_2.name)
         self.alias_match_2 = AliasMatch(winner=self.player_3.name, loser=self.player_4.name)
@@ -657,20 +646,8 @@ class TestUser(unittest.TestCase):
     def setUp(self):
         connect_test_db()
 
-        self.norcal = Region(id='norcal', display_name='Norcal')
-        self.texas = Region(id='texas', display_name='Texas')
-        self.norcal.save()
-        self.texas.save()
-
-        self.username = "bob"
-        self.salt = "test"
-        self.hashed_password = "test"
-        self.admin_regions = [self.norcal, self.texas]
-        self.user = User(username=self.username,
-                         salt=self.salt,
-                         hashed_password=self.hashed_password,
-                         admin_regions=self.admin_regions)
-        self.user.save()
+        setUpRegions(self)
+        setUpUser(self)
 
     def test_to_string(self):
         self.assertEqual(str(self.user), self.username)
