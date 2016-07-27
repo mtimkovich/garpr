@@ -414,10 +414,6 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
         console.log($scope.postParams);
         $scope.disableButtons = true;
 
-        angular.forEach(angular.element('.smashGG_bracket_checkbox'), function(value, key){
-            $scope.postParams.
-        });
-
         url = hostname + $routeParams.region + '/tournaments';
         successCallback = function(data) {
             // TODO don't need to populate everything, just tournaments
@@ -454,11 +450,25 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
         $scope.sessionService.authenticatedDelete(url, successCallback);
     };
 
+    $scope.checkSmashggBracket = function(checkbox){
+        var checkboxElement = angular.element(checkbox);
+        var id = checkboxElement.attr('bracket-id').toString();
+        if(checkboxElement.prop('checked')){
+            //CHECKED: DON'T INCLUDE PHASE ID IN POST REQUEST
+            if($scope.postParams.excluded_phases.includes(id))
+                $scope.postParams.excluded_phases.splice(id);
+        }
+        else{
+            //NOT CHECKED: INCLUDE PHASE ID FOR EXCLUSION
+            if(!$scope.postParams.excluded_phases.includes(id))
+                $scope.postParams.excluded_phases.push(id);
+        }
+    }
+
     //RETRIEVE THE PHASE ID TO BRACKET NAME MAP
     $scope.smashGG_populateBrackets(){
         $http.get(hostname + '/smashGgMap/' + $scope.postParams.data).
         success(function(data) {
-            var excluded_phases = [];
             for(var key in data){
                 var bracket{
                     name: data[key],
