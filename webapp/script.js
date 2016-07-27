@@ -475,8 +475,9 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
                     id: key
                 };
                 $scope.smashGG_brackets.push(bracket);
+                $scope.postParams.excluded_phases.push(bracket.id);
             };
-            $scope.postParams.excluded_phases = $scope.smashGG_brackets;
+
         });
     };
 });

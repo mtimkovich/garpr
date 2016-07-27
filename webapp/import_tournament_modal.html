@@ -43,7 +43,7 @@
                     <br/>
                     <p ng-repeat="bracket in smashGG_brackets" class="bracket_para">
                         <input type="checkbox" class="smashGG_bracket_checkbox" id="{{ bracket.id }}_checkbox"
-                               ng-change="checkSmashggBracket(this)" bracket-id="{{ bracket.id }}"/><p>{{ bracket.name }} <i>( {{ bracket.id }} )</i></p>
+                               ng-change="checkSmashggBracket(this)" bracket-id="{{ bracket.id }}" checked /><p>{{ bracket.name }} <i>( {{ bracket.id }} )</i></p>
                     <br/>
                     </p>
                 </div>
