@@ -21,14 +21,14 @@ def check_for_200(response):
     return response
 
 class SmashGGScraper(object):
-    def __init__(self, path, discluded_phases):
+    def __init__(self, path, excluded_phases):
         """
         :param path: url to go to the bracket
         """
         self.path = path
 
         # DATA STRUCTURE TO DISCLUDE PHASES USER DOESN'T WANT IMPORTED
-        self.discluded_phases = discluded_phases
+        self.excluded_phases = excluded_phases
 
         #GET IMPORTANT DATA FROM THE URL
         self.event_id = SmashGGScraper.get_tournament_event_id_from_url(self.path)
@@ -42,8 +42,8 @@ class SmashGGScraper(object):
         self.group_ids = self.get_group_ids()
         self.group_dicts = [SmashGGScraper.get_group_dict(group_id) for group_id in self.group_ids]
         #REMOVE ANY PHASES THE USER INDICATED NOT TO INCLUDE IN THE IMPORT
-        if len(self.discluded_phases) > 0:
-            self.group_dicts = [self.group_dicts.remove(group_id) for group_id in self.discluded_phases]
+        if len(self.excluded_phases) > 0:
+            self.group_dicts = [self.group_dicts.remove(group_id) for group_id in self.excluded_phases]
 
         #DATA STRUCTURES THAT HOLD IMPORTANT THINGS
         self.get_smashgg_players()

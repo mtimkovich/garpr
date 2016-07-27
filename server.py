@@ -361,8 +361,8 @@ class TournamentListResource(restful.Resource):
 
         type = args['type']
         data = args['data']
-        # TODO add variable to get the discluded_phases for smashGG brackets
-        discluded_phases = args['discluded_phases']
+        # TODO add variable to get the excluded_phases for smashGG brackets
+        excluded_phases = args['excluded_phases']
         pending_tournament = None
 
         try:
@@ -376,7 +376,7 @@ class TournamentListResource(restful.Resource):
             elif type == 'challonge':
                 scraper = ChallongeScraper(data)
             elif type == 'smashgg':
-                scraper = SmashGGScraper(data, discluded_phases)
+                scraper = SmashGGScraper(data, excluded_phases)
             else:
                 return "Unknown type", 400
             pending_tournament = PendingTournament.from_scraper(type, scraper, region)

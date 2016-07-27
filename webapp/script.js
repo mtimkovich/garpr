@@ -388,6 +388,7 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
     $scope.disableButtons = false;
     $scope.errorMessage = false;
 
+    $scope.smashGG_brackets = [];
     $scope.postParams = {};
 
     $scope.open = function() {
@@ -412,6 +413,10 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
     $scope.submit = function() {
         console.log($scope.postParams);
         $scope.disableButtons = true;
+
+        angular.forEach(angular.element('.smashGG_bracket_checkbox'), function(value, key){
+            $scope.postParams.
+        });
 
         url = hostname + $routeParams.region + '/tournaments';
         successCallback = function(data) {
@@ -453,15 +458,15 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
     $scope.smashGG_populateBrackets(){
         $http.get(hostname + '/smashGgMap/' + $scope.postParams.data).
         success(function(data) {
-            var discluded_phases = [];
+            var excluded_phases = [];
             for(var key in data){
                 var bracket{
                     name: data[key],
                     id: key
                 };
-                discluded_phases.push(bracket);
+                $scope.smashGG_brackets.push(bracket);
             };
-            $scope.postParams.discluded_phases = discluded_phases;
+            $scope.postParams.excluded_phases = $scope.smashGG_brackets;
         });
     };
 });
