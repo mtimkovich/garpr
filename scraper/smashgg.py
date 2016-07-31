@@ -43,7 +43,12 @@ class SmashGGScraper(object):
         self.group_dicts = [SmashGGScraper.get_group_dict(group_id) for group_id in self.group_ids]
         #REMOVE ANY PHASES THE USER INDICATED NOT TO INCLUDE IN THE IMPORT
         if len(self.excluded_phases) > 0:
-            self.group_dicts = [self.group_dicts.remove(group_id) for group_id in self.excluded_phases]
+            #self.group_dicts = [self.group_dicts.remove(group_id) for group_id in self.excluded_phases]
+            for group_id in excluded_phases:
+                try:
+                    self.group_dicts.remove(group_id)
+                except:
+                    continue
 
         #DATA STRUCTURES THAT HOLD IMPORTANT THINGS
         self.get_smashgg_players()

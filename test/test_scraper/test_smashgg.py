@@ -6,6 +6,7 @@ from scraper.smashgg import SmashGGScraper
 TEST_URL_1 = 'https://smash.gg/tournament/htc-throwdown/brackets/10448/2096/6529'
 TEST_URL_2 = 'https://smash.gg/tournament/tiger-smash-4/brackets/11097/21317/70949'
 TEST_URL_3 = 'https://smash.gg/tournament/ceo-2016/brackets/11789/45259/150418'
+TEST_URL_4 = 'https://smash.gg/tournament/nebulous-prime-melee-47/brackets/14172/49705/164217'
 TEST_DATA1 = os.path.abspath('test' + os.sep + 'test_scraper' + os.sep + 'data' + os.sep + 'smashgg.json')
 TEST_DATA2 = os.path.abspath('test' + os.sep + 'test_scraper' + os.sep + 'data' + os.sep + 'smashgg2.json')
 TEST_EVENT_ID_1 = 10448
@@ -34,6 +35,9 @@ class TestSmashGGScraper(unittest.TestCase):
     def setUp(self):
         self.tournament1 = TestSmashGGScraper.tournament1
         self.tournament2 = TestSmashGGScraper.tournament2
+        #self.tournament3 = TestSmashGGScraper.tournament3
+        self.tournament4 = TestSmashGGScraper.tournament4
+        #self.excluded_phases3 = [49706]
         #self.tournament3 = SmashGGScraper(TEST_URL_3)
         #list = self.tournament3.get_matches()
         #print 'hello'
@@ -43,8 +47,10 @@ class TestSmashGGScraper(unittest.TestCase):
     def setUpClass(cls):
         print 'Pulling tournaments from smash.gg ...'
         super(TestSmashGGScraper, cls).setUpClass()
-        cls.tournament1 = SmashGGScraper(TEST_URL_1)
-        cls.tournament2 = SmashGGScraper(TEST_URL_2)
+        cls.tournament1 = SmashGGScraper(TEST_URL_1, [])
+        cls.tournament2 = SmashGGScraper(TEST_URL_2, [])
+        #cls.tournament3 = SmashGGScraper(TEST_URL_3, [])
+        cls.tournament4 = SmashGGScraper(TEST_URL_4, [49706])
 
 
     def tearDown(self):
@@ -165,3 +171,6 @@ class TestSmashGGScraper(unittest.TestCase):
     def test_get_phasename_id_map(self):
         self.assertEqual(len(SmashGGScraper.get_phasename_id_map(TEST_EVENT_ID_1)), 3)
         self.assertEqual(len(SmashGGScraper.get_phasename_id_map(TEST_EVENT_ID_2)), 3)
+
+    def test_exclude_phases(self):
+        self.assertEqual(len(self.tournament4.group_dicts), 9)
