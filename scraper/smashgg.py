@@ -40,15 +40,20 @@ class SmashGGScraper(object):
 
         self.event_dict = SmashGGScraper.get_event_dict(self.event_id)
         self.group_ids = self.get_group_ids()
-        self.group_dicts = [SmashGGScraper.get_group_dict(group_id) for group_id in self.group_ids]
-        #REMOVE ANY PHASES THE USER INDICATED NOT TO INCLUDE IN THE IMPORT
+        # REMOVE ANY PHASES THE USER INDICATED NOT TO INCLUDE IN THE IMPORT
         if len(self.excluded_phases) > 0:
-            #self.group_dicts = [self.group_dicts.remove(group_id) for group_id in self.excluded_phases]
+            # self.group_dicts = [self.group_dicts.remove(group_id) for group_id in self.excluded_phases]
             for group_id in excluded_phases:
                 try:
-                    self.group_dicts.remove(group_id)
-                except:
+                    phase_ids = SmashGGScraper.get_phase_group_ids_from_phase(group_id)
+                    for phase_id in phase_ids:
+                        self.group_ids.remove(str(phase_id))
+                except Exception as ex:
+                    print str(ex)
                     continue
+
+        self.group_dicts = [SmashGGScraper.get_group_dict(group_id) for group_id in self.group_ids]
+
 
         #DATA STRUCTURES THAT HOLD IMPORTANT THINGS
         self.get_smashgg_players()
@@ -232,6 +237,15 @@ class SmashGGScraper(object):
         phase_raw = check_for_200(requests.get(PHASE_URL % phase_id)).json()
         phase_name = phase_raw['entities']['phase']['name']
         return phase_name
+
+    @staticmethod
+    def get_phase_group_ids_from_phase(phase_id):
+        phase_ids = []
+        phase_raw = check_for_200(requests.get(PHASE_URL % phase_id)).json()
+        groups = phase_raw['entities']['groups']
+        for group in groups:
+            phase_ids.append(group['id'])
+        return phase_ids
 
     @staticmethod
     def get_phase_ids(event_id):
