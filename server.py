@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, Response, jsonify
 from flask.ext import restful
 from flask.ext.restful import reqparse
 from flask.ext.cors import CORS
@@ -40,6 +40,7 @@ api = restful.Api(app)
 player_list_get_parser = reqparse.RequestParser()
 player_list_get_parser.add_argument('alias', type=str)
 player_list_get_parser.add_argument('query', type=str)
+player_list_get_parser.add_argument('all', type=bool)
 
 tournament_list_get_parser = reqparse.RequestParser()
 tournament_list_get_parser.add_argument('includePending', type=str)
@@ -197,6 +198,10 @@ class PlayerListResource(restful.Resource):
         elif args['query']:
             all_players = dao.get_all_players(all_regions=True) #TODO: none checks on below list comprehensions
             return_dict['players'] = [p.get_json_dict() for p in self._get_players_matching_query(all_players, args['query'])]
+        # get all players in all regions
+        elif args['all']:
+            all_players = dao.get_all_players(all_regions=True)
+            return_dict['players'] = [p.get_json_dict() for p in all_players]
         # all players within region
         else:
             return_dict['players'] = [p.get_json_dict() for p in dao.get_all_players()]
@@ -300,8 +305,8 @@ class TournamentListResource(restful.Resource):
             include_pending_tournaments = user and is_user_admin_for_region(user, region)
 
         tournaments = dao.get_all_tournaments(regions=[region])
-        if not tournaments:
-            return 'Dao couldnt find any tournaments, not good man, not good', 404
+        # if not tournaments:
+        #     return 'Dao couldnt find any tournaments, not good man, not good', 404
         all_tournament_jsons = [t.get_json_dict() for t in tournaments]
 
         if include_pending_tournaments:
@@ -689,6 +694,18 @@ class FinalizeTournamentResource(restful.Resource):
             player_id = dao.insert_player(player)
             pending_tournament.set_alias_id_mapping(player_name, player_id)
 
+        # validate players in this tournament
+        for mapping in pending_tournament.alias_to_id_map:
+            try:
+                player_id = mapping["player_id"]
+                # TODO: reduce queries to DB by batching
+                player = dao.get_player_by_id(player_id)
+                if player.merged:
+                    return "Player {} has already been merged".format(player.name), 400
+            except:
+                return "Not all player ids are valid", 400
+
+
         try:
             dao.update_pending_tournament(pending_tournament)
             tournament = Tournament.from_pending_tournament(pending_tournament)
@@ -958,6 +975,11 @@ class SessionResource(restful.Resource):
 
         return return_dict
 
+@api.representation('text/plain')
+class LoaderIOTokenResource(restful.Resource):
+    def get(self):
+        return Response(config.get_loaderio_token())
+
 @app.after_request
 def add_security_headers(resp):
     resp.headers['Strict-Transport-Security'] = "max-age=31536000; includeSubdomains"
@@ -1009,6 +1031,8 @@ api.add_resource(PendingTournamentListResource, '/<string:region>/tournaments/pe
 api.add_resource(RankingsResource, '/<string:region>/rankings')
 
 api.add_resource(SessionResource, '/users/session')
+
+api.add_resource(LoaderIOTokenResource, '/{}/'.format(config.get_loaderio_token()))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(sys.argv[1]), debug=(sys.argv[2] == 'True'))

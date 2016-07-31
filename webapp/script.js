@@ -53,9 +53,24 @@ app.service('RegionService', function ($http, PlayerService, TournamentService, 
             }
         },
         populateDataForCurrentRegion: function() {
-            $http.get(hostname + this.region.id + '/players').
+            // get all players instead of just players in region
+            var curRegion = this.region;
+            console.log(this.region);
+            $http.get(hostname + this.region.id + '/players?all=true').
                 success(function(data) {
-                    PlayerService.playerList = data;
+                    PlayerService.allPlayerList = data;
+
+                    // filter players for this region
+                    PlayerService.playerList = {
+                        'players': data.players.filter(
+                            function(player){
+                                return player.regions.some(
+                                    function(region){
+                                        if(region==null) return false;
+                                        return region === curRegion.id;
+                                    });
+                            })
+                    };
                 });
 
             SessionService.authenticatedGet(hostname + this.region.id + '/tournaments?includePending=true',
@@ -70,8 +85,6 @@ app.service('RegionService', function ($http, PlayerService, TournamentService, 
 
             SessionService.authenticatedGet(hostname + this.region.id + '/merges',
                 function(data) {
-                    console.log("success merges!");
-                    console.log(data);
                     MergeService.mergeList = data;
                 });
         }
@@ -80,8 +93,10 @@ app.service('RegionService', function ($http, PlayerService, TournamentService, 
     service.regionsPromise.success(function(data) {
         service.regions = data.regions;
     });
-    // only allow New Jersey to show in UI
-    service.display_regions = [{"id": "newjersey", "display_name": "New Jersey"}];
+    
+    service.display_regions = [{"id": "newjersey", "display_name": "New Jersey"},
+                               {"id": "nyc", "display_name": "NYC Metro Area"},
+                               {"id": "chicago", "display_name": "Chicago"}];
 
     return service;
 });
@@ -89,6 +104,7 @@ app.service('RegionService', function ($http, PlayerService, TournamentService, 
 app.service('PlayerService', function($http) {
     var service = {
         playerList: null,
+        allPlayerList:null,
         getPlayerIdFromName: function (name) {
             for (i = 0; i < this.playerList.players.length; i++) {
                 p = this.playerList.players[i]
@@ -98,7 +114,64 @@ app.service('PlayerService', function($http) {
             }
             return null;
         },
+        // local port of _player_matches_query from backend
+        // now returns matchQuality instead of just a boolean
+        // if match_quality > 0, consider it a match
+        playerMatchesQuery: function(player, query) {
+            var playerName = player.name.toLowerCase();
+            var query = query.toLowerCase();
+
+            if(playerName === query){
+                return 10;
+            }
+
+            var rex = /\.|\|| /;
+            var tokens = playerName.split(rex);
+            for(var i=0;i<tokens.length;i++){
+                var token = tokens[i];
+                if(token.length > 0){
+                    if(token.startsWith(query)){
+                        return 5;
+                    }
+                }
+            }
+
+            if(query.length >= 3 && playerName.includes(query)){
+                return 1;
+            }
+
+            // no match
+            return 0;
+        },
         getPlayerListFromQuery: function(query, filter_fn) {
+            var TYPEAHEAD_PLAYER_LIMIT = 20;
+            var filteredPlayers = [];
+            for (var i = 0; i < this.allPlayerList.players.length; i++) {
+                var curPlayer = this.allPlayerList.players[i];
+
+                if(filter_fn == null || filter_fn(curPlayer)){
+                    var matchQuality = this.playerMatchesQuery(curPlayer, query);
+                    if(matchQuality > 0){
+                        filteredPlayers.push({'player': curPlayer,
+                                              'quality': matchQuality});
+                    }
+                }
+            }
+
+            filteredPlayers.sort(function(p1, p2){
+                if(p1.quality < p2.quality) return 1;
+                else if(p1.quality > p2.quality) return -1;
+                else return 0;
+            });
+
+            filteredPlayers = filteredPlayers.slice(0, TYPEAHEAD_PLAYER_LIMIT);
+
+            filteredPlayers = filteredPlayers.map(p => p.player);
+
+            return filteredPlayers;
+
+            // let's not send so many get requests
+            /*
             url = hostname + defaultRegion + '/players';
             params = {
                 params: {
@@ -118,7 +191,7 @@ app.service('PlayerService', function($http) {
                     players = filtered_players;
                 }
                 return players;
-            });
+            });*/
         }
     };
     return service;
@@ -618,15 +691,12 @@ app.controller("TournamentDetailController", function($scope, $routeParams, $htt
 
     $scope.putTournamentFromUI = function() {
         $scope.updateAliasMapFromUI();
-        console.log("alias map from ui:");
-        console.log($scope.aliasMap);
 
         // listify the current alias_to_id_map so angular
         // does not strip certain properties
         $scope.tournament.alias_to_id_map = [];
         for(var alias in $scope.aliasMap){
             var id = $scope.aliasMap[alias];
-            console.log(alias + " " + id);
             $scope.tournament.alias_to_id_map.push(
                 { "player_alias": alias,
                   "player_id": id
@@ -638,8 +708,6 @@ app.controller("TournamentDetailController", function($scope, $routeParams, $htt
     }
 
     $scope.updateData = function(data) {
-        console.log("return data:");
-        console.log(data)
         $scope.tournament = data;
         if ($scope.tournament.hasOwnProperty('alias_to_id_map')) {
             $scope.isPendingTournament = true;
@@ -649,7 +717,6 @@ app.controller("TournamentDetailController", function($scope, $routeParams, $htt
                 function(aliasItem){
                     var player = aliasItem["player_alias"];
                     var id = aliasItem["player_id"];
-                    console.log(aliasItem);
                     $scope.aliasMap[player] = id;
                     if(id != null){
                         $scope.playerCheckboxState[player] = false;
@@ -722,7 +789,6 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
     };
 
     $scope.updatePlayerDetails = function() {
-        console.log("updating player details!");
         url = hostname + $routeParams.region + '/players/' + $scope.playerId;
         $scope.disableButtons = true;
 
@@ -758,7 +824,6 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
         }
         url = hostname + $routeParams.region + '/merges';
         params = {"source_player_id": $scope.playerId, "target_player_id": $scope.mergePlayer.id};
-        console.log(params);
 
         successCallback = function(data) {
             alert("These two accounts have been merged.");
@@ -782,7 +847,6 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
     $http.get(hostname + $routeParams.region + '/players/' + $routeParams.playerId).
         success(function(data) {
             $scope.player = data;
-            console.log(data);
             if($scope.player.merged){
                 $http.get(hostname + $routeParams.region + '/players/' + $scope.player.merge_parent).
                     success(function(data) {
