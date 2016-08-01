@@ -10,7 +10,6 @@ from config.config import Config
 from dao import Dao
 from model import Player, Tournament
 
-# script for making sure stuff in db conforms to description in model.py
 def mongo_validate():
     config = Config()
     mongo_client = MongoClient(host=config.get_mongo_url())

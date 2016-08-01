@@ -286,7 +286,7 @@ class PendingTournament(BaseTournament):
         return tournament
 
 class User(Document):
-    username = StringField(required=True, unique=True)
+    username = StringField(required=True, unique=True, primary_key=True)
     salt = StringField(required=True)
     hashed_password = StringField(required=True)
 
