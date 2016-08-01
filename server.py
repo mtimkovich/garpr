@@ -64,6 +64,9 @@ tournament_put_parser.add_argument('matches', type=list)
 tournament_put_parser.add_argument('regions', type=list)
 tournament_put_parser.add_argument('pending', type=bool)
 
+smashGgMap_get_parser = reqparse.RequestParser()
+smashGgMap_get_parser.add_argument('bracket_url', type=str)
+
 merges_put_parser = reqparse.RequestParser()
 merges_put_parser.add_argument('source_player_id', type=str)
 merges_put_parser.add_argument('target_player_id', type=str)
@@ -821,7 +824,10 @@ class MatchesResource(restful.Resource):
         return return_dict
 
 class SmashGgMappingResource(restful.Resource):
-    def get(self, url):
+    def get(self):
+        args = smashGgMap_get_parser.parse_args()
+        url = args['bracket_url']
+
         event_id = SmashGGScraper.get_tournament_event_id_from_url(url)
         id_map = SmashGGScraper.get_phasename_id_map(event_id)
         return id_map
@@ -1025,7 +1031,7 @@ api.add_resource(FinalizeTournamentResource, '/<string:region>/tournaments/<stri
 # THIS CALL TAKES A SMASHGG BRACKET URL AND RETURNS A MAP OF BRACKETS IN THE SMASHGG EVENT TO THEIR PHASE IDS
 # THIS IS USEFUL FOR DISPLAYING THE INFORMATION TO THE USER SO THEY CAN CHOOSE ANY BRACKETS THEY DO NOT WISH
 # TO IMPORT
-api.add_resource(SmashGgMappingResource, '/smashGgMap/<string:url>')
+api.add_resource(SmashGgMappingResource, '/smashGgMap')
 
 api.add_resource(PendingTournamentListResource, '/<string:region>/tournaments/pending')
 api.add_resource(RankingsResource, '/<string:region>/rankings')

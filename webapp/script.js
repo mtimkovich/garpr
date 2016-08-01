@@ -540,7 +540,12 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
 
     //RETRIEVE THE PHASE ID TO BRACKET NAME MAP
     $scope.smashGG_populateBrackets = function(){
-        $http.get(hostname + '/smashGgMap/' + $scope.postParams.data).
+        var url = hostname + 'smashGgMap';
+        $http.get( url, {
+            params: {
+                bracket_url: $scope.postParams.data
+            }
+        }).
         success(function(data) {
             for(var key in data){
                 var bracket = {
