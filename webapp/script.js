@@ -463,6 +463,7 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
 
     $scope.smashGG_brackets = [];
     $scope.postParams = {};
+    $scope.postParams.excluded_phases = [];
 
     $scope.open = function() {
         $scope.disableButtons = false;
@@ -553,9 +554,8 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
                     id: key
                 };
                 $scope.smashGG_brackets.push(bracket);
-                $scope.postParams.excluded_phases.push(bracket.id);
             };
-
+            $scope.$apply();
         });
     };
 });
