@@ -41,11 +41,14 @@
                     <label for="bracket">SmashGG Bracket URL</label>
                     <input type="text" class="form-control" ng-model="postParams.data" ng-change="smashGG_populateBrackets()">
                     <br/>
-                    <p ng-repeat="bracket in smashGG_brackets" class="bracket_para">
-                        <input type="checkbox" class="smashGG_bracket_checkbox" id="{{ bracket.id }}_checkbox"
-                               ng-change="checkSmashggBracket(this)" bracket-id="{{ bracket.id }}" checked /><p>{{ bracket.name }} <i>( {{ bracket.id }} )</i></p>
+                    <ul style="list-style: none;">
+                        <li ng-repeat="bracket in smashGG_brackets" >
+                            <input type="checkbox" class="smashGG_bracket_checkbox" id="{{ bracket.id }}_checkbox"
+                               ng-change="checkSmashggBracket(this)" bracket-id="{{ bracket.id }}" checked >
+                            {{ bracket.name }} <i>( {{ bracket.id }} )</i>
+                        </li>
+                    </ul>
                     <br/>
-                    </p>
                 </div>
                 <button type="submit" class="btn btn-primary" ng-disabled="disableButtons">Submit</button>
                 <p class="text-danger" ng-show="errorMessage"><strong>There was an error. Please make sure everything is spelled correctly and try again.</strong></p>
