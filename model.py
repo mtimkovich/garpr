@@ -177,7 +177,7 @@ class Player(object):
                 id=json_dict.get('_id', None))
 
 class Tournament(object):
-    def __init__(self, type, raw, date, name, players, matches, regions, orig_ids=None, id=None):
+    def __init__(self, type, raw, url, date, name, players, matches, regions, orig_ids=None, id=None):
         '''
         :param type: string, either "tio", "challonge", or "smashgg"
         :param raw: for tio, this is an xml string. for challonge its a dict from string --> string
@@ -192,6 +192,7 @@ class Tournament(object):
         self.id = id
         self.type = type
         self.raw = raw
+        self.url = url
         self.date = date
         self.name = name
         self.matches = matches
@@ -233,6 +234,7 @@ class Tournament(object):
 
         json_dict['type'] = self.type
         json_dict['raw'] = self.raw
+        json_dict['url'] = self.url
         json_dict['date'] = self.date
         json_dict['name'] = self.name
         json_dict['players'] = self.players
@@ -246,10 +248,11 @@ class Tournament(object):
     def from_json(cls, json_dict):
         if json_dict == None:
             return None
-
+        print json_dict['_id'] 
         return cls(
                 json_dict['type'],
                 json_dict['raw'],
+                json_dict['url'],
                 json_dict['date'],
                 json_dict['name'],
                 json_dict['players'],
@@ -278,6 +281,7 @@ class Tournament(object):
         return cls(
                 pending_tournament.type,
                 pending_tournament.raw,
+                pending_tournament.url,
                 pending_tournament.date,
                 pending_tournament.name,
                 players,
@@ -299,7 +303,7 @@ class Tournament(object):
 class PendingTournament(object):
     '''Same as a Tournament, except it uses aliases for players instead of ids.
        Used during tournament import, before aliases are mapped to player ids.'''
-    def __init__(self, type, raw, date, name, players, matches, regions, alias_to_id_map=None, id=None):
+    def __init__(self, type, raw, url,  date, name, players, matches, regions, alias_to_id_map=None, id=None):
         '''
         :param type: string, either "tio", "challonge", "smashgg"
         :param raw: for tio, this is an xml string. for challonge its a dict from string --> string.
@@ -316,6 +320,7 @@ class PendingTournament(object):
         self.id = id
         self.type = type
         self.raw = raw
+        self.url = url
         self.date = date
         self.name = name
         self.matches = matches
@@ -335,6 +340,7 @@ class PendingTournament(object):
 
         json_dict['type'] = self.type
         json_dict['raw'] = self.raw
+        json_dict['url'] = self.url
         json_dict['date'] = self.date
         json_dict['name'] = self.name
         json_dict['players'] = self.players
@@ -352,6 +358,7 @@ class PendingTournament(object):
         return cls(
                 json_dict['type'],
                 json_dict['raw'],
+                json_dict['url'],
                 json_dict['date'],
                 json_dict['name'],
                 json_dict['players'],
@@ -385,6 +392,7 @@ class PendingTournament(object):
         return cls(
                 type,
                 scraper.get_raw(),
+                scraper.get_url(),
                 scraper.get_date(),
                 scraper.get_name(),
                 scraper.get_players(),
