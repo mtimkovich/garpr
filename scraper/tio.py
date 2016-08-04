@@ -26,7 +26,7 @@ class TioScraper(object):
         return self.text
 
     def get_url(self):
-        return self.text
+        return self.url
 
     def get_name(self):
         return self.soup.Event.Name.text
