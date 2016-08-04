@@ -26,7 +26,7 @@ class SmashGGScraper(object):
         :param path: url to go to the bracket
         """
         self.path = path
-
+        self.url = path
         #GET IMPORTANT DATA FROM THE URL
         self.event_id = SmashGGScraper.get_tournament_event_id_from_url(self.path)
         self.name = SmashGGScraper.get_tournament_name_from_url(self.path)
@@ -55,6 +55,10 @@ class SmashGGScraper(object):
         """
         return {'event': self.event_dict,
                 'groups': self.group_dicts}
+
+
+    def get_url(self):
+        return self.url
 
     def get_name(self):
         return self.name

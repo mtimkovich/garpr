@@ -423,10 +423,6 @@ def convert_tournament_to_response(tournament, dao):
             'loser_name': dao.get_player_by_id(m['loser']).name
         } for m in return_dict['matches']]
 
-    #add url if it exists
-    if(return_dict['type']=="challonge"):
-        return_dict['url'] = return_dict['raw']['tournament']['tournament']['full_challonge_url']
-
     # remove extra fields
     del return_dict['raw']
     del return_dict['orig_ids']
