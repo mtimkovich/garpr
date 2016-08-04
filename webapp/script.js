@@ -463,7 +463,7 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
 
     $scope.smashGG_brackets = [];
     $scope.postParams = {};
-    $scope.postParams.excluded_phases = [];
+    $scope.excluded_phases = [];
 
     $scope.open = function() {
         $scope.disableButtons = false;
@@ -487,6 +487,7 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
     $scope.submit = function() {
         console.log($scope.postParams);
         $scope.disableButtons = true;
+        $scope.postParams.excluded_phases = $scope.excluded_phases;
 
         url = hostname + $routeParams.region + '/tournaments';
         successCallback = function(data) {
@@ -524,20 +525,24 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
         $scope.sessionService.authenticatedDelete(url, successCallback);
     };
 
-    $scope.checkSmashggBracket = function(checkbox){
-        var checkboxElement = angular.element(checkbox);
-        var id = checkboxElement.attr('bracket-id').toString();
-        if(checkboxElement.prop('checked')){
+
+    $scope.checkSmashggBracket = function(bracket){
+        var id = bracket.id;
+        var checkboxId = id + "_checkbox";
+        var checkbox = document.getElementById(checkboxId);
+        if(checkbox.checked){
             //CHECKED: DON'T INCLUDE PHASE ID IN POST REQUEST
-            if($scope.postParams.excluded_phases.includes(id))
-                $scope.postParams.excluded_phases.splice(id);
+            if($scope.excluded_phases.includes(id))
+                $scope.excluded_phases.splice($scope.excluded_phases.indexOf(id), 1);
         }
         else{
             //NOT CHECKED: INCLUDE PHASE ID FOR EXCLUSION
-            if(!$scope.postParams.excluded_phases.includes(id))
-                $scope.postParams.excluded_phases.push(id);
+            if(!$scope.excluded_phases.includes(id))
+                $scope.excluded_phases.push(id);
         }
     }
+
+
 
     //RETRIEVE THE PHASE ID TO BRACKET NAME MAP
     $scope.smashGG_populateBrackets = function(){

@@ -356,7 +356,7 @@ class TournamentListResource(restful.Resource):
         parser.add_argument('type', type=str, location='json')
         parser.add_argument('data', type=unicode, location='json')
         parser.add_argument('bracket', type=str, location='json')
-        parser.add_argument('excluded_phases', type='list')
+        parser.add_argument('excluded_phases', type='list', location='json')
         args = parser.parse_args()
 
         if args['data'] is None:

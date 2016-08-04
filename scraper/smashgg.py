@@ -265,8 +265,6 @@ class SmashGGScraper(object):
             map[phase_id] = SmashGGScraper.get_phase_bracket_name(phase_id)
         return map
 
-
-
 class SmashGGPlayer(object):
     def __init__(self, smashgg_id, entrant_id, name, smash_tag, region, country, state, final_placement):
         """
@@ -311,6 +309,14 @@ class SmashGGMatch(object):
         self.loser_id = loser_id
         self.roundNumber = roundNumber
         self.bestOf = bestOf
+
+class SmashGGEvent(object):
+    """
+    This is currently unused
+    """
+    def __init__(self, event_id, phase_map):
+        self.event_id = event_id
+        self.phase_map = phase_map
 
 class SmashGGException(Exception):
     def __init__(self, message):
