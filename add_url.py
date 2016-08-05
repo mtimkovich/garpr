@@ -1,13 +1,12 @@
-import os
-import sys
-
 from pymongo import MongoClient
+from config.config import Config
 
-
-DATABASE_NAME = 'garpr'
+config = Config()
+DATABASE_NAME = config.get_db_name()
 TOURNAMENTS_COLLECTION_NAME = 'tournaments'
 PENDING_TOURNAMENTS_COLLECTION_NAME = 'pending_tournaments'
-mongo_client = MongoClient(host='mongodb://devuser:devpass01@127.0.0.1/admin')
+mongo_client = MongoClient(host=config.get_mongo_url())
+
 
 tournaments_col = mongo_client[DATABASE_NAME][TOURNAMENTS_COLLECTION_NAME]
 pending_tournaments_col = mongo_client[DATABASE_NAME][PENDING_TOURNAMENTS_COLLECTION_NAME]
