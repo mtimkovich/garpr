@@ -1,7 +1,14 @@
-from pymongo import MongoClient
-from config.config import Config
+import os
+import sys
 
-config = Config()
+from pymongo import MongoClient
+
+# add root directory to python path
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/../'))
+
+from config.config import Config
+from dao import Dao
+
 DATABASE_NAME = config.get_db_name()
 TOURNAMENTS_COLLECTION_NAME = 'tournaments'
 PENDING_TOURNAMENTS_COLLECTION_NAME = 'pending_tournaments'
