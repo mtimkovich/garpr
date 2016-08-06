@@ -23,10 +23,15 @@ for t in tournaments:
 		tournaments_col.update({"_id": t["_id"]},{"$set": {"url": t['raw']['tournament']['tournament']['full_challonge_url']}})
 	else:
 		print t['type'], t['name']
-		tournaments_col.update({"_id": t["_id"]},{"$set": {"url": None}})
+		tournaments_col.update({"_id": t["_id"]},{"$set": {"url": ''}})
+
+for x in range(1,5):
+	print '--------------------------'
 
 for pt in pending_tournaments:	
 	if(pt['type'] == 'challonge' and pt['raw'] != ""):
-		tournaments_col.update({"_id": pt["_id"]},{"$set": {"url": pt['raw']['tournament']['tournament']['full_challonge_url']}})
+		print pt['type'], pt['name'], "yes"
+		pending_tournaments_col.update({"_id": pt["_id"]},{"$set": {"url": pt['raw']['tournament']['tournament']['full_challonge_url']}})
 	else:	
-		pending_tournaments_col.update({"_id": pt["_id"]},{"$set": {"url": None}})
+		print t['type'], t['name']
+		pending_tournaments_col.update({"_id": pt["_id"]},{"$set": {"url": ''}})
