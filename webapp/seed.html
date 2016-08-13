@@ -1,0 +1,48 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-10">
+            <h3>Suggested Seeding:</h3>
+        </div>
+        <div class="col-md-2">
+            <h3 class="text-left"><button type="button" class="btn btn-info" ng-click="addPlayerRow()">+ Add Player</button></h3>
+        </div>
+    </div>
+        <div class="row">
+        <div class="col-md-12">
+            <h3>Players</h3>
+            <table class="table table-condensed">
+                <tr>
+                    <td><strong>Seed</strong></td>
+                    <td><strong>Tag</strong></td>
+                    <td><strong>Player Details</strong></td>
+                    <td><strong>Rating</strong></td>
+                    <td><strong>Player Search</strong></td>
+                </tr>
+                <tr ng-repeat="player in seeding.players">
+                    <td>
+                        {{player.seed}}
+                    </td>
+                    <td ng-class="{'text-danger': isNewPlayer(player), newPlayer: isNewPlayer(player)}">{{player.tag}}</td>
+                    <td>
+                        <div ng-hide="isNewPlayer(player)">
+                            <div ng-show="playerData[player].hasOwnProperty('id')">
+                                <p>Regions: <strong>{{prettyPrintRegionListForPlayer(player)}}</strong></p>
+                                <a href="#/{{regionService.region.id}}/players/{{playerData[player].id}}">
+                                    View match history
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                    	{{player.rating}}
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <input type="text" class="form-control" ng-model="playerData[player]" placeholder="Search for player..." typeahead="p as p.name for p in playerService.getPlayerListFromQuery($viewValue)" typeahead-on-select="playerSelected(player, $item)">
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

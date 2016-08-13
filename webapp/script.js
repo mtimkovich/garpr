@@ -332,6 +332,11 @@ app.config(['$routeProvider', function($routeProvider) {
         controller: 'HeadToHeadController',
         activeTab: 'headtohead'
     }).
+    when('/:region/seed', {
+        templateUrl: 'seed.html',
+        controller: 'SeedController',
+        activeTab: 'seed'
+    }).
     when('/about', {
         templateUrl: 'about.html',
         activeTab: 'about'
@@ -870,5 +875,71 @@ app.controller("HeadToHeadController", function($scope, $http, $routeParams, Reg
                     $scope.losses = data.losses;
                 });
         }
+    };
+});
+
+
+app.controller("SeedController", function($scope, $http, $routeParams, $modal, RegionService, PlayerService, RankingsService) {
+    RegionService.setRegion($routeParams.region);
+    $scope.regionService = RegionService;
+    $scope.playerService = PlayerService;
+    $scope.rankingsService = RankingsService;
+
+    $scope.seeding = {
+        players:[]
+    };
+
+    $scope.addPlayerRow = function()
+    {
+        $scope.seeding.players.push(
+        {
+            seed: $scope.seeding.players.length+1,
+            tag : ""
+        });
+    }
+
+    $scope.playerSelected = function(player, item)
+    {
+        player.regions = item.regions;
+        player.tag = item.name;
+        player.rating = undefined;
+        $scope.rankingsService.rankingsList.ranking.forEach(function(rank)
+        {
+            if(rank.name == item.name)
+            {
+                player.rating = rank.rating;
+            }
+        });
+    }
+
+    $scope.prompt = function() {
+        $scope.modalInstance = $modal.open({
+            templateUrl: 'import_tournament_modal.html',
+            scope: $scope,
+            size: 'lg'
+        });
+    };
+
+    $scope.resortSeeding = function()
+    {
+        var tru= true;
+    }
+
+     $scope.prettyPrintRegionListForPlayer = function(player) {
+        var retString = 'None';
+        if (player != null && player.hasOwnProperty('regions')) {
+            var regions = player.regions;
+            for (i = 0; i < regions.length; i++) {
+                r = regions[i];
+                if (retString == 'None') {
+                    retString = $scope.regionService.getRegionDisplayNameFromRegionId(r);
+                }
+                else {
+                    retString += ', ' + $scope.regionService.getRegionDisplayNameFromRegionId(r);
+                }
+            }
+        }
+
+        return retString;
     };
 });
