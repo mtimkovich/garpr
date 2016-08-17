@@ -19,10 +19,13 @@ def generate_ranking(dao, now=datetime.now(), day_limit=60, num_tourneys=2):
         # TODO add a default rating entry when we add it to the map
         for match in tournament.matches:
 
-            #don't count matches where player loses vs OOR player against them. counting wins should be fine?
-            db_player = dao.get_player_by_id(match.winner)
-            if not dao.region_id in db_player.regions:
+            #don't count matches where either player is OOR
+            winner = dao.get_player_by_id(match.winner)
+            if not dao.region_id in winner.regions:
                 continue
+            loser = dao.get_player_by_id(match.loser)
+            if not dao.region_id in loser.regions:
+                continue 
             
             if not match.winner in player_id_to_player_map:
                 db_player = dao.get_player_by_id(match.winner)
