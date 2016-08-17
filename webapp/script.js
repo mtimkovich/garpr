@@ -661,10 +661,10 @@ app.controller("TournamentDetailController", function($scope, $routeParams, $htt
 
         // listify the current alias_to_id_map so angular
         // does not strip certain properties
-        $scope.tournament.alias_to_id_map = [];
+        $scope.postParams = {alias_mappings: []};
         for(var alias in $scope.aliasMap){
             var id = $scope.aliasMap[alias];
-            $scope.tournament.alias_to_id_map.push(
+            $scope.postParams.alias_mapppings.push(
                 { "player_alias": alias,
                   "player_id": id
                 });

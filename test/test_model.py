@@ -288,7 +288,10 @@ class TestRanking(unittest.TestCase):
                           tournaments=[self.tournament])
         self.ranking.save()
 
+        print type(self.ranking.to_json())
+
     def test_to_string(self):
+        assert False
         ranking_strs = str(self.ranking).split(';')
         self.assertEqual(len(ranking_strs), 4)
         self.assertEqual(ranking_strs[0], '1. gar (%s)' % self.player_1.id)

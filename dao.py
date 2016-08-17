@@ -30,12 +30,19 @@ def verify_password(password, salt, hashed_password):
 
 class Dao(object):
     def __init__(self, region_id):
-        self.region = Region.objects.get(id=region_id)
+        if region_id:
+            self.region = Dao.get_region_by_id(region_id)
 
-    # sorted by display name
+    @classmethod
+    def get_region_by_id(self, id):
+        try:
+            return Region.objects.get(id=id)
+        except Region.DoesNotExist:
+            return None
+
     @classmethod
     def get_all_regions(cls):
-        return Region.objects.order_by('display_name')
+        return list(Region.objects.order_by('display_name'))
 
     def get_player_by_id(self, id):
         try:
@@ -56,24 +63,6 @@ class Dao(object):
             aliases=alias.lower(),
             merged=include_merged))
 
-    def get_player_id_map_from_player_aliases(self, aliases, include_merged=False):
-        '''Given a list of player aliases, returns a list of player aliases/id pairs for the current
-        region. If no player can be found, the player id field will be set to None.'''
-        player_alias_to_player_id_map = []
-
-        for alias in aliases:
-            id = None
-            player = self.get_player_by_alias(alias, include_merged)
-            if player is not None:
-                id = player.id
-
-            player_alias_to_player_id_map.append({
-                'player_alias': alias,
-                'player_id': id
-            })
-
-        return player_alias_to_player_id_map
-
     def get_all_players(self, all_regions=False, include_merged=False):
         '''Sorts by name in lexographical order.'''
         mongo_request = {}
@@ -84,33 +73,39 @@ class Dao(object):
 
         return list(Player.objects(**mongo_request).order_by('name'))
 
-    def get_all_pending_tournaments(self, regions=None):
+    def get_all_pending_tournaments(self,
+                                    regions=None,
+                                    exclude_properties=['raw']):
         '''players is a list of Players'''
         # TODO: replace with MongoEngine query?
         query_dict = {}
         query_list = []
 
         if regions:
-            query_list.append({'regions': {'$in': regions}})
+            for region in regions:
+                query_list.append({'regions': {'$in': [region.id]}})
 
         if query_list:
             query_dict['$and'] = query_list
 
 
         return list(PendingTournament.objects(__raw__=query_dict) \
-                                .exclude('raw')      \
+                                .exclude(*exclude_properties)     \
                                 .order_by('date'))
 
     def get_pending_tournament_by_id(self, id):
         try:
-            return PendingTournament.objects.get(id=id)
+            return PendingTournament.objects.exclude('raw').get(id=id)
         except PendingTournament.DoesNotExist:
             return None
 
     def get_all_tournament_ids(self, players=None, regions=None):
         return [x.id for x in self.get_all_tournaments(players, regions)]
 
-    def get_all_tournaments(self, players=None, regions=None, op='and'):
+    def get_all_tournaments(self, players=None,
+                                  regions=None,
+                                  op='and',
+                                  exclude_properties=['raw']):
         '''players is a list of Players'''
         query_dict = {}
         query_list = []
@@ -130,13 +125,13 @@ class Dao(object):
                 query_dict['$or'] = query_list
 
         return list(Tournament.objects(__raw__=query_dict) \
-                         .exclude('raw')              \
+                         .exclude(*exclude_properties)     \
                          .order_by('date'))
 
 
     def get_tournament_by_id(self, id):
         try:
-            return Tournament.objects.get(id=id)
+            return Tournament.objects.exclude('raw').get(id=id)
         except Tournament.DoesNotExist:
             return None
 
@@ -254,7 +249,6 @@ class Dao(object):
 
     def get_latest_ranking(self):
         return Ranking.objects.order_by('-time').first()
-        return Ranking.from_json(self.rankings_col.find({'region': self.region_id}).sort('time', DESCENDING)[0])
 
     # TODO add more tests
     def is_inactive(self, player, now, day_limit, num_tourneys):
@@ -337,7 +331,7 @@ class Dao(object):
 
 
     def check_creds_and_get_session_id_or_none(self, username, password):
-        user = get_user_by_username_or_none(username)
+        user = self.get_user_by_username_or_none(username)
         if not user:
             return None
 
@@ -352,8 +346,8 @@ class Dao(object):
     def update_session_id_for_user(self, user, session_id):
         #lets force people to have only one session at a time
         Session.objects(user=user).delete()
-        new_session = SessionMapping(id=session_id,
-                                     user=user)
+        new_session = Session(id=session_id,
+                              user=user)
         new_session.save()
 
     def logout_user_or_none(self, session_id):

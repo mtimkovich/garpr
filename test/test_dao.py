@@ -18,13 +18,15 @@ CONFIG_LOCATION = os.path.abspath(os.path.dirname(__file__) + '/../config/config
 
 class TestDAO(unittest.TestCase):
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
+        super(TestDAO, cls).setUpClass()
+
         config = Config(CONFIG_LOCATION)
-        self.conn = connect(DATABASE_NAME)
-        self.conn.the_database.authenticate(config.get_db_user(),
+        cls.conn = connect(DATABASE_NAME)
+        cls.conn.the_database.authenticate(config.get_db_user(),
                                        config.get_db_password(),
                                        source=config.get_auth_db_name())
-        self.conn.drop_database(DATABASE_NAME)
+        cls.conn.drop_database(DATABASE_NAME)
 
     def setUp(self):
         self.norcal = Region(id='norcal', display_name='Norcal')

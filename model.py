@@ -1,5 +1,7 @@
 from mongoengine import *
 
+import trueskill
+
 SOURCE_TYPE_CHOICES = ('tio', 'challonge', 'smashgg', 'other')
 
 # MongoEngine embedded documents (i.e. subobjects of other documents)
@@ -35,11 +37,11 @@ class Match(EmbeddedDocument):
     def did_player_win(self, player_id):
         return self.winner.id == player_id
 
-    def get_opposing_player_id(self, player_id):
+    def get_opposing_player(self, player_id):
         if self.winner.id == player_id:
-            return self.loser.id
+            return self.loser
         elif self.loser.id == player_id:
-            return self.winner.id
+            return self.winner
         else:
             return None
 
@@ -64,6 +66,9 @@ class Rating(EmbeddedDocument):
 
     def __str__(self):
         return "(mu={:.2f},sigma={:.2f})".format(self.mu, self.sigma)
+
+    def trueskill_rating(self):
+        return trueskill.Rating(mu=self.mu, sigma=self.sigma)
 
     @classmethod
     def from_trueskill(cls, region, trueskill_rating):
@@ -134,6 +139,16 @@ class Player(Document):
     # TODO: add back other properties to this?
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
+
+    def get_rating(self, region):
+        return self.ratings.filter(region=region).first()
+
+    def update_rating(self, rating):
+        self.delete_rating(rating.region)
+        self.ratings.append(rating)
+
+    def delete_rating(self, region):
+        self.ratings.filter(region=region).delete()
 
 class Region(Document):
     id = StringField(required=True, unique=True, primary_key=True)

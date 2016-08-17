@@ -67,6 +67,8 @@ def migrate_to_orm():
                       'merged': old_player.get('merged'),
                       'merge_parent': old_player.get('merge_parent'),
                       'merge_children': old_player.get('merge_children')}
+        if new_player['merge_children'] and new_player['_id'] in new_player['merge_children']:
+            new_player['merge_children'].remove(new_player['_id'])
         try:
             new_players.insert_one(new_player)
         except Exception as e:

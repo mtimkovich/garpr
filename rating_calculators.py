@@ -1,14 +1,11 @@
 import trueskill
-from model import TrueskillRating
+from model import Rating
 
-def update_trueskill_ratings(region_id, winner=None, loser=None):
-    winner_ratings_dict = winner.ratings
-    loser_ratings_dict = loser.ratings
-
+def update_trueskill_ratings(region, winner=None, loser=None):
     new_winner_rating, new_loser_rating = trueskill.rate_1vs1(
-            winner_ratings_dict[region_id].trueskill_rating, 
-            loser_ratings_dict[region_id].trueskill_rating
+            winner.get_rating(region).trueskill_rating(),
+            loser.get_rating(region).trueskill_rating()
     )
 
-    winner_ratings_dict[region_id] = TrueskillRating(trueskill_rating=new_winner_rating)
-    loser_ratings_dict[region_id] = TrueskillRating(trueskill_rating=new_loser_rating)
+    winner.update_rating(Rating.from_trueskill(region, new_winner_rating))
+    loser.update_rating(Rating.from_trueskill(region, new_loser_rating))

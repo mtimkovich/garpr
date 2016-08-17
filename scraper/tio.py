@@ -63,7 +63,8 @@ class TioScraper(object):
                 else:
                     matches.append(match_result)
             except KeyError:
-                print 'Could not find player for ids', player_1_id, player_2_id
+                pass
+                # print 'Could not find player for ids', player_1_id, player_2_id
 
         if grand_finals_first_set is not None:
             matches.append(grand_finals_first_set)
@@ -78,8 +79,8 @@ class TioScraper(object):
             self.players = set()
             matches = self.get_matches()
             for match in matches:
-                self.players.add(match.winner)
-                self.players.add(match.loser)
+                self.players.add(match['winner'])
+                self.players.add(match['loser'])
 
             self.players = list(self.players)
 
