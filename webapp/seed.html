@@ -2,6 +2,8 @@
     <div class="row">
         <div class="col-md-10">
             <h3>Suggested Seeding:</h3>
+            <h6><span class="text-warning">Yellow</span> Indicates an inactive rating for this region (when an active ranking is unavailable).</h6>
+            <h6><span class="text-danger">Red</span> Indicates an out of region ranking (when an in-region ranking is unavailable).</h6>
         </div>
         <div class="col-md-2">
             <h3 class="text-left"><button type="button" class="btn btn-info" ng-click="addPlayerRow()">+ Add Player</button></h3>
@@ -34,7 +36,10 @@
                         </div>
                     </td>
                     <td>
-                    	{{player.rating}}
+                    	<div ng-class="{'text-warning': player.ratingType==1, 'text-danger': player.ratingType==2, newPlayer: isNewPlayer(player)}">
+                    		{{player.rating}}<span ng-if="player.ratingType>0">*</span>
+						</div>
+						<div ng-if="player.ratingType==2" class="text-danger">(Region: {{player.oorRanking}})</div>
                     </td>
                     <td>
                         <div class="form-group">

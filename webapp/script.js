@@ -900,6 +900,13 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal, R
 
     $scope.playerSelected = function(player, item)
     {
+        /**
+        -1: no rating
+        0: current in-region rating
+        1: inactive, in-region rating
+        2: OOR rating (active/inactive)
+        **/
+        player.ratingType=-1;
         player.regions = item.regions;
         player.tag = item.name;
         player.rating = undefined;
@@ -908,8 +915,33 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal, R
             if(rank.name == item.name)
             {
                 player.rating = rank.rating;
+                player.ratingType = 0;
             }
         });
+
+        //use inactive/OOR ranking if available
+        if(player.ratingType==-1)
+        {
+            
+            if(item.ratings !== undefined)
+            {
+                //inactive
+                if($scope.rankingsService.rankingsList.region in item.ratings)
+                {
+                    player.rating = item.ratings[$scope.rankingsService.rankingsList.region].mu;
+                    player.ratingType=1;
+                }
+                //OOR
+                else
+                {
+                    for (var first in item.ratings) break;//this is whack
+                    player.rating = item.ratings[first].mu;
+                    player.oorRanking = first;
+                    player.ratingType = 2;
+                }
+            }
+        }
+        $scope.resortSeeding();
     }
 
     $scope.prompt = function() {
@@ -922,7 +954,18 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal, R
 
     $scope.resortSeeding = function()
     {
-        var tru= true;
+        $scope.seeding.players.sort(function(a, b) {
+            if(b.rating === undefined)
+                return -1;
+            else if (a.rating === undefined)
+                return 1;
+            else
+                return b.rating - a.rating;
+        });
+        $scope.seeding.players.forEach(function(player, index)
+        {
+            player.seed = index + 1;
+        });
     }
 
      $scope.prettyPrintRegionListForPlayer = function(player) {

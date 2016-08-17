@@ -212,7 +212,6 @@ class PlayerListResource(restful.Resource):
         # remove extra fields
         for player in return_dict['players']:
             del player['aliases']
-            del player['ratings']
 
             player['merge_parent'] = str(player['merge_parent'])
             player['merge_children'] = [str(child) for child in player['merge_children']]
