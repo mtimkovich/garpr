@@ -292,7 +292,7 @@ class PendingTournament(BaseTournament):
         tournament.source_type = source_type
         tournament.date = scraper.get_date()
         tournament.regions = regions
-        tournament.raw = scraper.get_raw()
+        tournament.raw = str(scraper.get_raw())
         tournament.aliases = scraper.get_players()
         for match in scraper.get_matches():
             alias_match = AliasMatch(winner=match['winner'],

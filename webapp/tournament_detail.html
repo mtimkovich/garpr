@@ -2,7 +2,7 @@
     <!-- PENDING TOURNAMENTS -->
     <div class="row">
         <div class="col-md-10">
-            <h1>{{tournament.date}} - {{tournament.name}}</h1>
+            <h1>{{tournament.tournament.date}} - {{tournament.tournament.name}}</h1>
         </div>
         <div class="col-md-2" ng-show="sessionService.isAdmin()">
             <h1 class="text-right"><button type="button" class="btn btn-danger" ng-click="openDetailsModal()">Edit Tournament Details</button></h1>
@@ -23,7 +23,7 @@
                     <td><strong>Player Details</strong></td>
                     <td><strong>Player Search</strong></td>
                 </tr>
-                <tr ng-repeat="player in tournament.players">
+                <tr ng-repeat="player in tournament.tournament.aliases">
                     <td>
                         <input type="checkbox"
                                ng-model="playerCheckboxState[player]"
@@ -65,7 +65,7 @@
                     <td>Winner</td>
                     <td>Loser</td>
                 </tr>
-                <tr ng-repeat="match in tournament.matches">
+                <tr ng-repeat="match in tournament.tournament.alias_matches">
                     <td class="success">{{match.winner}}</a></td>
                     <td class="danger">{{match.loser}}</a></td>
                 </tr>

@@ -1,7 +1,7 @@
 import os
 import sys
 
-from pymongo import MongoClient
+from mongoengine import connect
 
 # add root directory to python path
 sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/../'))
@@ -21,7 +21,10 @@ if __name__ == "__main__":
     regions =  sys.argv[3:]
 
     config = Config()
-    mongo_client = MongoClient(host=config.get_mongo_url())
-    dao = Dao(None, mongo_client)
+    conn = connect(config.get_db_name())
+    conn.the_database.authenticate(config.get_db_user(),
+                                   config.get_db_password(),
+                                   source=config.get_auth_db_name())
+    dao = Dao(None)
     if dao.create_user(username, password, regions):
         print "user created:", username

@@ -33,6 +33,7 @@ app.service('RegionService', function ($http, PlayerService, TournamentService, 
                     service.region = service.getRegionFromRegionId(newRegionId);
                     PlayerService.playerList = null;
                     TournamentService.tournamentList = null;
+                    TournamentService.pendingTournamentList = null;
                     RankingsService.rankingsList = null;
                     MergeService.mergeList = null;
                     service.populateDataForCurrentRegion();
@@ -55,7 +56,6 @@ app.service('RegionService', function ($http, PlayerService, TournamentService, 
         populateDataForCurrentRegion: function() {
             // get all players instead of just players in region
             var curRegion = this.region;
-            console.log(this.region);
             $http.get(hostname + this.region.id + '/players?all=true').
                 success(function(data) {
                     PlayerService.allPlayerList = data;
@@ -72,11 +72,18 @@ app.service('RegionService', function ($http, PlayerService, TournamentService, 
                             })
                     };
                 });
-
-            SessionService.authenticatedGet(hostname + this.region.id + '/tournaments?includePending=true',
-                function(data) {
-                    TournamentService.tournamentList = data.tournaments.reverse();
-                });
+            if(SessionService.isAdmin()){
+                SessionService.authenticatedGet(hostname + this.region.id + '/tournaments?includePending=true',
+                    function(data) {
+                        TournamentService.tournamentList = data.tournaments.reverse();
+                        TournamentService.pendingTournamentList = data.pending_tournaments.reverse();
+                    });
+            }else{
+                SessionService.authenticatedGet(hostname + this.region.id + '/tournaments',
+                    function(data) {
+                        TournamentService.tournamentList = data.tournaments.reverse();
+                    });
+            }
 
             $http.get(hostname + this.region.id + '/rankings').
                 success(function(data) {
@@ -167,29 +174,17 @@ app.service('PlayerService', function($http) {
             filteredPlayers = filteredPlayers.map(p => p.player);
 
             return filteredPlayers;
-
-            // let's not send so many get requests
-            /*
-            url = hostname + defaultRegion + '/players';
-            params = {
-                params: {
-                    query: query
+        },
+        getPlayerRating: function(player, regionID){
+            if(player==null){
+                return {mu:0, sigma: 0};
+            }
+            for(var i=0;i<player.ratings.length;i++){
+                if(player.ratings[i].region==regionID){
+                    return player.ratings[i];
                 }
             }
-
-            return $http.get(url, params).then(function(response) {
-                players = response.data.players;
-                if (filter_fn != undefined) {
-                    filtered_players = []
-                    for (var i = 0; i < players.length; i++) {
-                        if (filter_fn(players[i])) {
-                            filtered_players.push(players[i])
-                        }
-                    }
-                    players = filtered_players;
-                }
-                return players;
-            });*/
+            return {mu:0, sigma: 0};
         }
     };
     return service;
@@ -204,7 +199,8 @@ app.service('MergeService', function($http) {
 
 app.service('TournamentService', function() {
     var service = {
-        tournamentList: null
+        tournamentList: null,
+        pendingTournamentList: null
     };
     return service;
 });
@@ -481,7 +477,6 @@ app.controller("TournamentsController", function($scope, $routeParams, $modal, R
     };
 
     $scope.submit = function() {
-        console.log($scope.postParams);
         $scope.disableButtons = true;
 
         url = hostname + $routeParams.region + '/tournaments';
@@ -545,8 +540,11 @@ app.controller("TournamentDetailController", function($scope, $routeParams, $htt
             scope: $scope,
             size: 'lg'
         });
-        $scope.postParams = {name: $scope.tournament.name,
-                             date: $scope.tournament.date,
+
+        console.log($scope.tournament);
+
+        $scope.postParams = {name: $scope.tournament.tournament.name,
+                             date: $scope.tournament.tournament.date,
                              pending: $scope.isPendingTournament};
         $scope.tournamentRegionCheckbox = {};
 
@@ -607,13 +605,14 @@ app.controller("TournamentDetailController", function($scope, $routeParams, $htt
     $scope.submitPendingTournament = function() {
         url = hostname + $routeParams.region + '/tournaments/' + $scope.tournamentId + '/finalize';
         successCallback = function(data) {
-            window.location.reload();
+            new_url = hostname + $routeParams.region + '/tournaments/' + data.tournament_id;
+            $location.path($routeParams.region+'/tournaments/' + data.tournament_id);
         };
         $scope.sessionService.authenticatedPost(url, {}, successCallback);
     };
 
     $scope.isTournamentInRegion = function(regionId) {
-        return $scope.tournament.regions.indexOf(regionId) > -1
+        return $scope.tournament.tournament.regions.indexOf(regionId) > -1
     };
 
     $scope.onPlayerCheckboxChange = function(playerAlias) {
@@ -664,26 +663,26 @@ app.controller("TournamentDetailController", function($scope, $routeParams, $htt
         $scope.postParams = {alias_mappings: []};
         for(var alias in $scope.aliasMap){
             var id = $scope.aliasMap[alias];
-            $scope.postParams.alias_mapppings.push(
+            $scope.postParams.alias_mappings.push(
                 { "player_alias": alias,
                   "player_id": id
                 });
         }
 
         url = hostname + $routeParams.region + '/pending_tournaments/' + $scope.tournamentId;
-        $scope.sessionService.authenticatedPut(url, $scope.tournament, $scope.updateData);
+        $scope.sessionService.authenticatedPut(url, $scope.postParams, $scope.updateData);
     }
 
     $scope.updateData = function(data) {
         $scope.tournament = data;
-        if ($scope.tournament.hasOwnProperty('alias_to_id_map')) {
+        if ($scope.tournament.is_pending) {
             $scope.isPendingTournament = true;
 
             // load individual player detail
-            $scope.tournament.alias_to_id_map.forEach(
+            $scope.tournament.tournament.alias_mappings.forEach(
                 function(aliasItem){
                     var player = aliasItem["player_alias"];
-                    var id = aliasItem["player_id"];
+                    var id = aliasItem["player"];
                     $scope.aliasMap[player] = id;
                     if(id != null){
                         $scope.playerCheckboxState[player] = false;
@@ -725,6 +724,7 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
 
     $scope.player = null;
     $scope.playerId = $routeParams.playerId;
+    $scope.rating = null;
     $scope.mergePlayer = "";
     $scope.matches = null;
 
@@ -767,6 +767,7 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
 
         successCallback = function(data) {
             $scope.player = data;
+            $scope.rating = playerService.getPlayerRating(player, regionService.region.id);
             $scope.closeDetailsModal();
         };
 

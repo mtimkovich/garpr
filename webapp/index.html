@@ -46,7 +46,7 @@
                     <ul class="nav navbar-nav navbar-right">
                         <li class="dropdown" dropdown ng-controller="AuthenticationController">
                             <a class="dropdown-toggle" dropdown-toggle>
-                                {{sessionService.loggedIn ? sessionService.userInfo.username : "Login"}}
+                                {{sessionService.loggedIn ? sessionService.userInfo.id : "Login"}}
                                 <span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu" role="menu">

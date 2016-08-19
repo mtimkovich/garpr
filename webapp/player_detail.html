@@ -16,8 +16,8 @@
         <div class="row">
             <div class="player-rating col-md-12">
                 <h2><span tooltip-placement="right"
-                          tooltip-html-unsafe="Skill: {{player.ratings[regionService.region.id].mu | number:3}}<br>Uncertainty: {{player.ratings[regionService.region.id].sigma | number:3}}">
-                    Rating: {{player.ratings[regionService.region.id].mu - 3*player.ratings[regionService.region.id].sigma | number:3}}
+                          tooltip-html-unsafe="Skill: {{playerService.getPlayerRating(player, regionService.region.id).mu | number:3}}<br>Uncertainty: {{playerService.getPlayerRating(player, regionService.region.id).sigma | number:3}}">
+                    Rating: {{playerService.getPlayerRating(player, regionService.region.id).mu - 3*playerService.getPlayerRating(player, regionService.region.id).sigma | number:3}}
                 </span></h2>
             </div>
         </div>

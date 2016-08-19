@@ -15,10 +15,10 @@
                     <td>Name</td>
                     <td>Rating</td>
                 </tr>
-                <tr ng-repeat="line in rankingsService.rankingsList.ranking">
+                <tr ng-repeat="line in rankingsService.rankingsList.ranking_entries">
                     <td>{{line.rank}}</td>
-                    <td><a href="#/{{regionService.region.id}}/players/{{line.id}}">{{line.name}}</a></td>
-                    <td>{{line.rating | number:3}}</td>
+                    <td><a href="#/{{regionService.region.id}}/players/{{line.player_id}}">{{line.name}}</a></td>
+                    <td>{{line.rating.mu | number:3}}</td>
                 </tr>
             </table>
         </div>

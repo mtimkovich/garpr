@@ -4,6 +4,7 @@ import re
 import sys
 
 from bson import json_util
+from bson.dbref import DBRef
 from bson.objectid import ObjectId
 from datetime import datetime
 from flask import Flask, request, jsonify
@@ -39,11 +40,7 @@ def connect_db():
                                                source=config.get_auth_db_name())
 
 def abort(status_code, body=None):
-    error_data = {}
-    error_data['status_code'] = status_code
-    if body:
-        error_data['message'] = str(body)
-
+    print status_code, body
     flask_abort(status_code, description=body)
 
 def get_dao(region):
@@ -64,14 +61,16 @@ def auth_user(request, dao, check_regions=True):
 # make mongoengines to_json routine consistent with earlier format
 def responsify(response):
     #print response, type(response)
-    if isinstance(response, BaseDocument):
+    if isinstance(response, ObjectId):
+        return str(response)
+    elif isinstance(response, DBRef):
+        return str(response.id)
+    elif isinstance(response, BaseDocument):
         return responsify(response.to_mongo())
     elif isinstance(response, QuerySet):
         return list(response)
     elif isinstance(response, datetime):
         return response.strftime("%x")
-    elif isinstance(response, ObjectId):
-        return str(response)
     elif isinstance(response, dict):
         if '_id' in response:
             response['id'] = response['_id']
@@ -110,6 +109,30 @@ def _get_tournament_by_id(dao, id):
         return tournament
 
     abort(404, 'tournament not found')
+
+def _responsify_tournament(tournament):
+    return_dict = {}
+
+    if isinstance(tournament, Tournament):
+        return_dict['tournament'] = tournament
+        return_dict['players'] = [{
+            'id': p.id,
+            'name': p.name
+            } for p in tournament.players]
+        return_dict['matches'] = [{
+            'winner_id': m.winner.id,
+            'winner_name': m.winner.name,
+            'loser_id': m.loser.id,
+            'loser_name': m.loser.name
+            } for m in tournament.matches]
+        return_dict['is_pending'] = False
+    elif isinstance(tournament, PendingTournament):
+        return_dict['tournament'] = tournament
+        return_dict['is_pending'] = True
+    else:
+        abort(400, 'error loading tournament')
+
+    return return_dict
 
 #TODO: major refactor to move auth code to a decorator
 
@@ -290,27 +313,10 @@ class TournamentResource(restful.Resource):
         dao = get_dao(region)
 
         tournament = _get_tournament_by_id(dao, id)
-        return_dict = {}
-
-        if isinstance(tournament, Tournament):
-            return_dict['tournament'] = tournament
-            return_dict['players'] = [{
-                'id': p.id,
-                'name': p.name
-                } for p in tournament.players]
-            return_dict['matches'] = [{
-                'winner_id': m.winner.id,
-                'winner_name': m.winner.name,
-                'loser_id': m.loser.id,
-                'loser_name': m.loser.name
-                } for m in tournament.matches]
-        elif isinstance(tournament, PendingTournament):
+        if(isinstance(tournament, PendingTournament)):
             auth_user(request, dao)
-            return_dict['tournament'] = tournament
-        else:
-            abort(400, 'error loading tournament')
 
-        return responsify(return_dict)
+        return responsify(_responsify_tournament(tournament))
 
     def put(self, region, id):
         dao = get_dao(region)
@@ -361,7 +367,7 @@ class TournamentResource(restful.Resource):
             print e
             abort(400, "Error saving tournament")
 
-        return responsify(tournament)
+        return responsify(_responsify_tournament)
 
     def delete(self, region, id):
         """ Deletes a tournament.
@@ -390,6 +396,8 @@ class PendingTournamentResource(restful.Resource):
         pending_tournament_put_parser.add_argument('alias_mappings', type=list)
         args = pending_tournament_put_parser.parse_args()
 
+        print args
+
         pending_tournament = None
         try:
             pending_tournament = dao.get_pending_tournament_by_id(ObjectId(id))
@@ -398,18 +406,22 @@ class PendingTournamentResource(restful.Resource):
         if not pending_tournament:
             abort(404, "No pending touranment found with that ID")
 
+        print pending_tournament
+
         try:
             for alias_item in args["alias_mappings"]:
                 player_alias = alias_item["player_alias"]
-                player_id = ObjectId(alias_item["player_id"])
-                pending_tournament.set_alias_mapping(player_alias, player_id)
-        except:
+                player = dao.get_player_by_id(ObjectId(alias_item["player_id"]))
+                pending_tournament.set_alias_mapping(player_alias, player)
+        except Exception as e:
+            print e
             abort(400, 'Error processing alias_mappings')
 
         try:
             pending_tournament.save()
-            return responsify(pending_tournament)
-        except:
+            return responsify(_responsify_tournament(pending_tournament))
+        except Exception as e:
+            print e
             abort(400, 'Encountered an error inserting pending tournament')
 
 class FinalizeTournamentResource(restful.Resource):
@@ -548,7 +560,7 @@ class MergeListResource(restful.Resource):
         auth_user(request, dao)
 
         return_dict = {}
-        return_dict['merges'] = {'merge': merge for merge in dao.get_all_merges()}
+        return_dict['merges'] = [{'merge': merge} for merge in dao.get_all_merges()]
 
         for merge in return_dict['merges']:
             merge_obj = merge['merge']
@@ -649,10 +661,10 @@ class SessionResource(restful.Resource):
         user = auth_user(request, dao, check_regions=False)
 
         # don't return salt + hashed_password!
-        return_dict = {'username': user.username,
-                       'admin_regions': user.admin_regions}
+        user.salt = None
+        user.hashed_password = None
 
-        return responsify(return_dict)
+        return responsify(user)
 
 @app.after_request
 def add_security_headers(resp):
