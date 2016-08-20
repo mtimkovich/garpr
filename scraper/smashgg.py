@@ -39,12 +39,18 @@ class SmashGGScraper(object):
         # JSON DUMPED FROM THE API
 
         self.event_dict = SmashGGScraper.get_event_dict(self.event_id)
+
         self.group_ids = self.get_group_ids()
+        print('  [smashgg.py] groups: ')
+        for group in self.group_ids:
+            print('  [smashgg.py] ' + group)
         # REMOVE ANY PHASES THE USER INDICATED NOT TO INCLUDE IN THE IMPORT
         if len(self.excluded_phases) > 0:
+            print('  [smashgg.py] smashgg object got excluded groups:')
             # self.group_dicts = [self.group_dicts.remove(group_id) for group_id in self.excluded_phases]
             for group_id in excluded_phases:
                 try:
+                    print('  [smashgg.py] group: ' + group_id)
                     phase_ids = SmashGGScraper.get_phase_group_ids_from_phase(group_id)
                     for phase_id in phase_ids:
                         self.group_ids.remove(str(phase_id))

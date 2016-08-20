@@ -77,6 +77,7 @@ tournament_import_parser.add_argument('bracket_type', type=str, required=True, h
 tournament_import_parser.add_argument('challonge_url', type=str)
 tournament_import_parser.add_argument('tio_file', type=str)
 tournament_import_parser.add_argument('tio_bracket_name', type=str)
+tournament_import_parser.add_argument('excluded_phases', type=list)
 
 pending_tournament_put_parser = reqparse.RequestParser()
 pending_tournament_put_parser.add_argument('name', type=str)
@@ -356,7 +357,7 @@ class TournamentListResource(restful.Resource):
         parser.add_argument('type', type=str, location='json')
         parser.add_argument('data', type=unicode, location='json')
         parser.add_argument('bracket', type=str, location='json')
-        parser.add_argument('excluded_phases', type='list', location='json')
+        parser.add_argument('excluded_phases', type=list, location='json')
         args = parser.parse_args()
 
         if args['data'] is None:
@@ -385,6 +386,10 @@ class TournamentListResource(restful.Resource):
             elif type == 'challonge':
                 scraper = ChallongeScraper(data)
             elif type == 'smashgg':
+                if excluded_phases and len(excluded_phases) > 0:
+                    print('  [server.py] excluded phases:')
+                    for phase in excluded_phases:
+                        print('  [server.py] ' + str(phase))
                 scraper = SmashGGScraper(data, excluded_phases)
             else:
                 return "Unknown type", 400
