@@ -26,25 +26,29 @@
                         {{player.seed}}
                     </td>
                     <td ng-class="{'text-danger': isNewPlayer(player), newPlayer: isNewPlayer(player)}">{{player.tag}}</td>
-                    <td>
-                        <div ng-hide="isNewPlayer(player)">
-                            <div ng-show="playerData[player].hasOwnProperty('id')">
+                    <td ng-hide="isNewPlayer(player)">
+                        <div>
+                            <div>
                                 <p>Regions: <strong>{{prettyPrintRegionListForPlayer(player)}}</strong></p>
-                                <a href="#/{{regionService.region.id}}/players/{{playerData[player].id}}">
+                            	<a ng-show="player.hasOwnProperty('id')"
+                                href="#/{{regionService.region.id}}/players/{{player.id}}">
                                     View match history
                                 </a>
                             </div>
                         </div>
                     </td>
-                    <td>
+                    <td ng-hide="isNewPlayer(player)">
                     	<div ng-class="{'text-warning': player.ratingType==1, 'text-danger': player.ratingType==2, newPlayer: isNewPlayer(player)}">
                     		{{player.rating}}<span ng-if="player.ratingType>0">*</span>
 						</div>
 						<div ng-if="player.ratingType==2" class="text-danger">(Region: {{player.oorRanking}})</div>
                     </td>
+                    <td ng-show="isNewPlayer(player)" colspan=2>
+                    	 <div class="text-danger">Player does not have any record. </div>
+                    </td>
                     <td>
                         <div class="form-group">
-                            <input type="text" class="form-control" ng-model="playerData[player]" placeholder="Search for player..." typeahead="p as p.name for p in playerService.getPlayerListFromQuery($viewValue)" typeahead-on-select="playerSelected(player, $item)">
+                            <input type="text" class="form-control" ng-model="player.tag" placeholder="Search for player..." typeahead="p as p.name for p in playerService.getPlayerListFromQuery($viewValue)" typeahead-on-select="playerSelected(player, $item)">
                         </div>
                     </td>
                 </tr>

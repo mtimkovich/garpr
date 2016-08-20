@@ -911,6 +911,7 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
         player.regions = item.regions;
         player.tag = item.name;
         player.rating = undefined;
+        player.id = item.id;
         $scope.rankingsService.rankingsList.ranking.forEach(function(rank)
         {
             if(rank.name == item.name)
@@ -1056,4 +1057,8 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
     $scope.tournamentId = tournamentId;
     };
 
+    $scope.isNewPlayer = function(player)
+    {
+        return player.rating === undefined;
+    }
 });
