@@ -879,11 +879,12 @@ app.controller("HeadToHeadController", function($scope, $http, $routeParams, Reg
 });
 
 
-app.controller("SeedController", function($scope, $http, $routeParams, $modal, RegionService, PlayerService, RankingsService) {
+app.controller("SeedController", function($scope, $http, $routeParams, $modal,SessionService, RegionService, PlayerService, RankingsService) {
     RegionService.setRegion($routeParams.region);
     $scope.regionService = RegionService;
     $scope.playerService = PlayerService;
     $scope.rankingsService = RankingsService;
+    $scope.sessionService = SessionService;
 
     $scope.seeding = {
         players:[]
@@ -935,9 +936,11 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal, R
                 else
                 {
                     for (var first in item.ratings) break;//this is whack
-                    player.rating = item.ratings[first].mu;
-                    player.oorRanking = first;
-                    player.ratingType = 2;
+                    if(first !== undefined){
+                        player.rating = item.ratings[first].mu;
+                        player.oorRanking = first;
+                        player.ratingType = 2;
+                    }
                 }
             }
         }
@@ -985,4 +988,72 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal, R
 
         return retString;
     };
+
+
+
+
+
+
+
+    $scope.open = function() {
+        $scope.disableButtons = false;
+        $scope.modalInstance = $modal.open({
+            templateUrl: 'import_tournament_modal.html',
+            scope: $scope,
+            size: 'lg'
+        });
+    };
+
+    $scope.setBracketType = function(bracketType) {
+        $scope.postParams = {};
+        $scope.postParams.type = bracketType;
+        $scope.errorMessage = false;
+    };
+
+    $scope.close = function() {
+        $scope.modalInstance.close();
+    };
+
+
+    $scope.submit = function() {
+        console.log($scope.postParams);
+        $scope.disableButtons = true;
+
+        url = hostname + $routeParams.region + '/tournamentseed';
+        successCallback = function(data) {
+            data.players.forEach(function(player){
+            //stuff
+            var players = $scope.playerService.getPlayerListFromQuery(player);
+            if(players.length > 0)
+            {
+                $scope.seeding.players.push({'seed':$scope.seeding.players.length, 'tag':""});
+                $scope.playerSelected($scope.seeding.players[$scope.seeding.players.length-1], players[0]);
+            }
+            else
+                $scope.seeding.players.push({'seed':$scope.seeding.players.length, 'tag':player});
+           });
+        };
+
+        failureCallback = function(data) {
+            $scope.disableButtons = false;
+            $scope.errorMessage = true;
+        };
+
+        $scope.sessionService.authenticatedPost(url, $scope.postParams, successCallback, failureCallback);
+    };
+
+
+     $scope.loadFile = function(fileContents) {
+        $scope.postParams.data = fileContents;
+    };
+
+    $scope.openDeleteTournamentModal = function(tournamentId) {
+        $scope.modalInstance = $modal.open({
+            templateUrl: 'delete_tournament_modal.html',
+            scope: $scope,
+            size: 'lg'
+        });
+    $scope.tournamentId = tournamentId;
+    };
+
 });

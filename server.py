@@ -292,6 +292,67 @@ class PlayerResource(restful.Resource):
 
         return return_dict
 
+
+class TournamentSeedResource(restful.Resource):
+    def post(self, region):
+        print "in tournamentSeed POST"
+        dao = Dao(region, mongo_client=mongo_client)
+        if not dao:
+            return 'Dao not found', 404
+        user = get_user_from_request(request, dao)
+        if not user:
+            return 'Permission denied', 403
+        if not is_user_admin_for_region(user, region):
+            return 'Permission denied', 403
+        parser = reqparse.RequestParser()
+        parser.add_argument('type', type=str, location='json')
+        parser.add_argument('data', type=unicode, location='json')
+        parser.add_argument('bracket', type=str, location='json')
+        args = parser.parse_args()
+
+        if args['data'] is None:
+            return "data required", 400
+
+        the_bytes = bytearray(args['data'], "utf8")
+
+        if the_bytes[0] == 0xef:
+            print "found magic numbers"
+            return "magic numbers!", 503
+
+        type = args['type']
+        data = args['data']
+        pending_tournament = None
+
+        try:
+            if type == 'tio':
+                if args['bracket'] is None:
+                    return "Missing bracket name", 400
+                data_bytes = bytes(data)
+                if data_bytes[0] == '\xef':
+                    data = data[:3]
+                scraper = TioScraper(data, args['bracket'])
+            elif type == 'challonge':
+                scraper = ChallongeScraper(data)
+            elif type == 'smashgg':
+                scraper = SmashGGScraper(data)
+            else:
+                return "Unknown type", 400
+            pending_tournament = PendingTournament.from_scraper(type, scraper, region)
+        except:
+            return 'Scraper encountered an error', 400
+
+        if not pending_tournament:
+            return 'Scraper encountered an error', 400
+
+        pending_tournament_json = pending_tournament.get_json_dict()
+        del pending_tournament_json['raw']
+        del pending_tournament_json['date']
+        del pending_tournament_json['matches']
+        del pending_tournament_json['regions']
+        del pending_tournament_json['type']
+        return pending_tournament_json
+
+
 class TournamentListResource(restful.Resource):
     def get(self, region):
         dao = Dao(region, mongo_client=mongo_client)
@@ -1016,6 +1077,8 @@ api.add_resource(FinalizeTournamentResource, '/<string:region>/tournaments/<stri
 
 api.add_resource(PendingTournamentListResource, '/<string:region>/tournaments/pending')
 api.add_resource(RankingsResource, '/<string:region>/rankings')
+
+api.add_resource(TournamentSeedResource, '/<string:region>/tournamentseed')
 
 api.add_resource(SessionResource, '/users/session')
 
