@@ -474,6 +474,13 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
             scope: $scope,
             size: 'lg'
         });
+
+        //Handle if modal is closed or dismissed
+        $scope.modalInstance.result.then(function(){
+            $scope.clearSmashGGData();
+        }, function(){
+            $scope.clearSmashGGData();
+        });
     };
 
     $scope.setBracketType = function(bracketType) {
