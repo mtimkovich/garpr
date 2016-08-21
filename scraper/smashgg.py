@@ -41,23 +41,27 @@ class SmashGGScraper(object):
         self.event_dict = SmashGGScraper.get_event_dict(self.event_id)
 
         self.group_ids = self.get_group_ids()
-        print('  [smashgg.py] groups: ')
+        print('  [smashgg.py] All smashgg groups before exclusion: ')
         for group in self.group_ids:
             print('  [smashgg.py] ' + group)
         # REMOVE ANY PHASES THE USER INDICATED NOT TO INCLUDE IN THE IMPORT
         if len(self.excluded_phases) > 0:
-            print('  [smashgg.py] smashgg object got excluded groups:')
+            print('  [smashgg.py] smashgg object got excluded phases:')
             # self.group_dicts = [self.group_dicts.remove(group_id) for group_id in self.excluded_phases]
-            for group_id in excluded_phases:
+            for phase_id in excluded_phases:
                 try:
-                    print('  [smashgg.py] group: ' + group_id)
-                    phase_ids = SmashGGScraper.get_phase_group_ids_from_phase(group_id)
-                    for phase_id in phase_ids:
-                        self.group_ids.remove(str(phase_id))
+                    print('  [smashgg.py] phase: ' + phase_id)
+                    phase_groups = SmashGGScraper.get_group_ids_from_phase(phase_id)
+                    for phase_group in phase_groups:
+                        print('  [smashgg.py] group: ' + str(phase_group))
+                        self.group_ids.remove(str(phase_group))
                 except Exception as ex:
                     print str(ex)
                     continue
 
+        print('  [smashgg.py] All smashgg groups after exclusion: ')
+        for group in self.group_ids:
+            print('  [smashgg.py] ' + group)
         self.group_dicts = [SmashGGScraper.get_group_dict(group_id) for group_id in self.group_ids]
 
 
@@ -182,6 +186,10 @@ class SmashGGScraper(object):
                 smashgg_match = SmashGGMatch(round_name, winner_id, loser_id, round_num, best_of)
                 self.matches.append(smashgg_match)
 
+    def get_phase_ids(self):
+        group_ids = [str(group['phaseId']).strip() for group in self.event_dict['entities']['groups']]
+        return list(set(group_ids))
+
     def get_group_ids(self):
         group_ids = [str(group['id']).strip() for group in self.event_dict['entities']['groups']]
         return list(set(group_ids))
@@ -245,7 +253,7 @@ class SmashGGScraper(object):
         return phase_name
 
     @staticmethod
-    def get_phase_group_ids_from_phase(phase_id):
+    def get_group_ids_from_phase(phase_id):
         phase_ids = []
         phase_raw = check_for_200(requests.get(PHASE_URL % phase_id)).json()
         groups = phase_raw['entities']['groups']
