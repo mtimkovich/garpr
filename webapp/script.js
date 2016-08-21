@@ -465,6 +465,8 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
     $scope.postParams = {};
     $scope.excluded_phases = [];
 
+    $scope.smashGGImportMessage = "";
+
     $scope.open = function() {
         $scope.disableButtons = false;
         $scope.modalInstance = $modal.open({
@@ -481,7 +483,13 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
     };
 
     $scope.close = function() {
+        $scope.clearSmashGGData();
         $scope.modalInstance.close();
+    };
+
+    $scope.clearSmashGGData = function(){
+        $scope.smashGG_brackets = [];
+        $scope.excluded_phases = [];
     };
 
     $scope.submit = function() {
@@ -546,6 +554,8 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
 
     //RETRIEVE THE PHASE ID TO BRACKET NAME MAP
     $scope.smashGG_populateBrackets = function(){
+        $scope.disableButtons = true;
+        $scope.smashGGImportMessage = "Importing Phases. Please wait...";
         if($scope.postParams.data === ''){
             $scope.smashGG_brackets = [];
             return;
@@ -558,6 +568,7 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
             }
         }).
         success(function(data) {
+            $scope.smashGGImportMessage = "";
             for(var key in data){
                 var bracket = {
                     name: data[key],
@@ -565,6 +576,7 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
                 };
                 $scope.smashGG_brackets.push(bracket);
             };
+            $scope.disableButtons = false;
         });
     };
 });
