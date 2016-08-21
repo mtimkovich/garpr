@@ -557,10 +557,12 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
     //RETRIEVE THE PHASE ID TO BRACKET NAME MAP
     $scope.smashGG_populateBrackets = function(){
         $scope.disableButtons = true;
-        document.getElementById('smashGGImportMessage').innerHTML = "Importing Phases. Please wait...";
         if($scope.postParams.data === ''){
             $scope.smashGG_brackets = [];
+            document.getElementById('smashGGImportMessage').innerHTML = "";
             return;
+        }else{
+            document.getElementById('smashGGImportMessage').innerHTML = "Importing Phases. Please wait...";
         }
 
         var url = hostname + 'smashGgMap';
