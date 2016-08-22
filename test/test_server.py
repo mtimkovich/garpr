@@ -712,7 +712,7 @@ class TestServer(unittest.TestCase):
         data = self.app.get('/norcal/tournaments/' + str(pending_tournament.id)).data
         json_data = json.loads(data)
 
-        self.assertEqual(len(json_data.keys()), 1)
+        self.assertEqual(len(json_data.keys()), 2)
         self.assertEqual(json_data['tournament']['id'], str(pending_tournament.id))
         self.assertEqual(json_data['tournament']['name'], 'bam 6 - 11-8-14')
         self.assertEqual(json_data['tournament']['source_type'], 'tio')
@@ -720,6 +720,7 @@ class TestServer(unittest.TestCase):
         self.assertEqual(json_data['tournament']['regions'], ['norcal'])
         self.assertEqual(len(json_data['tournament']['aliases']), len(pending_tournament.aliases))
         self.assertEqual(len(json_data['tournament']['alias_matches']), len(pending_tournament.alias_matches))
+        self.assertTrue(json_data['is_pending'])
 
         # spot check 1 match
         match = json_data['tournament']['alias_matches'][0]
