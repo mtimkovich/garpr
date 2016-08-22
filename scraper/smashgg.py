@@ -63,6 +63,7 @@ class SmashGGScraper(object):
         for group in self.group_ids:
             print('  [smashgg.py] ' + group)
         self.group_dicts = [SmashGGScraper.get_group_dict(group_id) for group_id in self.group_ids]
+        self.group_dicts = [dict for dict in self.group_dicts if dict is not None] #REMOVE EMPTY PHASES FROM IMPORT
 
 
         #DATA STRUCTURES THAT HOLD IMPORTANT THINGS
@@ -238,7 +239,10 @@ class SmashGGScraper(object):
 
     @staticmethod
     def get_group_dict(group_id):
-        return check_for_200(requests.get(GROUP_URL % group_id)).json()
+        dict = check_for_200(requests.get(GROUP_URL % group_id)).json()
+        hasSets = dict['entities']['groups']['hasSets']
+        if hasSets is True:
+            return dict
 
     @staticmethod
     def get_event_name(event_id):
