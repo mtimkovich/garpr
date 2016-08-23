@@ -55,7 +55,6 @@ app.service('RegionService', function ($http, PlayerService, TournamentService, 
         populateDataForCurrentRegion: function() {
             // get all players instead of just players in region
             var curRegion = this.region;
-            console.log(this.region);
             $http.get(hostname + this.region.id + '/players?all=true').
                 success(function(data) {
                     PlayerService.allPlayerList = data;
@@ -93,10 +92,11 @@ app.service('RegionService', function ($http, PlayerService, TournamentService, 
     service.regionsPromise.success(function(data) {
         service.regions = data.regions;
     });
-    
+
     service.display_regions = [{"id": "newjersey", "display_name": "New Jersey"},
                                {"id": "nyc", "display_name": "NYC Metro Area"},
-                               {"id": "chicago", "display_name": "Chicago"}];
+                               {"id": "chicago", "display_name": "Chicago"},
+                               {"id": "georgia", "display_name": "Georgia"}];
 
     return service;
 });
@@ -353,7 +353,6 @@ app.controller("AuthenticationController", function($scope, $modal, Facebook, Se
     $scope.errorTxt = "";
 
     $scope.handleAuthResponse = function(response, status, headers, bleh) {
-        console.log(response)
         if (response.status == 'connected') {
             $scope.errorTxt = "";
             $scope.getSessionInfo(function() {
@@ -370,8 +369,6 @@ app.controller("AuthenticationController", function($scope, $modal, Facebook, Se
     $scope.getSessionInfo = function(callback) {
         $scope.sessionService.authenticatedGet(hostname + 'users/session',
             function(data) {
-                console.log("session data")
-                console.log(data)
                 $scope.sessionService.loggedIn = true;
                 $scope.sessionService.userInfo = data;
                 $scope.regionService.populateDataForCurrentRegion();
@@ -393,14 +390,11 @@ app.controller("AuthenticationController", function($scope, $modal, Facebook, Se
     };
 
     $scope.login = function() {
-        console.log("logging in user")
-        console.log($scope.postParams)
         url = hostname + 'users/session'
         $scope.sessionService.authenticatedPut(url, $scope.postParams, $scope.handleAuthResponse, $scope.handleAuthResponse);
     };
 
     $scope.logout = function() {
-        console.log("logging out user")
         url = hostname + 'users/session'
         $scope.sessionService.authenticatedDelete(url, $scope.handleAuthResponse, $scope.postParams,
             $scope.handleAuthResponse);
@@ -488,7 +482,6 @@ app.controller("TournamentsController", function($scope, $routeParams, $modal, R
     };
 
     $scope.submit = function() {
-        console.log($scope.postParams);
         $scope.disableButtons = true;
 
         url = hostname + $routeParams.region + '/tournaments';
