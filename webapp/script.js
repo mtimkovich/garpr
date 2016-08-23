@@ -544,15 +544,15 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
         var id = bracket.id;
         var checkboxId = id + "_checkbox";
         var checkbox = document.getElementById(checkboxId);
-        if(!checkbox.checked){
-            //CHECKED: DON'T INCLUDE PHASE ID IN POST REQUEST
-            if($scope.included_phases.includes(id))
-                $scope.included_phases.splice($scope.included_phases.indexOf(id), 1);
-        }
-        else{
-            //NOT CHECKED: INCLUDE PHASE ID FOR EXCLUSION
+        if(checkbox.checked){
+            //CHECKED: INCLUDE PHASE ID FOR INCLUSION
             if(!$scope.included_phases.includes(id))
                 $scope.included_phases.push(id);
+        }
+        else{
+            // NOT CHECKED: DON'T INCLUDE PHASE ID IN POST REQUEST
+            if($scope.included_phases.includes(id))
+                $scope.included_phases.splice($scope.included_phases.indexOf(id), 1);
         }
     }
 
