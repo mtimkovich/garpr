@@ -1061,4 +1061,10 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
     {
         return player.rating === undefined;
     }
+
+    $scope.removePlayer = function(seed)
+    {
+        $scope.seeding.players.splice(seed-1,1);
+        $scope.resortSeeding();
+    }
 });
