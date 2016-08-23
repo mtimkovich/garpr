@@ -21,14 +21,16 @@ def check_for_200(response):
     return response
 
 class SmashGGScraper(object):
-    def __init__(self, path, excluded_phases):
+    def __init__(self, path, included_phases):
         """
         :param path: url to go to the bracket
         """
         self.path = path
 
-        # DATA STRUCTURE TO DISCLUDE PHASES USER DOESN'T WANT IMPORTED
-        self.excluded_phases = excluded_phases
+        # DATA STRUCTURE TO INCLUDE PHASES USER WANTS TO IMPORT
+        self.included_phases = included_phases
+        for p in self.included_phases:
+            print p
 
         #GET IMPORTANT DATA FROM THE URL
         self.event_id = SmashGGScraper.get_tournament_event_id_from_url(self.path)
@@ -40,31 +42,17 @@ class SmashGGScraper(object):
 
         self.event_dict = SmashGGScraper.get_event_dict(self.event_id)
 
-        self.group_ids = self.get_group_ids()
-        print('  [smashgg.py] All smashgg groups before exclusion: ')
-        for group in self.group_ids:
-            print('  [smashgg.py] ' + group)
-        # REMOVE ANY PHASES THE USER INDICATED NOT TO INCLUDE IN THE IMPORT
-        if len(self.excluded_phases) > 0:
-            print('  [smashgg.py] smashgg object got excluded phases:')
-            # self.group_dicts = [self.group_dicts.remove(group_id) for group_id in self.excluded_phases]
-            for phase_id in excluded_phases:
-                try:
-                    print('  [smashgg.py] phase: ' + phase_id)
-                    phase_groups = SmashGGScraper.get_group_ids_from_phase(phase_id)
-                    for phase_group in phase_groups:
-                        print('  [smashgg.py] group: ' + str(phase_group))
-                        self.group_ids.remove(str(phase_group))
-                except Exception as ex:
-                    print str(ex)
-                    continue
+        self.group_sets = []
+        for phase in self.included_phases:
+            self.group_sets.append(SmashGGScraper.get_group_ids_from_phase(phase))
 
-        print('  [smashgg.py] All smashgg groups after exclusion: ')
-        for group in self.group_ids:
-            print('  [smashgg.py] ' + group)
+        self.group_ids = []
+        for group_set in self.group_sets:
+            for group_id in group_set:
+                self.group_ids.append(group_id)
+
         self.group_dicts = [SmashGGScraper.get_group_dict(group_id) for group_id in self.group_ids]
         self.group_dicts = [dict for dict in self.group_dicts if dict is not None] #REMOVE EMPTY PHASES FROM IMPORT
-
 
         #DATA STRUCTURES THAT HOLD IMPORTANT THINGS
         self.get_smashgg_players()

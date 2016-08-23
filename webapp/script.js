@@ -457,7 +457,7 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
 
     $scope.smashGG_brackets = [];
     $scope.postParams = {};
-    $scope.excluded_phases = [];
+    $scope.included_phases = [];
 
     $scope.smashGGImportMessage = "";
 
@@ -490,14 +490,14 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
 
     $scope.clearSmashGGData = function(){
         $scope.smashGG_brackets = [];
-        $scope.excluded_phases = [];
+        $scope.included_phases = [];
         $scope.smashGGImportMessage.innerHTML = "";
 
     };
 
     $scope.submit = function() {
         $scope.disableButtons = true;
-        $scope.postParams.excluded_phases = $scope.excluded_phases;
+        $scope.postParams.included_phases = $scope.included_phases;
 
         url = hostname + $routeParams.region + '/tournaments';
         successCallback = function(data) {
@@ -541,15 +541,15 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
         var id = bracket.id;
         var checkboxId = id + "_checkbox";
         var checkbox = document.getElementById(checkboxId);
-        if(checkbox.checked){
+        if(!checkbox.checked){
             //CHECKED: DON'T INCLUDE PHASE ID IN POST REQUEST
-            if($scope.excluded_phases.includes(id))
-                $scope.excluded_phases.splice($scope.excluded_phases.indexOf(id), 1);
+            if($scope.included_phases.includes(id))
+                $scope.included_phases.splice($scope.included_phases.indexOf(id), 1);
         }
         else{
             //NOT CHECKED: INCLUDE PHASE ID FOR EXCLUSION
-            if(!$scope.excluded_phases.includes(id))
-                $scope.excluded_phases.push(id);
+            if(!$scope.included_phases.includes(id))
+                $scope.included_phases.push(id);
         }
     }
 

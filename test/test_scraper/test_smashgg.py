@@ -47,10 +47,10 @@ class TestSmashGGScraper(unittest.TestCase):
     def setUpClass(cls):
         print 'Pulling tournaments from smash.gg ...'
         super(TestSmashGGScraper, cls).setUpClass()
-        cls.tournament1 = SmashGGScraper(TEST_URL_1, [])
-        cls.tournament2 = SmashGGScraper(TEST_URL_2, [])
+        cls.tournament1 = SmashGGScraper(TEST_URL_1, [1511, 2095, 2096])
+        cls.tournament2 = SmashGGScraper(TEST_URL_2, [3930, 21317])
         #cls.tournament3 = SmashGGScraper(TEST_URL_3, [])
-        cls.tournament4 = SmashGGScraper(TEST_URL_4, [49706])
+        cls.tournament4 = SmashGGScraper(TEST_URL_4, [49153, 49705])
 
 
     def tearDown(self):
@@ -89,7 +89,7 @@ class TestSmashGGScraper(unittest.TestCase):
 
         self.assertTrue('event' in raw)
         self.assertTrue('groups' in raw)
-        self.assertEqual(len(raw['groups']), 10)
+        self.assertEqual(len(raw['groups']), 9)
 
         entrants = raw['event']['entities']['entrants']
         for entrant in entrants:
@@ -118,7 +118,7 @@ class TestSmashGGScraper(unittest.TestCase):
         print mango_count
         self.assertEqual(2, mango_count, msg="mango didnt get double elim'd?")
 
-        self.assertEquals(len(self.tournament2.get_matches()), 436)
+        self.assertEquals(len(self.tournament2.get_matches()), 361)
         # spot check that Druggedfox was only in 5 matches, and that he won all of them
         sami_count = 0
         for m in self.tournament2.get_matches():
@@ -174,5 +174,6 @@ class TestSmashGGScraper(unittest.TestCase):
         self.assertEqual(len(SmashGGScraper.get_phasename_id_map(TEST_EVENT_ID_1)), 3)
         self.assertEqual(len(SmashGGScraper.get_phasename_id_map(TEST_EVENT_ID_2)), 3)
 
-    def test_exclude_phases(self):
+    def test_included_phases(self):
+        self.assertEqual(len(self.tournament2.group_dicts), 9)
         self.assertEqual(len(self.tournament4.group_dicts), 9)

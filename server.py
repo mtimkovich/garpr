@@ -77,7 +77,7 @@ tournament_import_parser.add_argument('bracket_type', type=str, required=True, h
 tournament_import_parser.add_argument('challonge_url', type=str)
 tournament_import_parser.add_argument('tio_file', type=str)
 tournament_import_parser.add_argument('tio_bracket_name', type=str)
-tournament_import_parser.add_argument('excluded_phases', type=list)
+tournament_import_parser.add_argument('included_phases', type=list)
 
 pending_tournament_put_parser = reqparse.RequestParser()
 pending_tournament_put_parser.add_argument('name', type=str)
@@ -357,7 +357,7 @@ class TournamentListResource(restful.Resource):
         parser.add_argument('type', type=str, location='json')
         parser.add_argument('data', type=unicode, location='json')
         parser.add_argument('bracket', type=str, location='json')
-        parser.add_argument('excluded_phases', type=list, location='json')
+        parser.add_argument('included_phases', type=list, location='json')
         args = parser.parse_args()
 
         if args['data'] is None:
@@ -371,8 +371,7 @@ class TournamentListResource(restful.Resource):
 
         type = args['type']
         data = args['data']
-        # TODO add variable to get the excluded_phases for smashGG brackets
-        excluded_phases = args['excluded_phases']
+        included_phases = args['included_phases']
         pending_tournament = None
 
         try:
@@ -386,16 +385,12 @@ class TournamentListResource(restful.Resource):
             elif type == 'challonge':
                 scraper = ChallongeScraper(data)
             elif type == 'smashgg':
-                if excluded_phases and len(excluded_phases) > 0:
-                    print('  [server.py] excluded phases:')
-                    for phase in excluded_phases:
-                        print('  [server.py] ' + str(phase))
-                scraper = SmashGGScraper(data, excluded_phases)
+                scraper = SmashGGScraper(data, included_phases)
             else:
                 return "Unknown type", 400
             pending_tournament = PendingTournament.from_scraper(type, scraper, region)
-        except:
-            return 'Scraper encountered an error', 400
+        except Exception as ex:
+            return 'Scraper encountered an error ' + str(ex), 400
 
         if not pending_tournament:
             return 'Scraper encountered an error', 400
