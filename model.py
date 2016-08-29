@@ -177,7 +177,7 @@ class Player(object):
                 id=json_dict.get('_id', None))
 
 class Tournament(object):
-    def __init__(self, type, raw, url, date, name, players, matches, regions, orig_ids=None, id=None):
+    def __init__(self, type, raw, date, name, players, matches, regions, orig_ids=None, id=None, url=None):
         '''
         :param type: string, either "tio", "challonge", or "smashgg"
         :param raw: for tio, this is an xml string. for challonge its a dict from string --> string
@@ -231,10 +231,11 @@ class Tournament(object):
 
         if self.id:
             json_dict['_id'] = self.id
+        if self.url:
+            json_dict['url'] = self.url
 
         json_dict['type'] = self.type
         json_dict['raw'] = self.raw
-        json_dict['url'] = self.url
         json_dict['date'] = self.date
         json_dict['name'] = self.name
         json_dict['players'] = self.players
@@ -248,18 +249,17 @@ class Tournament(object):
     def from_json(cls, json_dict):
         if json_dict == None:
             return None
-        print json_dict['_id'] 
         return cls(
                 json_dict['type'],
                 json_dict['raw'],
-                json_dict['url'],
                 json_dict['date'],
                 json_dict['name'],
                 json_dict['players'],
                 [MatchResult.from_json(m) for m in json_dict['matches']],
                 json_dict['regions'],
                 json_dict.get('orig_ids', None),
-                id=json_dict['_id'] if '_id' in json_dict else None)
+                id=json_dict['_id'] if '_id' in json_dict else None,
+                url=json_dict['url'] if 'url' in json_dict else None)
 
     # TODO "sanity checks"
     @classmethod
@@ -281,14 +281,14 @@ class Tournament(object):
         return cls(
                 pending_tournament.type,
                 pending_tournament.raw,
-                pending_tournament.url,
                 pending_tournament.date,
                 pending_tournament.name,
                 players,
                 pending_tournament.matches,
                 pending_tournament.regions,
                 players,
-                pending_tournament.id)
+                pending_tournament.id,
+                pending_tournament.url)
 
     # TODO this should go away as we should never build a Tournament straight from a scraper
     # it should be from a PendingTournament
@@ -303,7 +303,7 @@ class Tournament(object):
 class PendingTournament(object):
     '''Same as a Tournament, except it uses aliases for players instead of ids.
        Used during tournament import, before aliases are mapped to player ids.'''
-    def __init__(self, type, raw, url,  date, name, players, matches, regions, alias_to_id_map=None, id=None):
+    def __init__(self, type, raw, date, name, players, matches, regions, alias_to_id_map=None, id=None, url=None):
         '''
         :param type: string, either "tio", "challonge", "smashgg"
         :param raw: for tio, this is an xml string. for challonge its a dict from string --> string.
@@ -358,14 +358,14 @@ class PendingTournament(object):
         return cls(
                 json_dict['type'],
                 json_dict['raw'],
-                json_dict['url'],
                 json_dict['date'],
                 json_dict['name'],
                 json_dict['players'],
                 [MatchResult.from_json(m) for m in json_dict['matches']],
                 json_dict['regions'],
                 json_dict['alias_to_id_map'],
-                id=json_dict['_id'] if '_id' in json_dict else None)
+                id=json_dict['_id'] if '_id' in json_dict else None,
+                url=json_dict['url'] if 'url' in json_dict else None)
 
     def set_alias_id_mapping(self, alias, id):
         for mapping in self.alias_to_id_map:
@@ -392,12 +392,12 @@ class PendingTournament(object):
         return cls(
                 type,
                 scraper.get_raw(),
-                scraper.get_url(),
                 scraper.get_date(),
                 scraper.get_name(),
                 scraper.get_players(),
                 scraper.get_matches(),
-                regions)
+                regions,
+                scraper.get_url())
 
     #TODO: untested/unused!
     @classmethod
