@@ -96,7 +96,10 @@ app.service('RegionService', function ($http, PlayerService, TournamentService, 
     service.display_regions = [{"id": "newjersey", "display_name": "New Jersey"},
                                {"id": "nyc", "display_name": "NYC Metro Area"},
                                {"id": "chicago", "display_name": "Chicago"},
-                               {"id": "georgia", "display_name": "Georgia"}];
+                               {"id": "georgia", "display_name": "Georgia"},
+                               {"id": "northcarolina", "display_name": "North Carolina"},
+                               {"id": "southcarolina", "display_name": "South Carolina"},
+                               {"id": "alabama", "display_name": "Alabama"}];
 
     return service;
 });
@@ -450,7 +453,7 @@ app.controller("RankingsController", function($scope, $routeParams, $modal, Regi
     };
 });
 
-app.controller("TournamentsController", function($scope, $routeParams, $modal, RegionService, TournamentService, SessionService) {
+app.controller("TournamentsController", function($scope, $http, $routeParams, $modal, RegionService, TournamentService, SessionService) {
     RegionService.setRegion($routeParams.region);
     $scope.regionService = RegionService;
     $scope.tournamentService = TournamentService;
@@ -460,7 +463,11 @@ app.controller("TournamentsController", function($scope, $routeParams, $modal, R
     $scope.disableButtons = false;
     $scope.errorMessage = false;
 
+    $scope.smashGG_brackets = [];
     $scope.postParams = {};
+    $scope.included_phases = [];
+
+    $scope.smashGGImportMessage = "";
 
     $scope.open = function() {
         $scope.disableButtons = false;
@@ -468,6 +475,13 @@ app.controller("TournamentsController", function($scope, $routeParams, $modal, R
             templateUrl: 'import_tournament_modal.html',
             scope: $scope,
             size: 'lg'
+        });
+
+        //Handle if modal is closed or dismissed
+        $scope.modalInstance.result.then(function(){
+            $scope.clearSmashGGData();
+        }, function(){
+            $scope.clearSmashGGData();
         });
     };
 
@@ -478,11 +492,20 @@ app.controller("TournamentsController", function($scope, $routeParams, $modal, R
     };
 
     $scope.close = function() {
+        $scope.clearSmashGGData();
         $scope.modalInstance.close();
+    };
+
+    $scope.clearSmashGGData = function(){
+        $scope.smashGG_brackets = [];
+        $scope.included_phases = [];
+        $scope.smashGGImportMessage.innerHTML = "";
+
     };
 
     $scope.submit = function() {
         $scope.disableButtons = true;
+        $scope.postParams.included_phases = $scope.included_phases;
 
         url = hostname + $routeParams.region + '/tournaments';
         successCallback = function(data) {
@@ -497,6 +520,7 @@ app.controller("TournamentsController", function($scope, $routeParams, $modal, R
         };
 
         $scope.sessionService.authenticatedPost(url, $scope.postParams, successCallback, failureCallback);
+        document.getElementById('smashGGImportMessage').innerHTML = "";
     };
 
     $scope.loadFile = function(fileContents) {
@@ -520,6 +544,53 @@ app.controller("TournamentsController", function($scope, $routeParams, $modal, R
         $scope.sessionService.authenticatedDelete(url, successCallback);
     };
 
+
+    $scope.checkSmashggBracket = function(bracket){
+        var id = bracket.id;
+        var checkboxId = id + "_checkbox";
+        var checkbox = document.getElementById(checkboxId);
+        if(checkbox.checked){
+            //CHECKED: INCLUDE PHASE ID FOR INCLUSION
+            if(!$scope.included_phases.includes(id))
+                $scope.included_phases.push(id);
+        }
+        else{
+            // NOT CHECKED: DON'T INCLUDE PHASE ID IN POST REQUEST
+            if($scope.included_phases.includes(id))
+                $scope.included_phases.splice($scope.included_phases.indexOf(id), 1);
+        }
+    }
+
+
+    //RETRIEVE THE PHASE ID TO BRACKET NAME MAP
+    $scope.smashGG_populateBrackets = function(){
+        $scope.disableButtons = true;
+        if($scope.postParams.data === ''){
+            $scope.smashGG_brackets = [];
+            document.getElementById('smashGGImportMessage').innerHTML = "";
+            return;
+        }else{
+            document.getElementById('smashGGImportMessage').innerHTML = "Importing Phases. Please wait...";
+        }
+
+        var url = hostname + 'smashGgMap';
+        $http.get( url, {
+            params: {
+                bracket_url: $scope.postParams.data
+            }
+        }).
+        success(function(data) {
+            for(var key in data){
+                var bracket = {
+                    name: data[key],
+                    id: key
+                };
+                $scope.smashGG_brackets.push(bracket);
+            };
+            $scope.disableButtons = false;
+            document.getElementById('smashGGImportMessage').innerHTML = "Please choose the phases to include";
+        });
+    };
 });
 
 app.controller("TournamentDetailController", function($scope, $routeParams, $http, $modal, RegionService, SessionService, PlayerService) {
@@ -605,6 +676,7 @@ app.controller("TournamentDetailController", function($scope, $routeParams, $htt
     };
 
     $scope.submitPendingTournament = function() {
+        $scope.putTournamentFromUI();
         url = hostname + $routeParams.region + '/tournaments/' + $scope.tournamentId + '/finalize';
         successCallback = function(data) {
             window.location.reload();
