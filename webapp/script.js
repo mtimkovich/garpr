@@ -151,11 +151,13 @@ app.service('PlayerService', function($http) {
             var filteredPlayers = [];
             for (var i = 0; i < this.allPlayerList.players.length; i++) {
                 var curPlayer = this.allPlayerList.players[i];
+                var curRegion = this.allPlayerList.players[i].regions[0];
 
                 if(filter_fn == null || filter_fn(curPlayer)){
                     var matchQuality = this.playerMatchesQuery(curPlayer, query);
                     if(matchQuality > 0){
                         filteredPlayers.push({'player': curPlayer,
+                                              'region': curRegion,
                                               'quality': matchQuality});
                     }
                 }
@@ -876,6 +878,18 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
         players = $scope.playerService.getPlayerListFromQuery(viewValue,
             function(player) {return player.id != $scope.playerId});
         return players;
+    }
+
+    $scope.typeheadLabel = function(player){
+        var region = '';
+        try{
+            region  = player.regions[0];
+        } catch(err){
+            region = 'None'
+        }
+        region = region.italics();
+        region = region.fontcolor('#cccccc');
+        return player.name + ' ~ ' + region;
     }
 
     $http.get(hostname + $routeParams.region + '/players/' + $routeParams.playerId).
