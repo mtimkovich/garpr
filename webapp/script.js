@@ -157,7 +157,6 @@ app.service('PlayerService', function($http) {
                     var matchQuality = this.playerMatchesQuery(curPlayer, query);
                     if(matchQuality > 0){
                         filteredPlayers.push({'player': curPlayer,
-                                              'region': curRegion,
                                               'quality': matchQuality});
                     }
                 }
