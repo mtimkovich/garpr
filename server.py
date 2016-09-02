@@ -393,7 +393,7 @@ class TournamentResource(restful.Resource):
             print e
             abort(400, "Error saving tournament")
 
-        return responsify(_responsify_tournament)
+        return responsify(_responsify_tournament(tournament))
 
     def delete(self, region, id):
         """ Deletes a tournament.

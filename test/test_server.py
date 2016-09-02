@@ -12,6 +12,7 @@ import unittest
 from bson.objectid import ObjectId
 from datetime import datetime
 from mock import patch, Mock
+from mongoengine import connect
 
 import alias_service
 import dao
@@ -660,7 +661,8 @@ class TestServer(unittest.TestCase):
         data = self.app.get('/norcal/tournaments/' + str(tournament.id)).data
         json_data = json.loads(data)
 
-        self.assertEqual(len(json_data.keys()), 3)
+        self.assertEqual(len(json_data.keys()), 4)
+        self.assertFalse(json_data['is_pending'])
         self.assertEqual(json_data['tournament']['id'], str(tournament.id))
         self.assertEqual(json_data['tournament']['name'], 'BAM: 4 stocks is not a lead')
         self.assertEqual(json_data['tournament']['source_type'], 'tio')
@@ -696,7 +698,7 @@ class TestServer(unittest.TestCase):
         data = self.app.get('/texas/tournaments/' + str(tournament.id)).data
         json_data = json.loads(data)
 
-        self.assertEqual(len(json_data.keys()), 3)
+        self.assertEqual(len(json_data.keys()), 4)
         self.assertEqual(json_data['tournament']['id'], str(tournament.id))
         self.assertEqual(json_data['tournament']['name'], 'FX Biweekly 6')
         self.assertEqual(json_data['tournament']['source_type'], 'tio')
@@ -749,10 +751,11 @@ class TestServer(unittest.TestCase):
         response = self.app.put('/norcal/pending_tournaments/' + str(pending_tournament.id),
             data=json.dumps(request_data), content_type='application/json')
         json_data = json.loads(response.data)
+        print json_data
 
-        self.assertEqual(str(pending_tournament.id), json_data['id'])
+        self.assertEqual(str(pending_tournament.id), json_data['tournament']['id'])
 
-        pending_tournament_from_db = self.norcal_dao.get_pending_tournament_by_id(ObjectId(json_data['id']))
+        pending_tournament_from_db = self.norcal_dao.get_pending_tournament_by_id(ObjectId(json_data['tournament']['id']))
         self.assertIsNotNone(pending_tournament)
         self.assertTrue(mapping in pending_tournament_from_db.alias_mappings)
 
@@ -914,7 +917,7 @@ class TestServer(unittest.TestCase):
         data = self.app.get('/users/session').data
         json_data = json.loads(data)
         print json_data
-        self.assertEqual(json_data['username'], self.username)
+        self.assertEqual(json_data['id'], self.username)
 
     @patch('server.auth_user')
     def test_put_tournament_name_change(self, mock_auth_user):
@@ -993,14 +996,14 @@ class TestServer(unittest.TestCase):
         print json_data
 
         # check that things are correct
-        self.assertEqual(json_data['name'], new_tourney_name)
-        self.assertEqual(json_data['date'], new_date.strftime('%m/%d/%y'))
-        for m1, m2 in zip(json_data['matches'], new_matches):
+        self.assertEqual(json_data['tournament']['name'], new_tourney_name)
+        self.assertEqual(json_data['tournament']['date'], new_date.strftime('%m/%d/%y'))
+        for m1, m2 in zip(json_data['tournament']['matches'], new_matches):
             self.assertEqual(m1['winner'], str(m2.winner.id))
             self.assertEqual(m1['loser'], str(m2.loser.id))
-        for p1, p2 in zip(json_data['players'], new_players):
+        for p1, p2 in zip(json_data['tournament']['players'], new_players):
             self.assertEqual(p1, str(p2.id))
-        self.assertEqual(set(json_data['regions']), set(new_regions))
+        self.assertEqual(set(json_data['tournament']['regions']), set(new_regions))
 
         the_tourney = dao.get_tournament_by_id(tourney_id)
         self.assertEqual(new_tourney_name, the_tourney.name)
