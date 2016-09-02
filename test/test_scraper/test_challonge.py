@@ -6,7 +6,6 @@ import requests
 import json
 from datetime import datetime
 import pytz
-from model import MatchResult
 
 TEMPLATE_CONFIG_FILE_PATH = 'config/config.ini.template'
 TEMPLATE_API_KEY = 'API_KEY'
@@ -49,7 +48,7 @@ class TestChallongeScraper(unittest.TestCase):
         expected_tournament_url = scraper.challonge.TOURNAMENT_URL % TOURNAMENT_ID;
         expected_matches_url = scraper.challonge.MATCHES_URL % TOURNAMENT_ID;
         expected_participants_url = scraper.challonge.PARTICIPANTS_URL % TOURNAMENT_ID;
-    
+
         mock_requests_return_values = {
                 (expected_tournament_url, TEMPLATE_API_KEY): mock_tournament_response,
                 (expected_matches_url, TEMPLATE_API_KEY): mock_matches_response,
@@ -76,15 +75,15 @@ class TestChallongeScraper(unittest.TestCase):
     def test_get_matches(self):
         matches = self.scraper.get_matches()
         self.assertEquals(len(matches), 81)
-        self.assertEquals(matches[0], MatchResult(winner='Tiamat', loser='Sharkboi'))
-        self.assertEquals(matches[-1], MatchResult(winner='Shroomed', loser='GC | Silentwolf'))
-        self.assertEquals(matches[-2], MatchResult(winner='GC | Silentwolf', loser='Shroomed'))
-        self.assertEquals(matches[-3], MatchResult(winner='GC | Silentwolf', loser='MIOM | SFAT'))
+        self.assertEquals(matches[0], {'winner':'Tiamat', 'loser':'Sharkboi'})
+        self.assertEquals(matches[-1], {'winner':'Shroomed', 'loser':'GC | Silentwolf'})
+        self.assertEquals(matches[-2], {'winner':'GC | Silentwolf', 'loser':'Shroomed'})
+        self.assertEquals(matches[-3], {'winner':'GC | Silentwolf', 'loser':'MIOM | SFAT'})
 
         # make sure none of the matches have a None
         for m in matches:
-            self.assertIsNotNone(m.winner)
-            self.assertIsNotNone(m.loser)
+            self.assertIsNotNone(m['winner'])
+            self.assertIsNotNone(m['loser'])
 
     def test_get_player(self):
         players = self.scraper.get_players()
