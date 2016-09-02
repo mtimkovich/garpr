@@ -397,7 +397,7 @@ class PendingTournament(object):
                 scraper.get_players(),
                 scraper.get_matches(),
                 regions,
-                scraper.get_url())
+                url=scraper.get_url())
 
     #TODO: untested/unused!
     @classmethod
