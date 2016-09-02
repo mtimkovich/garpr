@@ -1,10 +1,21 @@
-from mongoengine import *
-
+from mongoengine import Document,                  \
+    EmbeddedDocument,          \
+    BooleanField,              \
+    DateTimeField,             \
+    EmbeddedDocumentField,     \
+    EmbeddedDocumentListField, \
+    FloatField,                \
+    IntField,                  \
+    ListField,                 \
+    ReferenceField,            \
+    StringField,               \
+    ValidationError
 import trueskill
 
 SOURCE_TYPE_CHOICES = ('tio', 'challonge', 'smashgg', 'other')
 
 # MongoEngine embedded documents (i.e. subobjects of other documents)
+
 
 class AliasMapping(EmbeddedDocument):
     player_alias = StringField(required=True)
@@ -13,6 +24,7 @@ class AliasMapping(EmbeddedDocument):
     def __str__(self):
         return '{}: {}'.format(self.player_alias, self.player)
 
+
 class AliasMatch(EmbeddedDocument):
     # TODO: should these be indices into aliases?
     winner = StringField(required=True)
@@ -20,6 +32,7 @@ class AliasMatch(EmbeddedDocument):
 
     def __str__(self):
         return '{} > {}'.format(self.winner, self.loser)
+
 
 class Match(EmbeddedDocument):
     winner = ReferenceField('Player', required=True)
@@ -51,6 +64,7 @@ class Match(EmbeddedDocument):
         if self.loser == player_to_remove:
             self.loser = player_to_add
 
+
 class RankingEntry(EmbeddedDocument):
     rank = IntField(required=True, min_value=1)
     player = ReferenceField('Player', required=True)
@@ -58,6 +72,7 @@ class RankingEntry(EmbeddedDocument):
 
     def __str__(self):
         return "{}. {}".format(self.rank, self.player)
+
 
 class Rating(EmbeddedDocument):
     region = ReferenceField('Region', required=True)
@@ -78,6 +93,7 @@ class Rating(EmbeddedDocument):
 
 # MongoEngine documents (i.e. collections in Mongo)
 
+
 class Merge(Document):
     requester = ReferenceField('User', required=True)
     source_player = ReferenceField('Player', required=True)
@@ -89,7 +105,7 @@ class Merge(Document):
         target = self.target_player
 
         # check: source and target different players
-        if source==target:
+        if source == target:
             raise ValidationError("source and target must be different")
 
         # check: source and target not already merged
@@ -109,10 +125,12 @@ class Merge(Document):
         # TODO: reduce db calls for this
         for tournament in Tournament.objects.exclude('raw'):
             if source in tournament.players and target in tournament.players:
-                raise ValidationError("source and target have played in same tournament")
+                raise ValidationError(
+                    "source and target have played in same tournament")
 
     def __str__(self):
         return "{} merged into {}".format(self.source_player, self.target_player)
+
 
 class Player(Document):
     name = StringField(required=True)
@@ -133,7 +151,7 @@ class Player(Document):
             raise ValidationError("player has merge_parent but is not merged")
 
         # clean: if aliases empty add name to aliases
-        if len(self.aliases)==0:
+        if len(self.aliases) == 0:
             self.aliases.append(self.name.lower())
 
     # TODO: add back other properties to this?
@@ -150,12 +168,14 @@ class Player(Document):
     def delete_rating(self, region):
         self.ratings.filter(region=region).delete()
 
+
 class Region(Document):
     id = StringField(required=True, unique=True, primary_key=True)
     display_name = StringField(required=True)
 
     def __str__(self):
         return "{} ({})".format(self.display_name, self.id)
+
 
 class Ranking(Document):
     region = ReferenceField('Region', required=True)
@@ -166,12 +186,14 @@ class Ranking(Document):
     def __str__(self):
         return ";".join(str(ranking) for ranking in self.rankings)
 
+
 class Session(Document):
     id = StringField(required=True, unique=True, primary_key=True)
     user = ReferenceField('User', required=True, unique=True)
 
     def __str__(self):
         return "{} ({})".format(self.id, self.user)
+
 
 class BaseTournament(Document):
     name = StringField(required=True)
@@ -186,6 +208,7 @@ class BaseTournament(Document):
     def __str__(self):
         return "{} ({})".format(self.name, self.date.date().isoformat())
 
+
 class Tournament(BaseTournament):
     players = ListField(ReferenceField('Player'), required=True)
     matches = EmbeddedDocumentListField('Match', required=True)
@@ -198,19 +221,22 @@ class Tournament(BaseTournament):
                       {match.loser.id for match in self.matches}
 
         if players_ids != matches_ids:
-            raise ValidationError("set of players in players differs from set of players in matches")
+            raise ValidationError(
+                "set of players in players differs from set of players in matches")
 
         # check: no one plays themselves
         for match in self.matches:
             if match.winner.id == match.loser.id:
-                raise ValidationError("tournament contains match where player plays themself")
+                raise ValidationError(
+                    "tournament contains match where player plays themself")
 
         # check: no merged players in player list
         for player in self.players:
             if player.merged:
                 raise ValidationError("player in tournament has been merged")
 
-        # clean: if adding for first time with empty orig_ids, set equal to players
+        # clean: if adding for first time with empty orig_ids, set equal to
+        # players
         if len(self.orig_ids) == 0:
             self.orig_ids = [player for player in self.players]
 
@@ -238,23 +264,25 @@ class Tournament(BaseTournament):
         tournament.regions = pending_tournament.regions
         tournament.raw = pending_tournament.raw
 
-        alias_to_id_map = {mapping.player_alias:mapping.player
-                                for mapping in pending_tournament.alias_mappings}
+        alias_to_id_map = {mapping.player_alias: mapping.player
+                           for mapping in pending_tournament.alias_mappings}
         for alias in pending_tournament.aliases:
             if alias not in alias_to_id_map:
                 raise ValueError('Alias {} has no ID in map'.format(alias))
 
         tournament.players = [alias_to_id_map[alias]
-                                for alias in pending_tournament.aliases]
+                              for alias in pending_tournament.aliases]
         tournament.orig_ids = [p for p in tournament.players]
         tournament.matches = [Match(winner=alias_to_id_map[alias_match.winner],
                                     loser=alias_to_id_map[alias_match.loser])
-                                for alias_match in pending_tournament.alias_matches]
+                              for alias_match in pending_tournament.alias_matches]
 
         return tournament
 
+
 class PendingTournament(BaseTournament):
-    aliases = ListField(StringField(), required=True) # players in old PendingTournament
+    # players in old PendingTournament
+    aliases = ListField(StringField(), required=True)
     alias_mappings = EmbeddedDocumentListField('AliasMapping')
     alias_matches = EmbeddedDocumentListField('AliasMatch', required=True)
 
@@ -263,14 +291,17 @@ class PendingTournament(BaseTournament):
         set_aliases = set(self.aliases)
         matches_aliases = {match.winner for match in self.alias_matches} | \
                           {match.loser for match in self.alias_matches}
-        mapping_aliases = {mapping.player_alias for mapping in self.alias_mappings}
+        mapping_aliases = {
+            mapping.player_alias for mapping in self.alias_mappings}
 
         if set_aliases != matches_aliases:
-            raise ValidationError("set of players in players differs from set of players in matches")
+            raise ValidationError(
+                "set of players in players differs from set of players in matches")
 
         # check: set of aliases in mapping is subset of aliases
         if not mapping_aliases.issubset(set_aliases):
-            raise ValidationError("alias mappings contains mapping for alias not in tournament")
+            raise ValidationError(
+                "alias mappings contains mapping for alias not in tournament")
 
     def set_alias_mapping(self, alias, player):
         for mapping in self.alias_mappings:
@@ -299,6 +330,7 @@ class PendingTournament(BaseTournament):
                                      loser=match['loser'])
             tournament.alias_matches.append(alias_match)
         return tournament
+
 
 class User(Document):
     username = StringField(required=True, unique=True, primary_key=True)

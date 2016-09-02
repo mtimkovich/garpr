@@ -1,26 +1,22 @@
-import datetime
-import os
 import re
 import sys
 
-from bson import json_util
 from bson.dbref import DBRef
 from bson.objectid import ObjectId
 from datetime import datetime
 from flask import Flask, request, jsonify
 from flask.ext import restful
 from flask.ext.restful import reqparse, abort as flask_abort
-from flask.ext.cors import CORS
 from mongoengine import connect
 from mongoengine.base import BaseDocument
 from mongoengine.queryset import QuerySet
 
 import alias_service
+import model as M
 import rankings
 
 from config.config import Config
 from dao import Dao
-from model import *
 from scraper.tio import TioScraper
 from scraper.challonge import ChallongeScraper
 from scraper.smashgg import SmashGGScraper
@@ -31,6 +27,7 @@ BASE_REGION = 'newjersey'
 app = Flask(__name__)
 api = restful.Api(app)
 
+
 def connect_db():
     # parse config file and open connection
     config = Config()
@@ -39,15 +36,18 @@ def connect_db():
                                                config.get_db_password(),
                                                source=config.get_auth_db_name())
 
+
 def abort(status_code, body=None):
     print status_code, body
     flask_abort(status_code, description=body)
+
 
 def get_dao(region):
     dao = Dao(region)
     if not dao.region:
         abort(404, 'region does not exist')
     return dao
+
 
 def auth_user(request, dao, check_regions=True):
     session_id = request.cookies.get('session_id')
@@ -59,8 +59,10 @@ def auth_user(request, dao, check_regions=True):
     return user
 
 # make mongoengines to_json routine consistent with earlier format
+
+
 def responsify(response):
-    #print response, type(response)
+    # print response, type(response)
     if isinstance(response, ObjectId):
         return str(response)
     elif isinstance(response, DBRef):
@@ -83,6 +85,7 @@ def responsify(response):
 
 # wrappers for DAO routines that abort when appropriate
 
+
 def _get_player_by_id(dao, id):
     try:
         player = dao.get_player_by_id(ObjectId(id))
@@ -93,6 +96,7 @@ def _get_player_by_id(dao, id):
         abort(404, 'Player not found')
 
     return player
+
 
 def _get_tournament_by_id(dao, id):
     try:
@@ -110,23 +114,24 @@ def _get_tournament_by_id(dao, id):
 
     abort(404, 'tournament not found')
 
+
 def _responsify_tournament(tournament):
     return_dict = {}
 
-    if isinstance(tournament, Tournament):
+    if isinstance(tournament, M.Tournament):
         return_dict['tournament'] = tournament
         return_dict['players'] = [{
             'id': p.id,
             'name': p.name
-            } for p in tournament.players]
+        } for p in tournament.players]
         return_dict['matches'] = [{
             'winner_id': m.winner.id,
             'winner_name': m.winner.name,
             'loser_id': m.loser.id,
             'loser_name': m.loser.name
-            } for m in tournament.matches]
+        } for m in tournament.matches]
         return_dict['is_pending'] = False
-    elif isinstance(tournament, PendingTournament):
+    elif isinstance(tournament, M.PendingTournament):
         return_dict['tournament'] = tournament
         return_dict['is_pending'] = True
     else:
@@ -134,19 +139,24 @@ def _responsify_tournament(tournament):
 
     return return_dict
 
-#TODO: major refactor to move auth code to a decorator
+# TODO: major refactor to move auth code to a decorator
+
 
 def is_allowed_origin(origin):
     dragon = r"http(s)?:\/\/(stage\.|www\.)?(notgarpr\.com|192\.168\.33\.1(0)?|njssbm\.com)(\:[\d]*)?$"
     return re.match(dragon, origin)
 
+
 class RegionListResource(restful.Resource):
+
     def get(self):
         return_dict = {'regions': Dao.get_all_regions()}
 
         return responsify(return_dict)
 
+
 class PlayerListResource(restful.Resource):
+
     def get(self, region):
         dao = get_dao(region)
 
@@ -174,7 +184,9 @@ class PlayerListResource(restful.Resource):
 
         return responsify(return_dict)
 
+
 class PlayerResource(restful.Resource):
+
     def get(self, region, id):
         dao = get_dao(region)
         player = _get_player_by_id(dao, id)
@@ -219,15 +231,18 @@ class PlayerResource(restful.Resource):
 
         return responsify(player)
 
+
 class TournamentListResource(restful.Resource):
+
     def get(self, region):
         dao = get_dao(region)
 
         tournament_list_get_parser = reqparse.RequestParser()
-        tournament_list_get_parser.add_argument('includePending', type=str, default='false')
+        tournament_list_get_parser.add_argument(
+            'includePending', type=str, default='false')
         args = tournament_list_get_parser.parse_args()
 
-        if args['includePending']=='true':
+        if args['includePending'] == 'true':
             auth_user(request, dao)
 
         return_dict = {}
@@ -237,12 +252,12 @@ class TournamentListResource(restful.Resource):
                                               exclude_properties=exclude_properties)
         return_dict['tournaments'] = tournaments
 
-        if args['includePending']=='true':
+        if args['includePending'] == 'true':
             print args['includePending']
             exclude_properties = ['raw', 'aliases', 'alias_matches']
             pending_tournaments = dao.get_all_pending_tournaments(
-                                        regions=[dao.region],
-                                        exclude_properties=exclude_properties)
+                regions=[dao.region],
+                exclude_properties=exclude_properties)
             return_dict['pending_tournaments'] = pending_tournaments
 
         return responsify(return_dict)
@@ -252,9 +267,12 @@ class TournamentListResource(restful.Resource):
         auth_user(request, dao)
 
         tournament_list_post_parser = reqparse.RequestParser()
-        tournament_list_post_parser.add_argument('type', type=str, location='json')
-        tournament_list_post_parser.add_argument('data', type=unicode, location='json')
-        tournament_list_post_parser.add_argument('bracket', type=str, location='json')
+        tournament_list_post_parser.add_argument(
+            'type', type=str, location='json')
+        tournament_list_post_parser.add_argument(
+            'data', type=unicode, location='json')
+        tournament_list_post_parser.add_argument(
+            'bracket', type=str, location='json')
 
         args = tournament_list_post_parser.parse_args()
 
@@ -286,14 +304,16 @@ class TournamentListResource(restful.Resource):
             abort(400, "Unknown type")
 
         try:
-            pending_tournament = PendingTournament.from_scraper(source_type, scraper, [dao.region])
+            pending_tournament = M.PendingTournament.from_scraper(
+                source_type, scraper, [dao.region])
         except:
             abort(400, 'Scraper encountered an error')
         if not pending_tournament:
             abort(400, 'Scraper encountered an error')
 
         try:
-            pending_tournament.alias_mappings = alias_service.get_alias_mappings(dao, pending_tournament.aliases)
+            pending_tournament.alias_mappings = alias_service.get_alias_mappings(
+                dao, pending_tournament.aliases)
         except:
             abort(400, 'Alias service encountered an error')
 
@@ -308,19 +328,21 @@ class TournamentListResource(restful.Resource):
 
         abort(400, 'Unknown error!')
 
+
 class TournamentResource(restful.Resource):
+
     def get(self, region, id):
         dao = get_dao(region)
 
         tournament = _get_tournament_by_id(dao, id)
-        if(isinstance(tournament, PendingTournament)):
+        if(isinstance(tournament, M.PendingTournament)):
             auth_user(request, dao)
 
         return responsify(_responsify_tournament(tournament))
 
     def put(self, region, id):
         dao = get_dao(region)
-        user = auth_user(request, dao)
+        auth_user(request, dao)
 
         tournament_put_parser = reqparse.RequestParser()
         tournament_put_parser.add_argument('name', type=str)
@@ -338,26 +360,30 @@ class TournamentResource(restful.Resource):
                 tournament.name = args['name']
             if args['date']:
                 try:
-                    tournament.date = datetime.strptime(args['date'].strip(), '%m/%d/%y')
+                    tournament.date = datetime.strptime(
+                        args['date'].strip(), '%m/%d/%y')
                 except:
                     abort(400, "Invalid date format")
             if args['regions']:
-                tournament.regions = [Dao.get_region_by_id(r) for r in args['regions']]
+                tournament.regions = [Dao.get_region_by_id(r) for r in args[
+                    'regions']]
 
-            if isinstance(tournament, Tournament):
+            if isinstance(tournament, M.Tournament):
                 if args['players']:
                     tournament.orig_ids = []
-                    tournament.players = [ObjectId(pid) for pid in args['players']]
+                    tournament.players = [ObjectId(pid)
+                                          for pid in args['players']]
                 if args['matches']:
-                    tournament.matches = [Match(winner=ObjectId(m['winner']), loser=ObjectId(m['loser'])) for m in args['matches']]
+                    tournament.matches = [M.Match(winner=ObjectId(
+                        m['winner']), loser=ObjectId(m['loser'])) for m in args['matches']]
 
-            elif isinstance(tournament, PendingTournament):
+            elif isinstance(tournament, M.PendingTournament):
                 if args['players']:
                     tournament.aliases = args['players']
                 if args['matches']:
-                    tournament.alias_matches = [AliasMatch(winner=m['winner'],
-                                                           loser=m['loser'])
-                                                        for m in args['matches']]
+                    tournament.alias_matches = [M.AliasMatch(winner=m['winner'],
+                                                             loser=m['loser'])
+                                                for m in args['matches']]
         except:
             abort(400, "Error parsing tournament data")
 
@@ -384,10 +410,12 @@ class TournamentResource(restful.Resource):
             abort(400, "Error deleting tournament")
         return {"success": True}
 
+
 class PendingTournamentResource(restful.Resource):
     """
     Updates alias_mappings for the pending tournament
     """
+
     def put(self, region, id):
         dao = get_dao(region)
         auth_user(request, dao)
@@ -411,7 +439,8 @@ class PendingTournamentResource(restful.Resource):
         try:
             for alias_item in args["alias_mappings"]:
                 player_alias = alias_item["player_alias"]
-                player = dao.get_player_by_id(ObjectId(alias_item["player_id"]))
+                player = dao.get_player_by_id(
+                    ObjectId(alias_item["player_id"]))
                 pending_tournament.set_alias_mapping(player_alias, player)
         except Exception as e:
             print e
@@ -424,10 +453,12 @@ class PendingTournamentResource(restful.Resource):
             print e
             abort(400, 'Encountered an error inserting pending tournament')
 
+
 class FinalizeTournamentResource(restful.Resource):
     """ Converts a pending tournament to a tournament.
         Works only if the PendingTournament's alias_to_id_map is completely filled out.
         Route restricted to admins for this region. """
+
     def post(self, region, id):
         dao = get_dao(region)
         auth_user(request, dao)
@@ -442,11 +473,11 @@ class FinalizeTournamentResource(restful.Resource):
 
         new_player_names = []
         for mapping in pending_tournament.alias_mappings:
-            if mapping.player == None:
+            if mapping.player is None:
                 new_player_names.append(mapping.player_alias)
 
         for player_name in new_player_names:
-            player = Player(name=player_name, regions=[dao.region])
+            player = M.Player(name=player_name, regions=[dao.region])
             try:
                 player.save()
             except:
@@ -456,16 +487,20 @@ class FinalizeTournamentResource(restful.Resource):
         try:
             # save pending_tournament to validate it
             pending_tournament.save()
-            tournament = Tournament.from_pending_tournament(pending_tournament)
+            tournament = M.Tournament.from_pending_tournament(
+                pending_tournament)
             tournament.save()
             pending_tournament.delete()
             return {"success": True, "tournament_id": str(tournament.id)}
         except ValueError:
-            abort(400, 'Not all player aliases in this pending tournament have been mapped to player ids.')
+            abort(
+                400, 'Not all player aliases in this pending tournament have been mapped to player ids.')
         except:
             abort(400, 'Dao threw an error somewhere')
 
+
 class RankingsResource(restful.Resource):
+
     def get(self, region):
         dao = get_dao(region)
 
@@ -492,7 +527,9 @@ class RankingsResource(restful.Resource):
 
         return self.get(region)
 
+
 class MatchesResource(restful.Resource):
+
     def get(self, region, id):
         dao = get_dao(region)
 
@@ -555,19 +592,21 @@ class MatchesResource(restful.Resource):
 
 
 class MergeListResource(restful.Resource):
+
     def get(self, region):
         dao = get_dao(region)
         auth_user(request, dao)
 
         return_dict = {}
-        return_dict['merges'] = [{'merge': merge} for merge in dao.get_all_merges()]
+        return_dict['merges'] = [{'merge': merge}
+                                 for merge in dao.get_all_merges()]
 
         for merge in return_dict['merges']:
             merge_obj = merge['merge']
 
             merge['source_player_name'] = merge_obj.source_player.name
             merge['target_player_name'] = merge_obj.target_player.name
-            merge['requester_name'] = merge_obj.requester.username;
+            merge['requester_name'] = merge_obj.requester.username
 
         return responsify(return_dict)
 
@@ -594,10 +633,10 @@ class MergeListResource(restful.Resource):
         if not target_player:
             abort(400, "target player not found")
 
-        the_merge = Merge(requester=user,
-                          source_player=source_player,
-                          target_player=target_player,
-                          time=datetime.now())
+        the_merge = M.Merge(requester=user,
+                            source_player=source_player,
+                            target_player=target_player,
+                            time=datetime.now())
 
         try:
             dao.insert_merge(the_merge)
@@ -607,7 +646,9 @@ class MergeListResource(restful.Resource):
             print 'error merging players: ' + str(e)
             abort(400, 'error merging players: ' + str(e))
 
+
 class MergeResource(restful.Resource):
+
     def get(self, region, id):
         # TODO: decide if we want this
         pass
@@ -624,17 +665,21 @@ class MergeResource(restful.Resource):
             print 'error merging players: ' + str(e)
             return 'error merging players: ' + str(e), 400
 
+
 class SessionResource(restful.Resource):
-    ''' logs a user in. i picked put over post because its harder to CSRF, not that CSRFing login actually matters'''
+    # logs a user in. i picked put over post because its
+    # harder to CSRF, not that CSRFing login actually matters
+
     def put(self):
         dao = Dao(None)
 
         session_put_parser = reqparse.RequestParser()
         session_put_parser.add_argument('username', type=str)
         session_put_parser.add_argument('password', type=str)
-        args = session_put_parser.parse_args() #parse args
+        args = session_put_parser.parse_args()  # parse args
 
-        session_id = dao.check_creds_and_get_session_id_or_none(args['username'], args['password'])
+        session_id = dao.check_creds_and_get_session_id_or_none(
+            args['username'], args['password'])
         if not session_id:
             abort(403, 'Permission denied')
 
@@ -643,18 +688,21 @@ class SessionResource(restful.Resource):
         return resp
 
     ''' logout, destroys session_id mapping on client and server side '''
+
     def delete(self):
         dao = Dao(None)
 
         session_delete_parser = reqparse.RequestParser()
-        session_delete_parser.add_argument('session_id', location='cookies', type=str)
+        session_delete_parser.add_argument(
+            'session_id', location='cookies', type=str)
         args = session_delete_parser.parse_args()
 
         logout_success = dao.logout_user_or_none(args['session_id'])
         if not logout_success:
             abort(404, 'who is you')
 
-        return 'logout success', 200, {'Set-Cookie': "session_id=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT"}
+        return 'logout success', 200, \
+            {'Set-Cookie': "session_id=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT"}
 
     def get(self):
         dao = Dao(None)
@@ -666,26 +714,32 @@ class SessionResource(restful.Resource):
 
         return responsify(user)
 
+
 @app.after_request
 def add_security_headers(resp):
-    resp.headers['Strict-Transport-Security'] = "max-age=31536000; includeSubdomains"
-    resp.headers['Content-Security-Policy'] = "default-src https: data: 'unsafe-inline' 'unsafe-eval'"
+    resp.headers[
+        'Strict-Transport-Security'] = "max-age=31536000; includeSubdomains"
+    resp.headers[
+        'Content-Security-Policy'] = "default-src https: data: 'unsafe-inline' 'unsafe-eval'"
     resp.headers['X-Frame-Options'] = "DENY"
     resp.headers['X-XSS-Protection'] = "1; mode=block"
     resp.headers['X-Content-Type-Options'] = "nosniff"
     return resp
 
+
 @app.after_request
 def add_cors(resp):
     """ Ensure all responses have the CORS headers. This ensures any failures are also accessible
         by the client. """
-    the_origin = request.headers.get('Origin','*')
+    the_origin = request.headers.get('Origin', '*')
     if not is_allowed_origin(the_origin):
         return resp
-    resp.headers['Access-Control-Allow-Origin'] =  the_origin
+    resp.headers['Access-Control-Allow-Origin'] = the_origin
     resp.headers['Access-Control-Allow-Credentials'] = 'true'
-    resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS, GET, PUT, DELETE'
-    resp.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers', 'Authorization' )
+    resp.headers[
+        'Access-Control-Allow-Methods'] = 'POST, OPTIONS, GET, PUT, DELETE'
+    resp.headers['Access-Control-Allow-Headers'] = request.headers.get(
+        'Access-Control-Request-Headers', 'Authorization')
     resp.headers["Access-Control-Expose-Headers"] = "Set-Cookie"
     # set low for debugging
     if app.debug:
@@ -704,9 +758,12 @@ api.add_resource(PlayerResource, '/<string:region>/players/<string:id>')
 api.add_resource(MatchesResource, '/<string:region>/matches/<string:id>')
 
 api.add_resource(TournamentListResource, '/<string:region>/tournaments')
-api.add_resource(TournamentResource, '/<string:region>/tournaments/<string:id>')
-api.add_resource(PendingTournamentResource, '/<string:region>/pending_tournaments/<string:id>')
-api.add_resource(FinalizeTournamentResource, '/<string:region>/tournaments/<string:id>/finalize')
+api.add_resource(TournamentResource,
+                 '/<string:region>/tournaments/<string:id>')
+api.add_resource(PendingTournamentResource,
+                 '/<string:region>/pending_tournaments/<string:id>')
+api.add_resource(FinalizeTournamentResource,
+                 '/<string:region>/tournaments/<string:id>/finalize')
 
 api.add_resource(RankingsResource, '/<string:region>/rankings')
 
@@ -714,4 +771,5 @@ api.add_resource(SessionResource, '/users/session')
 
 if __name__ == '__main__':
     connect_db()
-    app.run(host='0.0.0.0', port=int(sys.argv[1]), debug=(sys.argv[2] == 'True'))
+    app.run(host='0.0.0.0', port=int(
+        sys.argv[1]), debug=(sys.argv[2] == 'True'))

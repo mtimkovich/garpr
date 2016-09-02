@@ -1,34 +1,43 @@
-from bson.objectid import ObjectId
-from datetime import datetime, timedelta
-from pymongo import MongoClient, DESCENDING
+from datetime import timedelta
 
 import base64
 import hashlib
 import os
 import re
-import trueskill
 
 from config.config import Config
-from model import *
+from model import Merge, \
+    PendingTournament, \
+    Player, \
+    Ranking, \
+    Region, \
+    Session, \
+    Tournament, \
+    User
 
 config = Config()
 
 SPECIAL_CHARS = re.compile("[^\w\s]*")
 ITERATION_COUNT = 100000
 
+
 def gen_password(password):
     # more bytes of randomness? i think 16 bytes is sufficient for a salt
     salt = base64.b64encode(os.urandom(16))
-    hashed_password = base64.b64encode(hashlib.pbkdf2_hmac('sha256', password, salt, ITERATION_COUNT))
+    hashed_password = base64.b64encode(hashlib.pbkdf2_hmac(
+        'sha256', password, salt, ITERATION_COUNT))
 
     return salt, hashed_password
 
+
 def verify_password(password, salt, hashed_password):
-    the_hash = base64.b64encode(hashlib.pbkdf2_hmac('sha256', password, salt, ITERATION_COUNT))
-    return (the_hash and the_hash==hashed_password)
+    the_hash = base64.b64encode(hashlib.pbkdf2_hmac(
+        'sha256', password, salt, ITERATION_COUNT))
+    return (the_hash and the_hash == hashed_password)
 
 
 class Dao(object):
+
     def __init__(self, region_id):
         if region_id:
             self.region = Dao.get_region_by_id(region_id)
@@ -57,7 +66,8 @@ class Dao(object):
             regions=self.region,
             merged=False).first()
 
-    def get_players_by_alias_from_all_regions(self, alias, include_merged=False):
+    def get_players_by_alias_from_all_regions(
+            self, alias, include_merged=False):
         '''Converts alias to lowercase'''
         return list(Player.objects(
             aliases=alias.lower(),
@@ -88,10 +98,9 @@ class Dao(object):
         if query_list:
             query_dict['$and'] = query_list
 
-
-        return list(PendingTournament.objects(__raw__=query_dict) \
-                                .exclude(*exclude_properties)     \
-                                .order_by('date'))
+        return list(PendingTournament.objects(__raw__=query_dict)
+                    .exclude(*exclude_properties)
+                    .order_by('date'))
 
     def get_pending_tournament_by_id(self, id):
         try:
@@ -103,9 +112,9 @@ class Dao(object):
         return [x.id for x in self.get_all_tournaments(players, regions)]
 
     def get_all_tournaments(self, players=None,
-                                  regions=None,
-                                  op='and',
-                                  exclude_properties=['raw']):
+                            regions=None,
+                            op='and',
+                            exclude_properties=['raw']):
         '''players is a list of Players'''
         query_dict = {}
         query_list = []
@@ -124,10 +133,9 @@ class Dao(object):
             elif op == 'or':
                 query_dict['$or'] = query_list
 
-        return list(Tournament.objects(__raw__=query_dict) \
-                         .exclude(*exclude_properties)     \
-                         .order_by('date'))
-
+        return list(Tournament.objects(__raw__=query_dict)
+                    .exclude(*exclude_properties)
+                    .order_by('date'))
 
     def get_tournament_by_id(self, id):
         try:
@@ -140,18 +148,20 @@ class Dao(object):
     def get_players_with_similar_alias(self, alias):
         alias_lower = alias.lower()
 
-        #here be regex dragons
-        re_test_1 = '([1-9]+\s+[1-9]+\s+)(.+)' # to match '1 1 slox'
-        re_test_2 = '(.[1-9]+.[1-9]+\s+)(.+)' # to match 'p1s1 slox'
+        # here be regex dragons
+        re_test_1 = '([1-9]+\s+[1-9]+\s+)(.+)'  # to match '1 1 slox'
+        re_test_2 = '(.[1-9]+.[1-9]+\s+)(.+)'  # to match 'p1s1 slox'
 
         alias_set_1 = re.split(re_test_1, alias_lower)
         alias_set_2 = re.split(re_test_2, alias_lower)
 
         similar_aliases = [
             alias_lower,
-            alias_lower.replace(" ", ""), # remove spaces
-            re.sub(SPECIAL_CHARS, '', alias_lower), # remove special characters
-            # remove everything before the last special character; hopefully removes crew/sponsor tags
+            alias_lower.replace(" ", ""),  # remove spaces
+            # remove special characters
+            re.sub(SPECIAL_CHARS, '', alias_lower),
+            # remove everything before the last special character; hopefully
+            # removes crew/sponsor tags
             re.split(SPECIAL_CHARS, alias_lower)[-1].strip()
         ]
 
@@ -162,10 +172,10 @@ class Dao(object):
         if len(alias_set_2) == 4:
             similar_aliases.append(alias_set_2[2].strip())
 
-
-        #add suffixes of the string
+        # add suffixes of the string
         alias_words = alias_lower.split()
-        similar_aliases.extend([' '.join(alias_words[i:]) for i in xrange(len(alias_words))])
+        similar_aliases.extend([' '.join(alias_words[i:])
+                                for i in xrange(len(alias_words))])
 
         # uniqify
         similar_aliases = list(set(similar_aliases))
@@ -198,8 +208,8 @@ class Dao(object):
         target = merge.target_player
 
         # update target and source players
-        target.aliases = list(set(source.aliases+target.aliases))
-        target.regions = list(set(source.regions+target.regions))
+        target.aliases = list(set(source.aliases + target.aliases))
+        target.regions = list(set(source.regions + target.regions))
 
         target.merge_children.append(source)
         target.merge_children.extend(source.merge_children)
@@ -211,7 +221,8 @@ class Dao(object):
 
         # replace source with target in all tournaments that contain source
         for tournament in self.get_all_tournaments(players=[source]):
-            tournament.replace_player(player_to_remove=source, player_to_add=target)
+            tournament.replace_player(
+                player_to_remove=source, player_to_add=target)
             tournament.save()
 
     def unmerge_players(self, merge):
@@ -228,7 +239,8 @@ class Dao(object):
         # (probably best way to do this is to store which aliases and regions were merged in the merge Object)
         source.merge_parent = None
         source.merged = False
-        target.merge_children = [child for child in target.merge_children if child not in source.merge_children and child!=source]
+        target.merge_children = [child for child in target.merge_children
+                                 if child not in source.merge_children and child != source]
 
         source.save()
         target.save()
@@ -236,16 +248,17 @@ class Dao(object):
         # unmerge source from target
         source_players = source.merge_children + [source]
 
-        for tournament in self.get_all_tournaments(players=[source,target], op='or'):
+        for tournament in self.get_all_tournaments(
+                players=[source, target], op='or'):
             print tournament
             if target in tournament.players:
                 # check if original id now belongs to source
                 if any([child in tournament.orig_ids for child in source_players]):
                     print "unmerging tournament", tournament
                     # replace target with source in tournament
-                    tournament.replace_player(player_to_remove=target, player_to_add=source)
+                    tournament.replace_player(
+                        player_to_remove=target, player_to_add=source)
                     tournament.save()
-
 
     def get_latest_ranking(self):
         return Ranking.objects.order_by('-time').first()
@@ -268,8 +281,8 @@ class Dao(object):
 
         cutoff_date = now - timedelta(days=day_limit)
         qualifying_tournaments = Tournament.objects(players=player,
-                                            regions=self.region,
-                                            date__gte=cutoff_date)
+                                                    regions=self.region,
+                                                    date__gte=cutoff_date)
 
         if len(qualifying_tournaments) >= num_tourneys:
             return False
@@ -285,7 +298,8 @@ class Dao(object):
             if region_id not in valid_region_ids:
                 print 'Warning: invalid region name', region_id
 
-        regions = [region for region in valid_regions if region.id in region_ids]
+        regions = [
+            region for region in valid_regions if region.id in region_ids]
         if len(regions) == 0:
             raise ValueError("No valid region for new user")
 
@@ -317,25 +331,25 @@ class Dao(object):
         return User.objects(username=username).first()
 
     def get_user_by_session_id_or_none(self, session_id):
-        # mongo magic here, go through and get a user by session_id if they exist, otherwise return none
+        # mongo magic here, go through and get a user by session_id if they
+        # exist, otherwise return none
         session = Session.objects(id=session_id).first()
         return session.user if session else None
 
-
-    #### FOR INTERNAL USE ONLY ####
-    #XXX: this method must NEVER be publicly routeable, or you have session-hijacking
+    # FOR INTERNAL USE ONLY
+    # XXX: this method must NEVER be publicly routeable, or you have
+    # session-hijacking
     def get_session_id_by_user_or_none(self, user):
         session = Session.objects(user=user).first()
         return session.id if user else None
-    #### END OF YELLING #####
-
+    # END OF YELLING
 
     def check_creds_and_get_session_id_or_none(self, username, password):
         user = self.get_user_by_username_or_none(username)
         if not user:
             return None
 
-         # timing oracle on this... good luck
+        # timing oracle on this... good luck
         if verify_password(password, user.salt, user.hashed_password):
             session_id = base64.b64encode(os.urandom(128))
             self.update_session_id_for_user(user, session_id)
@@ -344,7 +358,7 @@ class Dao(object):
             return None
 
     def update_session_id_for_user(self, user, session_id):
-        #lets force people to have only one session at a time
+        # lets force people to have only one session at a time
         Session.objects(user=user).delete()
         new_session = Session(id=session_id,
                               user=user)
