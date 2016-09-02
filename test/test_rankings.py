@@ -1,174 +1,193 @@
+import os
 import unittest
-import mongomock
-from dao import Dao
+
 from bson.objectid import ObjectId
-from model import *
 from datetime import datetime
-import rankings
 from mock import patch
+from mongoengine import connect
+
+from config.config import Config
+from dao import Dao
+from model import *
+import rankings
+
+# mongomock currently has issues with MongoEngine:
+# (https://github.com/MongoEngine/mongoengine/issues/1045)
+# should switch back to mongomock after resolved
+DATABASE_NAME = 'garpr_test'
+CONFIG_LOCATION = os.path.abspath(os.path.dirname(__file__) + '/../config/config.ini')
 
 delta = .001
 
 class TestRankings(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(TestRankings, cls).setUpClass()
+
+        config = Config(CONFIG_LOCATION)
+        cls.conn = connect(DATABASE_NAME)
+        cls.conn.the_database.authenticate(config.get_db_user(),
+                                       config.get_db_password(),
+                                       source=config.get_auth_db_name())
+        cls.conn.drop_database(DATABASE_NAME)
+
     def setUp(self):
-        self.region_id = 'norcal'
-        self.region = Region(self.region_id, 'Norcal')
+        self.norcal = Region(id='norcal', display_name='Norcal')
+        self.socal = Region(id='socal', display_name='Socal')
+        self.texas = Region(id='texas', display_name='Texas')
+        self.norcal.save()
+        self.socal.save()
+        self.texas.save()
 
-        self.mongo_client = mongomock.MongoClient()
-        Dao.insert_region(self.region, self.mongo_client)
+        self.dao = Dao('norcal')
 
-        self.dao = Dao(self.region_id, mongo_client=self.mongo_client)
-
-        self.player_1_id = ObjectId()
-        self.player_2_id = ObjectId()
-        self.player_3_id = ObjectId()
-        self.player_4_id = ObjectId()
-        self.player_5_id = ObjectId()
         self.player_1 = Player(
-                'gaR',
-                ['gar', 'garr'],
-                {'norcal': TrueskillRating(), 'texas': TrueskillRating()},
-                ['norcal', 'texas'],
-                id=self.player_1_id)
+                name='gaR',
+                aliases=['gar', 'garr'],
+                ratings=[
+                    Rating.from_trueskill(self.norcal, trueskill.Rating()),
+                    Rating.from_trueskill(self.texas, trueskill.Rating())],
+                regions=[self.norcal, self.texas])
         self.player_2 = Player(
-                'sfat',
-                ['sfat', 'miom | sfat'],
-                {'norcal': TrueskillRating()},
-                ['norcal'],
-                id=self.player_2_id)
+                name='sfat',
+                aliases=['sfat', 'miom | sfat'],
+                ratings=[
+                    Rating.from_trueskill(self.norcal, trueskill.Rating())],
+                regions=[self.norcal])
         self.player_3 = Player(
-                'mango',
-                ['mango'],
-                {'norcal': TrueskillRating(trueskill_rating=trueskill.Rating(mu=2, sigma=3))},
-                ['socal'],
-                id=self.player_3_id)
-        self.player_4 = Player('shroomed', ['shroomed'], {'norcal': TrueskillRating()}, ['norcal'], id=self.player_4_id)
-        self.player_5 = Player('pewpewu', ['pewpewu'], {'norcal': TrueskillRating()}, ['norcal'], id=self.player_5_id)
+                name='mango',
+                aliases=['mango', 'gar'],
+                ratings=[
+                    Rating.from_trueskill(self.norcal, trueskill.Rating(mu=2, sigma=3))],
+                regions=[self.socal])
+        self.player_4 = Player(
+                name='shroomed',
+                ratings=[
+                    Rating.from_trueskill(self.norcal, trueskill.Rating())],
+                regions=[self.norcal])
+        self.player_5 = Player(
+                name='pewpewu',
+                ratings=[
+                    Rating.from_trueskill(self.norcal, trueskill.Rating())],
+                regions=[self.norcal, self.socal])
+        self.player_1.save()
+        self.player_2.save()
+        self.player_3.save()
+        self.player_4.save()
+        self.player_5.save()
 
         self.players = [self.player_1, self.player_2, self.player_3, self.player_4, self.player_5]
 
-        self.tournament_id_1 = ObjectId()
-        self.tournament_type_1 = 'tio'
-        self.tournament_raw_1 = 'raw1'
-        self.tournament_date_1 = datetime(2013, 10, 16)
         self.tournament_name_1 = 'tournament 1'
-        self.tournament_players_1 = [self.player_1_id, self.player_2_id, self.player_3_id, self.player_4_id]
+        self.tournament_type_1 = 'tio'
+        self.tournament_date_1 = datetime(2013, 10, 16)
+        self.tournament_regions_1 = [self.norcal]
+        self.tournament_raw_1 = 'raw1'
+        self.tournament_players_1 = [self.player_1, self.player_2, self.player_3, self.player_4]
         self.tournament_matches_1 = [
-                MatchResult(winner=self.player_1_id, loser=self.player_2_id),
-                MatchResult(winner=self.player_3_id, loser=self.player_4_id)
+                Match(winner=self.player_1, loser=self.player_2),
+                Match(winner=self.player_3, loser=self.player_4)
         ]
-        self.tournament_regions_1 = ['norcal']
 
         # tournament 2 is earlier than tournament 1, but inserted after
-        self.tournament_id_2 = ObjectId()
-        self.tournament_type_2 = 'challonge'
-        self.tournament_raw_2 = 'raw2'
-        self.tournament_date_2 = datetime(2013, 10, 10)
         self.tournament_name_2 = 'tournament 2'
-        self.tournament_players_2 = [self.player_5_id, self.player_2_id, self.player_3_id, self.player_4_id]
+        self.tournament_type_2 = 'challonge'
+        self.tournament_date_2 = datetime(2013, 10, 10)
+        self.tournament_regions_2 = [self.norcal]
+        self.tournament_raw_2 = 'raw2'
+        self.tournament_players_2 = [self.player_5, self.player_2, self.player_3, self.player_4]
         self.tournament_matches_2 = [
-                MatchResult(winner=self.player_5_id, loser=self.player_2_id),
-                MatchResult(winner=self.player_3_id, loser=self.player_4_id)
+                Match(winner=self.player_5, loser=self.player_2),
+                Match(winner=self.player_3, loser=self.player_4)
         ]
-        self.tournament_regions_2 = ['norcal', 'texas']
 
-        self.tournament_1 = Tournament(self.tournament_type_1,
-                                       self.tournament_raw_1,
-                                       self.tournament_date_1,
-                                       self.tournament_name_1,
-                                       self.tournament_players_1,
-                                       self.tournament_matches_1,
-                                       self.tournament_regions_1,
-                                       id=self.tournament_id_1)
 
-        self.tournament_2 = Tournament(self.tournament_type_2,
-                                       self.tournament_raw_2,
-                                       self.tournament_date_2,
-                                       self.tournament_name_2,
-                                       self.tournament_players_2,
-                                       self.tournament_matches_2,
-                                       self.tournament_regions_2,
-                                       id=self.tournament_id_2)
+        self.tournament_1 = Tournament(
+                    name=self.tournament_name_1,
+                    source_type=self.tournament_type_1,
+                    date=self.tournament_date_1,
+                    regions=self.tournament_regions_1,
+                    raw=self.tournament_raw_1,
+                    players=self.tournament_players_1,
+                    matches=self.tournament_matches_1)
+        self.tournament_2 = Tournament(
+                    name=self.tournament_name_2,
+                    source_type=self.tournament_type_2,
+                    date=self.tournament_date_2,
+                    regions=self.tournament_regions_2,
+                    raw=self.tournament_raw_2,
+                    players=self.tournament_players_2,
+                    matches=self.tournament_matches_2)
+        self.tournament_1.save()
+        self.tournament_2.save()
 
-        self.tournament_ids = [self.tournament_id_1, self.tournament_id_2]
         self.tournaments = [self.tournament_1, self.tournament_2]
 
-        for player in self.players:
-            self.dao.insert_player(player)
-
-        for tournament in self.tournaments:
-            self.dao.insert_tournament(tournament)
+    def tearDown(self):
+        self.conn.drop_database(DATABASE_NAME)
 
     # all tournaments are within the active range and will be included
     def test_generate_rankings(self):
         now = datetime(2013, 10, 17)
 
         # assert rankings before they get reset
-        self.assertEquals(self.dao.get_player_by_id(self.player_1_id).ratings, self.player_1.ratings)
-        self.assertEquals(self.dao.get_player_by_id(self.player_2_id).ratings, self.player_2.ratings)
-        self.assertEquals(self.dao.get_player_by_id(self.player_3_id).ratings, self.player_3.ratings)
-        self.assertEquals(self.dao.get_player_by_id(self.player_4_id).ratings, self.player_4.ratings)
-        self.assertEquals(self.dao.get_player_by_id(self.player_5_id).ratings, self.player_5.ratings)
+        self.assertEquals(self.dao.get_player_by_id(self.player_1.id).ratings, self.player_1.ratings)
+        self.assertEquals(self.dao.get_player_by_id(self.player_2.id).ratings, self.player_2.ratings)
+        self.assertEquals(self.dao.get_player_by_id(self.player_3.id).ratings, self.player_3.ratings)
+        self.assertEquals(self.dao.get_player_by_id(self.player_4.id).ratings, self.player_4.ratings)
+        self.assertEquals(self.dao.get_player_by_id(self.player_5.id).ratings, self.player_5.ratings)
 
         rankings.generate_ranking(self.dao, now=now, day_limit=30, num_tourneys=1)
-
         # assert rankings after ranking calculation
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_1_id).ratings['norcal'].trueskill_rating.mu,
+        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_1.id).get_rating(self.norcal).mu,
                                 28.458, delta=delta)
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_1_id).ratings['norcal'].trueskill_rating.sigma,
+        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_1.id).get_rating(self.norcal).sigma,
                                 7.201, delta=delta)
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_2_id).ratings['norcal'].trueskill_rating.mu,
+        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_2.id).get_rating(self.norcal).mu,
                                 18.043, delta=delta)
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_2_id).ratings['norcal'].trueskill_rating.sigma,
+        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_2.id).get_rating(self.norcal).sigma,
                                 6.464, delta=delta)
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_3_id).ratings['norcal'].trueskill_rating.mu,
+        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_3.id).get_rating(self.norcal).mu,
                                 31.230, delta=delta)
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_3_id).ratings['norcal'].trueskill_rating.sigma,
+        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_3.id).get_rating(self.norcal).sigma,
                                 6.523, delta=delta)
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_4_id).ratings['norcal'].trueskill_rating.mu,
+        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_4.id).get_rating(self.norcal).mu,
                                 18.770, delta=delta)
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_4_id).ratings['norcal'].trueskill_rating.sigma,
+        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_4.id).get_rating(self.norcal).sigma,
                                 6.523, delta=delta)
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_5_id).ratings['norcal'].trueskill_rating.mu,
+        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_5.id).get_rating(self.norcal).mu,
                                 29.396, delta=delta)
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_5_id).ratings['norcal'].trueskill_rating.sigma,
+        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_5.id).get_rating(self.norcal).sigma,
                                 7.171, delta=delta)
 
-        # player 1's rating for other regions should not have changed
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_1_id).ratings['texas'].trueskill_rating.mu,
-                                25, delta=delta)
-        self.assertAlmostEquals(self.dao.get_player_by_id(self.player_1_id).ratings['texas'].trueskill_rating.sigma,
-                                8.333, delta=delta)
-
         ranking = self.dao.get_latest_ranking()
-        self.assertEquals(ranking.region, self.region_id)
+        self.assertEquals(ranking.region, self.norcal)
         self.assertEquals(ranking.time, now)
-        self.assertEquals(set(ranking.tournaments), set(self.tournament_ids))
 
-        ranking_list = ranking.ranking
+        ranking_list = ranking.rankings
 
         # the ranking should not have any excluded players
         self.assertEquals(len(ranking_list), 4)
 
         entry = ranking_list[0]
         self.assertEquals(entry.rank, 1)
-        self.assertEquals(entry.player, self.player_5_id)
-        self.assertAlmostEquals(entry.rating, 7.881, delta=delta)
+        self.assertEquals(entry.player, self.player_5)
+        self.assertAlmostEquals(entry.rating.mu-3*entry.rating.sigma, 7.881, delta=delta)
 
         entry = ranking_list[1]
         self.assertEquals(entry.rank, 2)
-        self.assertEquals(entry.player, self.player_1_id)
-        self.assertAlmostEquals(entry.rating, 6.857, delta=delta)
+        self.assertEquals(entry.player, self.player_1)
+        self.assertAlmostEquals(entry.rating.mu-3*entry.rating.sigma, 6.857, delta=delta)
 
         entry = ranking_list[2]
         self.assertEquals(entry.rank, 3)
-        self.assertEquals(entry.player, self.player_4_id)
-        self.assertAlmostEquals(entry.rating, -.800, delta=delta)
+        self.assertEquals(entry.player, self.player_4)
+        self.assertAlmostEquals(entry.rating.mu-3*entry.rating.sigma, -.800, delta=delta)
 
         entry = ranking_list[3]
         self.assertEquals(entry.rank, 4)
-        self.assertEquals(entry.player, self.player_2_id)
-        self.assertAlmostEquals(entry.rating, -1.349, delta=delta)
+        self.assertEquals(entry.player, self.player_2)
+        self.assertAlmostEquals(entry.rating.mu-3*entry.rating.sigma, -1.349, delta=delta)
 
     # players that only played in the first tournament will be excluded for inactivity
     def test_generate_rankings_excluded_for_inactivity(self):
@@ -178,20 +197,21 @@ class TestRankings(unittest.TestCase):
 
         ranking = self.dao.get_latest_ranking()
 
-        ranking_list = ranking.ranking
+        ranking_list = ranking.rankings
+        print ranking_list
         self.assertEquals(len(ranking_list), 3)
 
         entry = ranking_list[0]
         self.assertEquals(entry.rank, 1)
-        self.assertEquals(entry.player, self.player_1_id)
-        self.assertAlmostEquals(entry.rating, 6.857, delta=delta)
+        self.assertEquals(entry.player, self.player_1)
+        self.assertAlmostEquals(entry.rating.mu-3*entry.rating.sigma, 6.857, delta=delta)
 
         entry = ranking_list[1]
         self.assertEquals(entry.rank, 2)
-        self.assertEquals(entry.player, self.player_4_id)
-        self.assertAlmostEquals(entry.rating, -.800, delta=delta)
+        self.assertEquals(entry.player, self.player_4)
+        self.assertAlmostEquals(entry.rating.mu-3*entry.rating.sigma, -.800, delta=delta)
 
         entry = ranking_list[2]
         self.assertEquals(entry.rank, 3)
-        self.assertEquals(entry.player, self.player_2_id)
-        self.assertAlmostEquals(entry.rating, -1.349, delta=delta)
+        self.assertEquals(entry.player, self.player_2)
+        self.assertAlmostEquals(entry.rating.mu-3*entry.rating.sigma, -1.349, delta=delta)

@@ -28,15 +28,37 @@ def generate_ranking(dao, now=datetime.now(), day_limit=60, num_tourneys=2):
                     M.Rating.from_trueskill(dao.region, trueskill.Rating()))
                 player_set.add(match.loser)
 
+            # print 'BEFORE:'
+            # print '--------------------'
+            # print 'Winner:', match.winner.name, match.winner.get_rating(dao.region)
+            # print 'Loser:', match.loser.name, match.loser.get_rating(dao.region)
+            # # for p in player_set:
+            # #     print p.name, p.get_rating(dao.region)
+            # print '--------------------'
+
             rating_calculators.update_trueskill_ratings(
                 dao.region, winner=match.winner, loser=match.loser)
+
+            # print 'AFTER:'
+            # print '--------------------'
+            # print 'Winner:', match.winner.name, match.winner.get_rating(dao.region)
+            # print 'Loser:', match.loser.name, match.loser.get_rating(dao.region)
+            # print '--------------------'
 
     print 'Checking for player inactivity...'
 
     players = list(player_set)
+
+    # reload from mongoengine
+    # TODO: fix to reduce number of queries
+    for p in players:
+        p.reload()
+
     sorted_players = sorted(
         players,
         key=lambda player: trueskill.expose(player.get_rating(dao.region).trueskill_rating()), reverse=True)
+
+    print sorted_players
 
     rank = 1
     ranking = []

@@ -253,8 +253,8 @@ class TestServer(unittest.TestCase):
         self.assertEqual(json_data['aliases'], ['gar'])
         self.assertEqual(json_data['regions'], ['norcal'])
         self.assertEqual(json_data['ratings'][0]['region'], 'norcal')
-        self.assertTrue(json_data['ratings'][0]['mu'] > 16.9)
-        self.assertTrue(json_data['ratings'][0]['sigma'] > 6.23)
+        self.assertTrue(json_data['ratings'][0]['mu'] > 0)
+        self.assertTrue(json_data['ratings'][0]['sigma'] > 0)
         self.assertEqual(json_data['merged'], False)
 
         player = self.texas_dao.get_player_by_alias('wobbles')
@@ -267,8 +267,8 @@ class TestServer(unittest.TestCase):
         self.assertEqual(json_data['name'], 'Wobbles')
         self.assertEqual(json_data['aliases'], ['wobbles'])
         self.assertEqual(json_data['ratings'][0]['region'], 'texas')
-        self.assertTrue(json_data['ratings'][0]['mu'] > 41.8)
-        self.assertTrue(json_data['ratings'][0]['sigma'] > 4.25)
+        self.assertTrue(json_data['ratings'][0]['mu'] > 0)
+        self.assertTrue(json_data['ratings'][0]['sigma'] > 0)
         self.assertEqual(json_data['merged'], False)
 
     def test_get_tournament_list(self):
@@ -778,15 +778,15 @@ class TestServer(unittest.TestCase):
         self.assertEqual(ranking_entry['rank'], db_ranking_entry.rank)
         self.assertEqual(ranking_entry['player_id'], str(db_ranking_entry.player.id))
         self.assertEqual(ranking_entry['name'], db_ranking_entry.player.name)
-        self.assertTrue(ranking_entry['rating']['mu']>34.7)
-        self.assertTrue(ranking_entry['rating']['sigma']>4.0)
+        self.assertTrue(ranking_entry['rating']['mu']>0)
+        self.assertTrue(ranking_entry['rating']['sigma']>0)
         ranking_entry = json_data['ranking_entries'][-1]
         db_ranking_entry = db_ranking.rankings[-1]
         self.assertEqual(len(ranking_entry.keys()), 4)
         self.assertEqual(ranking_entry['rank'], db_ranking_entry.rank)
         self.assertEqual(ranking_entry['player_id'], str(db_ranking_entry.player.id))
         self.assertEqual(ranking_entry['name'], db_ranking_entry.player.name)
-        self.assertTrue(ranking_entry['rating']['mu'] > -3.86)
+        self.assertTrue(ranking_entry['rating']['mu'] > -10)
 
     # TODO: add a safe way to delete players
     # def test_get_rankings_ignore_invalid_player_id(self):

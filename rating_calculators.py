@@ -10,3 +10,7 @@ def update_trueskill_ratings(region, winner=None, loser=None):
 
     winner.update_rating(Rating.from_trueskill(region, new_winner_rating))
     loser.update_rating(Rating.from_trueskill(region, new_loser_rating))
+
+    # TODO: this adds lots of queries, do this in a smarter way
+    winner.save()
+    loser.save()
