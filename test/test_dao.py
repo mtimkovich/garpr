@@ -210,9 +210,9 @@ class TestDAO(unittest.TestCase):
         self.conn.drop_database(DATABASE_NAME)
 
     def test_init_with_invalid_region(self):
-        # create a dao with a non existant region, should throw exception
-        with self.assertRaises(Region.DoesNotExist) as cm:
-            Dao('newregion')
+        dao = Dao('newregion')
+        self.assertIsNone(dao.region)
+
 
     def test_get_all_regions(self):
         # add another region
@@ -254,17 +254,6 @@ class TestDAO(unittest.TestCase):
         self.assertEqual(self.norcal_dao.get_players_by_alias_from_all_regions('miom|sfat'), [])
         self.assertEqual(self.norcal_dao.get_players_by_alias_from_all_regions(''), [])
 
-    def test_get_player_id_map_from_player_aliases(self):
-        aliases = ['GAR', 'sfat', 'asdf', 'mango']
-        expected_map = [
-            {'player_alias': 'GAR', 'player_id': self.player_1.id},
-            {'player_alias': 'sfat', 'player_id': self.player_2.id},
-            {'player_alias': 'asdf', 'player_id': None},
-            {'player_alias': 'mango', 'player_id': None},
-        ]
-        map = self.norcal_dao.get_player_id_map_from_player_aliases(aliases)
-        self.assertEqual(map, expected_map)
-
     def test_get_all_players(self):
         self.assertEqual(self.norcal_dao.get_all_players(), [self.player_1, self.player_5, self.player_2, self.player_4])
 
@@ -281,7 +270,7 @@ class TestDAO(unittest.TestCase):
         self.assertEqual(pending_tournaments[0], self.pending_tournament_1)
 
     def test_get_all_pending_tournaments_for_region(self):
-        pending_tournaments = self.norcal_dao.get_all_pending_tournaments(regions=['norcal'])
+        pending_tournaments = self.norcal_dao.get_all_pending_tournaments(regions=[self.norcal])
 
         self.assertEqual(len(pending_tournaments), 1)
         self.assertEqual(pending_tournaments[0], self.pending_tournament_1)

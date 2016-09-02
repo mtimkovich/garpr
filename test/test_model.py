@@ -122,10 +122,10 @@ class TestMatch(unittest.TestCase):
         self.assertTrue(self.match1.did_player_win(self.p1.id))
         self.assertFalse(self.match1.did_player_win(self.p2.id))
 
-    def test_get_opposing_player_id(self):
-        self.assertEqual(self.match1.get_opposing_player_id(self.p1.id), self.p2.id)
-        self.assertEqual(self.match1.get_opposing_player_id(self.p2.id), self.p1.id)
-        self.assertIsNone(self.match1.get_opposing_player_id(self.p3.id))
+    def test_get_opposing_player(self):
+        self.assertEqual(self.match1.get_opposing_player(self.p1.id), self.p2)
+        self.assertEqual(self.match1.get_opposing_player(self.p2.id), self.p1)
+        self.assertIsNone(self.match1.get_opposing_player(self.p3.id))
 
     def test_replace_player(self):
         self.match1.replace_player(self.p2, self.p3)
@@ -291,7 +291,6 @@ class TestRanking(unittest.TestCase):
         print type(self.ranking.to_json())
 
     def test_to_string(self):
-        assert False
         ranking_strs = str(self.ranking).split(';')
         self.assertEqual(len(ranking_strs), 4)
         self.assertEqual(ranking_strs[0], '1. gar (%s)' % self.player_1.id)
