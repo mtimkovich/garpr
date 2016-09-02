@@ -304,11 +304,6 @@ class TournamentSeedResource(restful.Resource):
         dao = Dao(region, mongo_client=mongo_client)
         if not dao:
             return 'Dao not found', 404
-        user = get_user_from_request(request, dao)
-        if not user:
-            return 'Permission denied', 403
-        if not is_user_admin_for_region(user, region):
-            return 'Permission denied', 403
         parser = reqparse.RequestParser()
         parser.add_argument('type', type=str, location='json')
         parser.add_argument('data', type=unicode, location='json')
