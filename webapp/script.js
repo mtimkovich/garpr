@@ -1015,7 +1015,7 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
 
     $scope.prompt = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'import_tournament_modal.html',
+            templateUrl: 'import_tournament_modal_challonge_only.html',
             scope: $scope,
             size: 'lg'
         });
@@ -1064,7 +1064,7 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
     $scope.open = function() {
         $scope.disableButtons = false;
         $scope.modalInstance = $modal.open({
-            templateUrl: 'import_tournament_modal.html',
+            templateUrl: 'import_tournament_modal_challonge_only.html',
             scope: $scope,
             size: 'lg'
         });
@@ -1098,6 +1098,7 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
             else
                 $scope.seeding.players.push({'seed':$scope.seeding.players.length, 'tag':player});
            });
+            $scope.close();
         };
 
         failureCallback = function(data) {
@@ -1131,5 +1132,9 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
     {
         $scope.seeding.players.splice(seed-1,1);
         $scope.resortSeeding();
+    }
+
+    $scope.close = function(){
+        $scope.modalInstance.close();
     }
 });
