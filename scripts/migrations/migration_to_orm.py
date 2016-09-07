@@ -64,7 +64,7 @@ def migrate_to_orm():
                       'aliases': old_player.get('aliases'),
                       'ratings': new_ratings,
                       'regions': old_player.get('regions'),
-                      'merged': old_player.get('merged'),
+                      'merged': old_player.get('merged', False),
                       'merge_parent': old_player.get('merge_parent'),
                       'merge_children': old_player.get('merge_children')}
         if new_player['merge_children'] and new_player['_id'] in new_player['merge_children']:
