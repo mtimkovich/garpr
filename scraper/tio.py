@@ -1,7 +1,7 @@
-import os
 from bs4 import BeautifulSoup
 from model import AliasMatch
 from dateutil import parser
+
 
 class TioScraper(object):
 
@@ -14,7 +14,7 @@ class TioScraper(object):
 
         self.text = raw
         self.soup = BeautifulSoup(self.text, 'xml')
-        self.url = None # no url for Tio
+        self.url = None  # no url for Tio
 
     @classmethod
     def from_file(cls, filepath, bracket_name):
@@ -35,7 +35,8 @@ class TioScraper(object):
         return parser.parse(self.soup.Event.StartDate.text)
 
     def get_matches(self):
-        player_map = dict((p.ID.text, p.Nickname.text.strip()) for p in self.soup.find_all('Player'))
+        player_map = dict((p.ID.text, p.Nickname.text.strip())
+                          for p in self.soup.find_all('Player'))
 
         bracket = None
         for b in self.soup.find_all('Game'):
@@ -70,7 +71,8 @@ class TioScraper(object):
                 pass
                 # reduce console spam for now
                 # TODO: log this
-                # print 'Could not find player for ids', player_1_id, player_2_id
+                # print 'Could not find player for ids', player_1_id,
+                # player_2_id
 
         if grand_finals_first_set is not None:
             matches.append(grand_finals_first_set)
