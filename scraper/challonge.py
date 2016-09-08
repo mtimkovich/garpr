@@ -2,7 +2,7 @@ import requests
 import re
 import os
 import iso8601
-from model import MatchResult
+from model import AliasMatch
 from bs4 import BeautifulSoup
 from config import config
 
@@ -60,7 +60,7 @@ class ChallongeScraper(object):
             if winner_id is not None and loser_id is not None:
                 winner = player_map[winner_id]
                 loser = player_map[loser_id]
-                match_result = MatchResult(winner=winner, loser=loser)
+                match_result = AliasMatch(winner=winner, loser=loser)
                 matches.append(match_result)
         return matches
 

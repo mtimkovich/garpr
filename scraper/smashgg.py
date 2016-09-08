@@ -1,7 +1,7 @@
 import datetime
 import requests
 import os
-from model import MatchResult
+from model import AliasMatch
 # from pyquery import PyQuery as pq
 from garprLogging.log import Log
 
@@ -91,7 +91,7 @@ class SmashGGScraper(object):
 
     def get_matches(self):
         """
-        :return: the list of MatchResult objects that represents every match
+        :return: the list of AliasMatch objects that represents every match
         played in the given bracket, including who won and who lost
         """
 
@@ -108,7 +108,7 @@ class SmashGGScraper(object):
                 print 'Error: id {} not found in player list'.format(match.loser_id)
                 continue
 
-            return_match = MatchResult(winner.smash_tag, loser.smash_tag)
+            return_match = AliasMatch(winner=winner.smash_tag, loser=loser.smash_tag)
             return_matches.append(return_match)
 
         return return_matches
