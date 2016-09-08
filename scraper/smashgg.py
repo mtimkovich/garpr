@@ -2,8 +2,6 @@ import datetime
 import requests
 import os
 from model import AliasMatch
-# from pyquery import PyQuery as pq
-from garprLogging.log import Log
 
 ### SMASHGG URLS: https://smash.gg/tournament/<tournament-name>/brackets/<event-id>/<phase-id>/<phase-group-id>/
 PHASE_URL = "https://api.smash.gg/phase/%s?expand[0]=groups"
