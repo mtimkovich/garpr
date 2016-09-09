@@ -414,6 +414,18 @@ app.controller("NavbarController", function($scope, $route, $location, RegionSer
         $location.path($scope.regionService.region.id + '/players/' + $item.id);
         $scope.selectedPlayer = null;
     };
+
+    $scope.typeaheadLabel = function(player){
+        var region = '';
+        try{
+            region  = player.regions[0];
+        } catch(err){
+            region = 'None'
+        }
+        region = region.italics();
+        region = region.fontcolor('#cccccc');
+        return player.name + ' ~ ' + region;
+    }
 });
 
 app.controller("RankingsController", function($scope, $routeParams, $modal, RegionService, RankingsService, SessionService) {
@@ -879,7 +891,7 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
         return players;
     }
 
-    $scope.typeheadLabel = function(player){
+    $scope.typeaheadLabel = function(player){
         var region = '';
         try{
             region  = player.regions[0];
