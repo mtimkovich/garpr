@@ -12,7 +12,7 @@ import model as M
 
 config = Config()
 
-ITERATION_COUNT = 1000
+ITERATION_COUNT = 100000
 
 DATABASE_NAME = config.get_db_name()
 PLAYERS_COLLECTION_NAME = 'players'
