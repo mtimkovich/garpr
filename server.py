@@ -189,7 +189,7 @@ class PlayerListResource(restful.Resource):
             return 'Dao not found', 404
         return_dict = {}
 
-        exclude_properties = ['aliases', 'ratings']
+        exclude_properties = ['aliases']
 
         # single player matching alias within region
         if args['alias']:
