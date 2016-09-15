@@ -121,6 +121,17 @@ app.service('PlayerService', function($http) {
         // local port of _player_matches_query from backend
         // now returns matchQuality instead of just a boolean
         // if match_quality > 0, consider it a match
+        typeaheadLabel: function(player){
+            var region = '';
+            try{
+                region  = player.regions[0];
+            } catch(err){
+                region = 'None'
+            }
+            region = region.italics();
+            region = region.fontcolor('#cccccc');
+            return player.name + ' ~ ' + region;
+        },
         playerMatchesQuery: function(player, query) {
             var playerName = player.name.toLowerCase();
             var query = query.toLowerCase();
@@ -153,6 +164,8 @@ app.service('PlayerService', function($http) {
             for (var i = 0; i < this.allPlayerList.players.length; i++) {
                 var curPlayer = this.allPlayerList.players[i];
                 var curRegion = this.allPlayerList.players[i].regions[0];
+
+                this.allPlayerList.players[i].typeaheadName = this.typeaheadLabel(curPlayer);
 
                 if(filter_fn == null || filter_fn(curPlayer)){
                     var matchQuality = this.playerMatchesQuery(curPlayer, query);
@@ -411,11 +424,10 @@ app.controller("NavbarController", function($scope, $route, $location, RegionSer
 
     $scope.selectedPlayer = null;
 
+
     $scope.playerSelected = function($item) {
         $location.path($scope.regionService.region.id + '/players/' + $item.id);
         $scope.selectedPlayer = null;
-
-        document.getElementById('search-player-dropdown').innerHTML = $item.name;
     };
 
     $scope.typeaheadLabel = function(player){
@@ -905,10 +917,6 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
         region = region.fontcolor('#cccccc');
         return player.name + ' ~ ' + region;
     }
-
-    $scope.playerSelected = function($item){
-        document.getElementById('merge-player-dropdown').innerHTML = $item.name
-    };
 
     $http.get(hostname + $routeParams.region + '/players/' + $routeParams.playerId).
         success(function(data) {
