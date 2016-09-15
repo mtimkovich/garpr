@@ -164,7 +164,7 @@ app.service('PlayerService', function($http) {
             for (var i = 0; i < this.allPlayerList.players.length; i++) {
                 var curPlayer = this.allPlayerList.players[i];
 
-                //curPlayer.typeaheadName = this.typeaheadLabel(curPlayer);
+                curPlayer.typeaheadName = this.typeaheadLabel(curPlayer);
                 if(filter_fn == null || filter_fn(curPlayer)){
                     var matchQuality = this.playerMatchesQuery(curPlayer, query);
                     if(matchQuality > 0){
