@@ -118,6 +118,17 @@ app.service('PlayerService', function($http) {
             }
             return null;
         },
+        typeaheadLabel: function(player){
+            var region = '';
+            try{
+                region  = player.regions[0];
+            } catch(err){
+                region = 'None'
+            }
+            region = region.italics();
+            region = region.fontcolor('#cccccc');
+            return player.name + ' ~ ' + region;
+        },
         // local port of _player_matches_query from backend
         // now returns matchQuality instead of just a boolean
         // if match_quality > 0, consider it a match
@@ -153,6 +164,7 @@ app.service('PlayerService', function($http) {
             for (var i = 0; i < this.allPlayerList.players.length; i++) {
                 var curPlayer = this.allPlayerList.players[i];
 
+                //curPlayer.typeaheadName = this.typeaheadLabel(curPlayer);
                 if(filter_fn == null || filter_fn(curPlayer)){
                     var matchQuality = this.playerMatchesQuery(curPlayer, query);
                     if(matchQuality > 0){
