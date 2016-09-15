@@ -903,6 +903,10 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
         return player.name + ' ~ ' + region;
     }
 
+    $scope.playerSelected = function(player, item){
+
+    };
+
     $http.get(hostname + $routeParams.region + '/players/' + $routeParams.playerId).
         success(function(data) {
             $scope.player = data;
