@@ -414,6 +414,8 @@ app.controller("NavbarController", function($scope, $route, $location, RegionSer
     $scope.playerSelected = function($item) {
         $location.path($scope.regionService.region.id + '/players/' + $item.id);
         $scope.selectedPlayer = null;
+
+        document.getElementById('search-player-dropdown').innerHTML = $item.name;
     };
 
     $scope.typeaheadLabel = function(player){
@@ -904,8 +906,8 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
         return player.name + ' ~ ' + region;
     }
 
-    $scope.playerSelected = function(player, item){
-
+    $scope.playerSelected = function($item){
+        document.getElementById('merge-player-dropdown').innerHTML = $item.name
     };
 
     $http.get(hostname + $routeParams.region + '/players/' + $routeParams.playerId).
