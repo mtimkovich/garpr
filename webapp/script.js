@@ -302,42 +302,42 @@ app.config(function ($httpProvider) {
 
 app.config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/:region/rankings', {
-        templateUrl: 'rankings.html',
+        templateUrl: 'rankings/views/rankings.html',
         controller: 'RankingsController',
         activeTab: 'rankings'
     }).
     when('/:region/players', {
-        templateUrl: 'players.html',
+        templateUrl: 'players/views/players.html',
         controller: 'PlayersController',
         activeTab: 'players'
     }).
     when('/:region/players/:playerId', {
-        templateUrl: 'player_detail.html',
+        templateUrl: 'players/views/player_detail.html',
         controller: 'PlayerDetailController',
         activeTab: 'players'
     }).
     when('/:region/tournaments', {
-        templateUrl: 'tournaments.html',
+        templateUrl: 'tournaments/views/tournaments.html',
         controller: 'TournamentsController',
         activeTab: 'tournaments'
     }).
     when('/:region/tournaments/:tournamentId', {
-        templateUrl: 'tournament_detail.html',
+        templateUrl: 'tournaments/views/tournament_detail.html',
         controller: 'TournamentDetailController',
         activeTab: 'tournaments'
     }).
     when('/:region/merges', {
-        templateUrl: 'merges.html',
+        templateUrl: 'players/views/merges.html',
         controller: 'MergesController',
         activeTab: 'tournaments'
     }).
     when('/:region/headtohead', {
-        templateUrl: 'headtohead.html',
+        templateUrl: 'head_to_head/views/headtohead.html',
         controller: 'HeadToHeadController',
         activeTab: 'headtohead'
     }).
     when('/about', {
-        templateUrl: 'about.html',
+        templateUrl: 'common/about/about.html',
         activeTab: 'about'
     }).
     otherwise({
@@ -382,7 +382,7 @@ app.controller("AuthenticationController", function($scope, $modal, Facebook, Se
 
     $scope.openLoginModal = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'login_modal.html',
+            templateUrl: 'common/login/login_modal.html',
             scope: $scope,
             size: 'lg'
         });
@@ -468,7 +468,7 @@ app.controller("TournamentsController", function($scope, $http, $routeParams, $m
     $scope.open = function() {
         $scope.disableButtons = false;
         $scope.modalInstance = $modal.open({
-            templateUrl: 'import_tournament_modal.html',
+            templateUrl: 'tournaments/views/import_tournament_modal.html',
             scope: $scope,
             size: 'lg'
         });
@@ -608,7 +608,7 @@ app.controller("TournamentDetailController", function($scope, $routeParams, $htt
 
     $scope.openDetailsModal = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'tournament_details_modal.html',
+            templateUrl: 'tournaments/views/tournament_details_modal.html',
             scope: $scope,
             size: 'lg'
         });
@@ -798,7 +798,7 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
 
     $scope.openDetailsModal = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'player_details_modal.html',
+            templateUrl: 'players/views/player_details_modal.html',
             scope: $scope,
             size: 'lg'
         });
