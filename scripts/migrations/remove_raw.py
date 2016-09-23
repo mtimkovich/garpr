@@ -47,4 +47,4 @@ for pt in pending_tournaments_col.find():
         del pt['raw']
         pt['raw_id'] = raw_file['_id']
 
-        pending_tournaments_col.update({'_id': t['_id']}, pt)
+        pending_tournaments_col.update({'_id': pt['_id']}, pt)
