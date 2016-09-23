@@ -4,12 +4,6 @@ import sys
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
-DATABASE_NAME = 'garpr'
-
-TOURNAMENTS_COLLECTION_NAME = 'tournaments'
-PENDING_TOURNAMENTS_COLLECTION_NAME = 'pending_tournaments'
-RAW_FILES_COLLECTION_NAME = 'raw_files'
-
 # add root directory to python path
 sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/../../'))
 
@@ -18,6 +12,12 @@ import model as M
 
 config = Config()
 mongo_client = MongoClient(host=config.get_mongo_url())
+
+DATABASE_NAME = config.get_db_name()
+
+TOURNAMENTS_COLLECTION_NAME = 'tournaments'
+PENDING_TOURNAMENTS_COLLECTION_NAME = 'pending_tournaments'
+RAW_FILES_COLLECTION_NAME = 'raw_files'
 
 tournaments_col = mongo_client[DATABASE_NAME][TOURNAMENTS_COLLECTION_NAME]
 pending_tournaments_col = mongo_client[DATABASE_NAME][PENDING_TOURNAMENTS_COLLECTION_NAME]
