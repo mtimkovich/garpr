@@ -217,7 +217,7 @@ class PendingTournament(orm.Document):
     @classmethod
     def from_scraper(cls, type, scraper, region_id):
         raw_file = RawFile(id=ObjectId(),
-                           data=scraper.get_raw())
+                           data=str(scraper.get_raw()))
         pending_tournament = cls(
             id=ObjectId(),
             name=scraper.get_name(),
