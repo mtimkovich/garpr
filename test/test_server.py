@@ -15,10 +15,10 @@ from mock import patch, Mock
 import rankings
 import server
 
-from dao import Dao, USERS_COLLECTION_NAME, DATABASE_NAME, ITERATION_COUNT, SESSIONS_COLLECTION_NAME
+from dao import Dao, DATABASE_NAME, ITERATION_COUNT
 from scraper.tio import TioScraper
 from model import AliasMapping, AliasMatch, Match, Merge, Player, PendingTournament, \
-                 Ranking, RankingEntry, Rating, Region, Tournament, User
+                 Ranking, RankingEntry, Rating, Region, Tournament, User, Session
 
 NORCAL_FILES = [('test/data/norcal1.tio', 'Singles'), ('test/data/norcal2.tio', 'Singles Pro Bracket')]
 TEXAS_FILES = [('test/data/texas1.tio', 'singles'), ('test/data/texas2.tio', 'singles')]
@@ -85,7 +85,7 @@ class TestServer(unittest.TestCase):
             hashed_password='browns')
         norcal_dao.insert_user(user)
 
-        users_col = mongo_client[DATABASE_NAME][USERS_COLLECTION_NAME]
+        users_col = mongo_client[DATABASE_NAME][User.collection_name]
         salt = base64.b64encode(os.urandom(16))
         hashed_password = base64.b64encode(hashlib.pbkdf2_hmac('sha256', 'rip', salt, ITERATION_COUNT))
 
@@ -134,8 +134,8 @@ class TestServer(unittest.TestCase):
             username=self.user_full_name,
             salt='nacl',
             hashed_password='browns')
-        self.users_col = self.mongo_client[DATABASE_NAME][USERS_COLLECTION_NAME]
-        self.sessions_col = self.mongo_client[DATABASE_NAME][SESSIONS_COLLECTION_NAME]
+        self.users_col = self.mongo_client[DATABASE_NAME][User.collection_name]
+        self.sessions_col = self.mongo_client[DATABASE_NAME][Session.collection_name]
 
 ### start of actual test cases
 

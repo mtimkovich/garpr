@@ -8,22 +8,25 @@ SOURCE_TYPE_CHOICES = ('tio', 'challonge', 'smashgg', 'other')
 
 # Embedded documents
 
-
 class AliasMapping(orm.Document):
+    collection_name = None
     fields = [('player_id', orm.ObjectIDField()),
               ('player_alias', orm.StringField(required=True))]
 
 
 class AliasMatch(orm.Document):
+    collection_name = None
     fields = [('winner', orm.StringField(required=True)),
               ('loser', orm.StringField(required=True))]
 
 
 class Match(orm.Document):
+    collection_name = None
     fields = [('match_id', orm.IntField(required=True)),
               ('winner', orm.ObjectIDField(required=True)),
               ('loser', orm.ObjectIDField(required=True)),
               ('excluded', orm.BooleanField(required=True, default=False))]
+
 
     def __str__(self):
         return "%s > %s" % (self.winner, self.loser)
@@ -48,12 +51,14 @@ class Match(orm.Document):
 
 
 class RankingEntry(orm.Document):
+    collection_name = None
     fields = [('player', orm.ObjectIDField(required=True)),
               ('rank', orm.IntField(required=True)),
               ('rating', orm.FloatField(required=True))]
 
 
 class Rating(orm.Document):
+    collection_name = None
     fields = [('mu', orm.FloatField(required=True, default=25.)),
               ('sigma', orm.FloatField(required=True, default=25. / 3))]
 
@@ -73,6 +78,7 @@ MONGO_ID_SELECTOR = {'db': '_id',
 
 
 class Player(orm.Document):
+    collection_name = 'players'
     fields = [('id', orm.ObjectIDField(required=True, load_from=MONGO_ID_SELECTOR,
                                        dump_to=MONGO_ID_SELECTOR)),
               ('name', orm.StringField(required=True)),
@@ -99,6 +105,7 @@ class Player(orm.Document):
 
 
 class Tournament(orm.Document):
+    collection_name = 'tournaments'
     fields = [('id', orm.ObjectIDField(required=True, load_from=MONGO_ID_SELECTOR,
                                        dump_to=MONGO_ID_SELECTOR)),
               ('name', orm.StringField(required=True)),
@@ -184,6 +191,7 @@ class Tournament(orm.Document):
 
 
 class PendingTournament(orm.Document):
+    collection_name = 'pending_tournaments'
     fields = [('id', orm.ObjectIDField(required=True, load_from=MONGO_ID_SELECTOR,
                                        dump_to=MONGO_ID_SELECTOR)),
               ('name', orm.StringField(required=True)),
@@ -242,11 +250,13 @@ class PendingTournament(orm.Document):
 # need to carry around tournament data as much. (might eventually be replaced
 # with something like S3)
 class RawFile(orm.Document):
+    collection_name = 'raw_files'
     fields = [('id', orm.ObjectIDField(required=True, load_from=MONGO_ID_SELECTOR,
                                        dump_to=MONGO_ID_SELECTOR)),
               ('data', orm.StringField())]
 
 class Ranking(orm.Document):
+    collection_name = 'rankings'
     fields = [('id', orm.ObjectIDField(required=True, load_from=MONGO_ID_SELECTOR,
                                        dump_to=MONGO_ID_SELECTOR)),
               ('region', orm.StringField(required=True)),
@@ -255,6 +265,7 @@ class Ranking(orm.Document):
               ('ranking', orm.ListField(orm.DocumentField(RankingEntry)))]
 
 class Region(orm.Document):
+    collection_name = 'regions'
     fields = [('id', orm.StringField(required=True, load_from=MONGO_ID_SELECTOR,
                                      dump_to=MONGO_ID_SELECTOR)),
               ('display_name', orm.StringField(required=True)),
@@ -264,6 +275,7 @@ class Region(orm.Document):
 
 
 class User(orm.Document):
+    collection_name = 'users'
     fields = [('id', orm.StringField(required=True, load_from=MONGO_ID_SELECTOR,
                                      dump_to=MONGO_ID_SELECTOR)),
               ('username', orm.StringField(required=True)),
@@ -273,6 +285,7 @@ class User(orm.Document):
 
 
 class Merge(orm.Document):
+    collection_name = 'merges'
     fields = [('id', orm.ObjectIDField(required=True, load_from=MONGO_ID_SELECTOR,
                                        dump_to=MONGO_ID_SELECTOR)),
               ('requester_user_id', orm.StringField(required=True)),
@@ -282,6 +295,7 @@ class Merge(orm.Document):
 
 
 class Session(orm.Document):
+    collection_name = 'sessions'
     fields = [('session_id', orm.StringField(required=True)),
               ('user_id', orm.StringField(required=True))]
 
