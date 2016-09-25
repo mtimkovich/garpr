@@ -1024,9 +1024,10 @@ class MergeListResource(restful.Resource):
             source_player = dao.get_player_by_id(merge['source_player_obj_id'])
             target_player = dao.get_player_by_id(merge['target_player_obj_id'])
 
-            merge['source_player_name'] = source_player.name
-            merge['target_player_name'] = target_player.name
-            merge['requester_name'] = user.username
+            if source_player is not None and target_player is not None:
+                merge['source_player_name'] = source_player.name
+                merge['target_player_name'] = target_player.name
+                merge['requester_name'] = user.username
 
         return return_dict
 
