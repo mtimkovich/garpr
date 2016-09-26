@@ -316,14 +316,14 @@ class TournamentSeedResource(restful.Resource):
                   scraper = ChallongeScraper(data)
               else:
                   return "Unknown type", 400
-              pending_tournament = M.PendingTournament.from_scraper(type, scraper, region)
+              pending_tournament, raw_file = M.PendingTournament.from_scraper(type, scraper, region)
           except Exception as ex:
             return 'Scraper encountered an error ' + str(ex), 400
   
-          if not pending_tournament:
+          if not pending_tournament or not raw_file:
               return 'Scraper encountered an error - null', 400
   
-          pending_tournament_json = pending_tournament.dump(context='web', exclude=('raw', 'date', 'matches', 'regions', 'type'))
+          pending_tournament_json = pending_tournament.dump(context='web', exclude=('date', 'matches', 'regions', 'type'))
           return pending_tournament_json
 
           

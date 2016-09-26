@@ -16,6 +16,7 @@
             <h3>Players</h3>
             <table id="seed_table" class="table table-condensed">
                 <tr>
+                    <td><strong>New Player?</strong></td>
                     <td><strong>Seed</strong></td>
                     <td><strong>Tag</strong></td>
                     <td><strong>Player Details</strong></td>
@@ -24,6 +25,11 @@
                     <td><strong>Remove</strong></td> 
                 </tr>
                 <tr ng-repeat="player in seeding.players">
+                    <td>
+                        <input type="checkbox"
+                               ng-model="player.new"
+                               ng-change="setPlayerNew(player)">
+                    </td>
                     <td>
                         {{player.seed}}
                     </td>

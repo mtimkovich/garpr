@@ -994,7 +994,8 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
         $scope.seeding.players.push(
         {
             seed: $scope.seeding.players.length+1,
-            tag : ""
+            tag : "",
+            new : true
         });
     }
 
@@ -1011,6 +1012,7 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
         player.tag = item.name;
         player.rating = undefined;
         player.id = item.id;
+        player.new = false;
         $scope.rankingsService.rankingsList.ranking.forEach(function(rank)
         {
             if(rank.name == item.name)
@@ -1044,6 +1046,7 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
                 }
             }
         }
+
         $scope.resortSeeding();
     }
 
@@ -1129,7 +1132,7 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
                 $scope.playerSelected($scope.seeding.players[$scope.seeding.players.length-1], players[0]);
             }
             else
-                $scope.seeding.players.push({'seed':$scope.seeding.players.length, 'tag':player});
+                $scope.seeding.players.push({'seed':$scope.seeding.players.length, 'tag':player, new:true});
            });
             $scope.tournament_name = data.name;
             $scope.close();
@@ -1160,6 +1163,15 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
     $scope.isNewPlayer = function(player)
     {
         return player.rating === undefined;
+    }
+
+    $scope.setPlayerNew = function(player)
+    {
+        
+        if(player.new)
+            player.rating = undefined;
+
+        $scope.resortSeeding();
     }
 
     $scope.removePlayer = function(seed)
