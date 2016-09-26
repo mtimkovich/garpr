@@ -959,7 +959,7 @@ app.directive('exportToCsv',function(){
                 var csvString = '';
                 for(var i=1; i<table.rows.length;i++){
                     var rowData = table.rows[i].cells;
-                    for(var j=0; j<2;j++){
+                    for(var j=1; j<3;j++){
                         csvString = csvString + rowData[j].innerHTML.trim() + ",";
                     }
                     csvString = csvString.substring(0,csvString.length - 1);
@@ -1031,7 +1031,8 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
                 //inactive
                 if($scope.rankingsService.rankingsList.region in item.ratings)
                 {
-                    player.rating = item.ratings[$scope.rankingsService.rankingsList.region].mu;
+                    var ratingObj = item.ratings[$scope.rankingsService.rankingsList.region];
+                    player.rating = ratingObj.mu - 3*ratingObj.sigma;
                     player.ratingType=1;
                 }
                 //OOR
