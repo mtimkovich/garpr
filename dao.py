@@ -436,6 +436,9 @@ class Dao(object):
         source.merge_parent = target.id
         source.merged = True
 
+        print 'source:', source
+        print 'target:', target
+
         self.update_player(source)
         self.update_player(target)
 

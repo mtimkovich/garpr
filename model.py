@@ -90,10 +90,24 @@ class Player(orm.Document):
               ('merge_children', orm.ListField(orm.ObjectIDField()))
               ]
 
+    def validate_document(self):
+        # check: merged is True <=> merge_parent is not None
+        if self.merged and self.merge_parent is None:
+            return False, "player is merged but has no parent"
+
+        if self.merge_parent is not None and not self.merged:
+            return False, "player has merge_parent but is not merged"
+
+        return True, None
+
     def post_init(self):
         # initialize merge_children to contain id if it does not already
         if not self.merge_children:
             self.merge_children = [self.id]
+
+        # if aliases empty add name to aliases
+        if not self.aliases:
+            self.aliases = [self.name.lower()]
 
     @classmethod
     def create_with_default_values(cls, name, region):
@@ -119,6 +133,31 @@ class Tournament(orm.Document):
               ('matches', orm.ListField(orm.DocumentField(Match))),
               ('players', orm.ListField(orm.ObjectIDField())),
               ('orig_ids', orm.ListField(orm.ObjectIDField()))]
+
+    def validate_document(self):
+        # check: set of players in players = set of players in matches
+        players_ids = {player for player in self.players}
+        matches_ids = {match.winner for match in self.matches} | \
+                      {match.loser for match in self.matches}
+
+        if players_ids != matches_ids:
+            return False, "set of players in players differs from set of players in matches"
+
+        # check: no one plays themselves
+        for match in self.matches:
+            if match.winner == match.loser:
+                return False, "tournament contains match where player plays themself"
+
+        # check: len of orig_ids should equal len of players
+        if len(self.orig_ids) != len(self.players):
+            return False, "different number of orig_ids and players"
+
+        return True, None
+
+    def post_init(self):
+        # if orig_ids empty, set to players
+        if not self.orig_ids:
+            self.orig_ids = [player for player in self.players]
 
     def replace_player(self, player_to_remove=None, player_to_add=None):
         # TODO edge cases with this
@@ -203,6 +242,23 @@ class PendingTournament(orm.Document):
               ('matches', orm.ListField(orm.DocumentField(AliasMatch))),
               ('players', orm.ListField(orm.StringField())),
               ('alias_to_id_map', orm.ListField(orm.DocumentField(AliasMapping)))]
+
+    def validate_document(self):
+        # check: set of aliases = set of aliases in matches
+        players_aliases = set(self.players)
+        matches_aliases = {match.winner for match in self.matches} | \
+                          {match.loser for match in self.matches}
+        mapping_aliases = {mapping.player_alias for mapping in self.alias_to_id_map}
+
+        if players_aliases != matches_aliases:
+            return False, "set of players in players differs from set of players in matches"
+
+        # check: set of aliases in mapping is subset of player aliases
+        if not mapping_aliases.issubset(players_aliases):
+            return False, "alias mappings contain mapping for alias not in tournament"
+
+        return True, None
+
 
     def set_alias_id_mapping(self, alias, id):
         if self.alias_to_id_map is None:
@@ -292,6 +348,12 @@ class Merge(orm.Document):
               ('source_player_obj_id', orm.ObjectIDField(required=True)),
               ('target_player_obj_id', orm.ObjectIDField(required=True)),
               ('time', orm.DateTimeField())]
+
+    def validate_document(self):
+        if self.source_player_obj_id == self.target_player_obj_id:
+            return False, "source and target must be different"
+
+        return True, None
 
 
 class Session(orm.Document):
