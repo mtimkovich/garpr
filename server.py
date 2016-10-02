@@ -28,10 +28,13 @@ BASE_REGION = 'newjersey'
 config = Config()
 
 # setup logging
-logging.basicConfig(filename='garpr.log',
-                    level=logging.INFO,
-                    format='%(asctime)s %(message)s')
-logging.info('API Booted')
+try:
+    logging.basicConfig(filename='garprLogging/garpr.log',
+                        level=logging.INFO,
+                        format='%(asctime)s %(message)s')
+    logging.info('API Booted')
+except Exception as ex:
+    print('Failed to set up logging: ' + str(ex))
 
 mongo_client = MongoClient(host=config.get_mongo_url())
 print "parsed config: ", config.get_mongo_url()
