@@ -8,7 +8,7 @@ from pymongo import MongoClient
 
 import re
 import sys
-
+import logging
 import alias_service
 import model as M
 import rankings
@@ -26,6 +26,12 @@ BASE_REGION = 'newjersey'
 
 # parse config file
 config = Config()
+
+# setup logging
+logging.basicConfig(filename='garpr.log',
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s')
+logging.info('API Booted')
 
 mongo_client = MongoClient(host=config.get_mongo_url())
 print "parsed config: ", config.get_mongo_url()
@@ -735,6 +741,8 @@ class ExcludeTournamentMatchResource(restful.Resource):
         dao = Dao(region, mongo_client=mongo_client)
         user = get_user_from_request(request, dao)
 
+        log_user_and_command(user, 'Exclude Tournament Match')
+
         args = tournament_details_exclude_match_parser.parse_args()
         tournament_id = args['tournament_id']
         tournament = dao.get_tournament_by_id(ObjectId(tournament_id))
@@ -747,6 +755,7 @@ class ExcludeTournamentMatchResource(restful.Resource):
         match_id = int(args['match_id'])
         excluded = (args['excluded_tf'].lower() == 'true')
 
+        logging.info('Attempting exclusion on tournament: ' + str(tournament_id) + ' and match ' + str(match_id))
         dao.set_match_exclusion_by_tournament_id_and_match_id(ObjectId(tournament_id), match_id, excluded)
 
 class SwapWinnerLoserMatchResource(restful.Resource):
@@ -756,6 +765,8 @@ class SwapWinnerLoserMatchResource(restful.Resource):
     def post(self, region, id):
         dao = Dao(region, mongo_client=mongo_client)
         user = get_user_from_request(request, dao)
+
+        log_user_and_command(user, 'Swap Winner-Loser Post')
 
         args = tournament_details_swap_winner_loser_parser.parse_args()
         tournament_id = args['tournament_id']
@@ -767,6 +778,7 @@ class SwapWinnerLoserMatchResource(restful.Resource):
         if not is_user_admin_for_regions(user, tournament.regions):
             return 'Permission denied', 403
 
+        logging.info('Attempting swap on tournament: ' + str(tournament_id) + ' and match: ' + str(match_id))
         dao.swap_winner_loser_by_tournament_id_and_match_id(ObjectId(tournament_id), match_id)
 
 class RankingsResource(restful.Resource):
@@ -1111,6 +1123,9 @@ def add_cors(resp):
     if app.debug:
         resp.headers['Access-Control-Max-Age'] = '1'
     return resp
+
+def log_user_and_command(self, user, command):
+    logging.info('  [COMMAND] {' + str(user.username) + '} - ' + str(command))
 
 
 api.add_resource(MergeResource, '/<string:region>/merges/<string:id>')

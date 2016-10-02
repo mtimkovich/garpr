@@ -5,6 +5,7 @@ import hashlib
 import os
 import pymongo
 import re
+import logging
 
 from config.config import Config
 
@@ -289,6 +290,8 @@ class Dao(object):
 
 
     def set_match_exclusion_by_tournament_id_and_match_id(self, tournament_id, match_id, excluded):
+        logging.info('Running match exclusion in dao')
+
         # TODO ENHANCE THIS ALGORITHM TO ONLY UPDATE MATCH
         match_updated = False
         new_matches = []
@@ -302,6 +305,7 @@ class Dao(object):
                     match_updated = True
                 new_matches.append(match)
             except Exception as e:
+                logging.error('Could not attain match. ' + str(e))
                 print('Could not attain match. ' + str(e))
 
         if match_updated is True:
@@ -309,6 +313,7 @@ class Dao(object):
             self.tournaments_col.update({'_id': tournament_id}, tourney_m.dump(context='db'))
 
     def swap_winner_loser_by_tournament_id_and_match_id(self, tournament_id, match_id):
+        logging.info('Running swap in dao')
         new_matches = []
         tourney_m = \
             M.Tournament.load(self.tournaments_col.find_one({'_id': tournament_id}), context='db')
@@ -322,6 +327,7 @@ class Dao(object):
                     match_updated = True
                 new_matches.append(match)
             except Exception as e:
+                logging.error('Could not attain match. ' + str(e))
                 raise Exception('Could not attain match. ' + str(e))
 
         if match_updated is True:
