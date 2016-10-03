@@ -336,14 +336,125 @@ app.config(['$routeProvider', function($routeProvider) {
         controller: 'HeadToHeadController',
         activeTab: 'headtohead'
     }).
+    when('/:region/seed', {
+        templateUrl: 'seed.html',
+        controller: 'SeedController',
+        activeTab: 'seed'
+    }).
     when('/about', {
         templateUrl: 'common/about/about.html',
         activeTab: 'about'
+    }).
+    when('/adminfunctions',{
+        templateUrl: 'admin_functions.html',
+        controller: 'AdminFunctionsController'
     }).
     otherwise({
         redirectTo: '/' + defaultRegion + '/rankings'
     });
 }]);
+
+app.controller("AdminFunctionsController", function($scope, $http, RegionService, SessionService){
+    var url = hostname + "adminfunctions";
+    $scope.regionService = RegionService;
+    $scope.sessionService = SessionService;
+
+    $scope.regions = []
+    $http.get(hostname + 'regions').
+        success(function(data) {
+            data.regions.forEach(function(region){
+                $scope.regions.push(region);
+            });
+        });
+
+    $scope.regionStatusMessage = "";
+    $scope.userStatusMessage = "";
+
+    $scope.foo = null;
+    $scope.postParams = {
+        function_type: '',
+        new_region: '',
+        new_user_name: '',
+        new_user_pass: '',
+        new_user_permissions: '',
+        new_user_regions: []
+    };
+
+    $scope.addRegion = function(region){
+        if(!$scope.postParams.new_user_regions.includes(region))
+            $scope.postParams.new_user_regions.push(region);
+    };
+
+    $scope.removeRegion = function(region){
+        if($scope.postParams.new_user_regions.includes(region))
+            $scope.postParams.new_user_regions.splice($scope.postParams.new_user_regions.indexOf(region), 1);
+    };
+
+    $scope.checkRegionBox = function(region){
+        var display_name = region.display_name;
+        var checkboxId = display_name + "_checkbox";
+        var checkbox = document.getElementById(checkboxId);
+        if(checkbox.checked){
+            $scope.addRegion(region.id);
+        }
+        else{
+            $scope.removeRegion(region.id);
+        }
+    };
+
+    $scope.submitNewUser = function(){
+        if($scope.postParams.new_user_name == null ||
+            $scope.postParams.new_user_pass == null){
+            return;
+        }
+        $scope.postParams.function_type = 'user';
+
+        //TODO HTTP CALL TO API
+        $scope.sessionService.authenticatedPut(url, $scope.postParams, $scope.putUserSuccess, $scope.putUserFailure);
+    };
+
+    $scope.submitNewRegion = function(){
+        if($scope.postParams.new_region == null){
+            return;
+        }
+        $scope.postParams.function_type = 'region';
+
+        //TODO HTTP CALL TO API
+        $scope.sessionService.authenticatedPut(url, $scope.postParams, $scope.putRegionSuccess, $scope.putRegionFailure);
+    };
+
+    $scope.putRegionSuccess = function(response, status, headers, bleh){
+        console.log(response);
+        $scope.regionStatusMessage = "Region " + $scope.postParams.new_region + " successfully inserted!";
+        document.getElementById('regionStatusMessage').innerHTML
+            = "Region " + $scope.postParams.new_region + " successfully inserted!";
+
+        var form = document.getElementById('newRegionForm');
+        resetForm(form);
+    };
+
+    $scope.putUserSuccess = function(response, status, headers, bleh){
+        console.log(response);
+        $scope.userStatusMessage = "User " + $scope.postParams.new_user_name + " successfully inserted!";
+        document.getElementById('userStatusMessage').innerHTML
+            = "User " + $scope.postParams.new_user_name + " successfully inserted!";
+
+        var form = document.getElementById('newUserForm');
+        resetForm(form);
+    };
+
+    $scope.putRegionFailure = function(response, status, headers, bleh){
+        console.log(response);
+        $scope.regionStatusMessage = "An error occurred in inserting user."
+        document.getElementById('regionStatusMessage').innerHTML = "An error occurred in inserting region.";
+    };
+
+    $scope.putUserFailure = function(response, status, headers, bleh){
+        console.log(response);
+        $scope.userStatusMessage = "An error occurred in inserting user."
+        document.getElementById('userStatusMessage').innerHTML = "An error occurred in inserting user.";
+    };
+});
 
 app.controller("AuthenticationController", function($scope, $modal, Facebook, SessionService, RegionService) {
     $scope.sessionService = SessionService;
@@ -606,6 +717,8 @@ app.controller("TournamentDetailController", function($scope, $routeParams, $htt
     $scope.playerData = {};
     $scope.playerCheckboxState = {};
 
+    $scope.matchCheckbox = null;
+
     $scope.openDetailsModal = function() {
         $scope.modalInstance = $modal.open({
             templateUrl: 'tournaments/views/tournament_details_modal.html',
@@ -771,6 +884,117 @@ app.controller("TournamentDetailController", function($scope, $routeParams, $htt
     }
     // TODO submission checks! check to make sure everything in $scope.playerData is an object (not a string. string = partially typed box)
 
+    $scope.isMatchCurrentlyExcluded = function(match){
+        var excluded = match.excluded;
+
+        if(excluded){
+            //var htmlId = 'exclude_set_checkbox_' + match.match_id;
+            var winnerHtmlId = 'winner_' + match.match_id;
+            var loserHtmlId = 'loser_' + match.match_id;
+
+            //var matchCheckbox = document.getElementById(htmlId);
+            var winnerElement = document.getElementById(winnerHtmlId);
+            var loserElement = document.getElementById(loserHtmlId);
+
+            winnerElement.className = 'excludedSet';
+            loserElement.className = 'excludedSet';
+        }
+
+        return excluded;
+    }
+
+    $scope.changeMatchExclusion = function(match){
+        var htmlId = 'exclude_set_checkbox_' + match.match_id;
+        var winnerHtmlId = 'winner_' + match.match_id;
+        var loserHtmlId = 'loser_' + match.match_id;
+
+        var matchCheckbox = document.getElementById(htmlId);
+        var winnerElement = document.getElementById(winnerHtmlId);
+        var loserElement = document.getElementById(loserHtmlId);
+
+        postParams = {
+            tournament_id : $scope.tournamentId,
+            match_id : match.match_id,
+            excluded_tf : matchCheckbox.checked
+        }
+
+        url = hostname + $routeParams.region + '/tournaments/' + $scope.tournamentId + '/excludeMatch';
+
+        if(matchCheckbox.checked){
+            //API CALL HERE
+            $scope.sessionService.authenticatedPost(url, postParams,
+                (data) => {
+                    // TODO gray out the row
+                    winnerElement.className = 'excludedSet';
+                    loserElement.className = 'excludedSet';
+                    return false;
+               },
+                () => {
+                    excludeFailure();
+                    matchCheckbox.checked = false;
+               });
+        }
+        else{
+            // API CALL HERE
+            $scope.sessionService.authenticatedPost(url, postParams,
+                (data) => {
+                    // TODO ungray the row
+                    winnerElement.className = 'success';
+                    loserElement.className = 'danger';
+                    alert('Match Included Successfully!');
+                    return false;
+                },
+                () => {
+                    excludeFailure();
+                    matchCheckbox.checked = true;
+               });
+        }
+    };
+
+    function excludeFailure(){
+        alert('Failure to exclude set. Please try again');
+    };
+
+    $scope.swapWinnerLoser = function(match){
+        if( confirm('Are you sure you want to swap ' + match.winner_name + ' (W) with ' + match.loser_name + ' (L)?' )){
+            var winnerHtmlId = 'winner_' + match.match_id;
+            var loserHtmlId = 'loser_' + match.match_id;
+
+            var winnerElement = document.getElementById(winnerHtmlId);
+            var loserElement = document.getElementById(loserHtmlId);
+
+            var winnerAnchor = winnerElement.getElementsByTagName('a');
+            var winnerLink = winnerAnchor[0].href;
+            var loserAnchor = loserElement.getElementsByTagName('a');
+            var loserLink = loserAnchor[0].href;
+
+            var postParams = {
+                tournament_id : $scope.tournamentId,
+                match_id : match.match_id
+            }
+            url = hostname + $routeParams.region + '/tournaments/' + $scope.tournamentId + '/swapWinnerLoser';
+
+            $scope.sessionService.authenticatedPost(url, postParams,
+                (data) => {
+                    // TODO simply switch the names in the Winner-Loser boxes
+                    winnerAnchor[0].innerHTML = match.loser_name;
+                    winnerAnchor[0].href = loserLink;
+
+                    loserAnchor[0].innerHTML = match.winner_name;
+                    loserAnchor[0].href = winnerLink;
+
+                    alert('Swap was successful! (If people did not swap on table, please refresh the page)');
+                    return;
+                },
+                (err) => {
+                    // TODO alert of a failure and exit
+                    alert('Failed to swap Winner-Loser');
+                    return;
+               });
+        }
+
+    };
+
     $http.get(hostname + $routeParams.region + '/tournaments/' + $scope.tournamentId).
         success($scope.updateData);
 });
@@ -795,6 +1019,16 @@ app.controller("PlayerDetailController", function($scope, $http, $routeParams, $
     $scope.playerId = $routeParams.playerId;
     $scope.mergePlayer = "";
     $scope.matches = null;
+
+    $scope.matchStatus = 'L';
+
+    $scope.determineMatchStatus = function(match){
+        var status = '';
+        status = match.result == 'win' ? "W" : "L";
+        if(match.result === 'excluded')
+            status = 'EX';
+        return status;
+    }
 
     $scope.openDetailsModal = function() {
         $scope.modalInstance = $modal.open({
@@ -938,3 +1172,281 @@ app.controller("HeadToHeadController", function($scope, $http, $routeParams, Reg
         }
     };
 });
+
+
+
+/**
+Adopted from Yuvaraj Tana's implementation @codepen.io : https://codepen.io/YuvarajTana/pen/yNoNdZ/
+**/
+app.directive('exportToCsv',function(){
+    return {
+        restrict: 'A',
+        link: function (scope, element, attrs) {
+            var el = element[0];
+            element.bind('click', function(e){
+                var table = document.getElementById("seed_table");
+                var csvString = '';
+                for(var i=1; i<table.rows.length;i++){
+                    var rowData = table.rows[i].cells;
+                    for(var j=1; j<3;j++){
+                        csvString = csvString + rowData[j].innerHTML.trim() + ",";
+                    }
+                    csvString = csvString.substring(0,csvString.length - 1);
+                    csvString = csvString + "\n";
+                }
+                csvString = csvString.substring(0, csvString.length - 1);
+                var a = $('<a/>', {
+                    style:'display:none',
+                    href:'data:application/octet-stream;base64,'+btoa(csvString),
+                    download: scope.tournament_name+'_seeding.csv'
+                }).appendTo('body')
+                a[0].click()
+                a.remove();
+            });
+        }
+    }
+});
+
+app.controller("SeedController", function($scope, $http, $routeParams, $modal,SessionService, RegionService, PlayerService, RankingsService) {
+    RegionService.setRegion($routeParams.region);
+    $scope.regionService = RegionService;
+    $scope.playerService = PlayerService;
+    $scope.rankingsService = RankingsService;
+    $scope.sessionService = SessionService;
+
+    $scope.seeding = {
+        players:[]
+    };
+
+    $scope.addPlayerRow = function()
+    {
+        $scope.seeding.players.push(
+        {
+            seed: $scope.seeding.players.length+1,
+            tag : "",
+            new : true
+        });
+    }
+
+    $scope.playerSelected = function(player, item)
+    {
+        /**
+        -1: no rating
+        0: current in-region rating
+        1: inactive, in-region rating
+        2: OOR rating (active/inactive)
+        **/
+        player.ratingType=-1;
+        player.regions = item.regions;
+        player.tag = item.name;
+        player.rating = undefined;
+        player.id = item.id;
+        player.new = false;
+        $scope.rankingsService.rankingsList.ranking.forEach(function(rank)
+        {
+            if(rank.name == item.name)
+            {
+                player.rating = rank.rating;
+                player.ratingType = 0;
+            }
+        });
+
+        //use inactive/OOR ranking if available
+        if(player.ratingType==-1)
+        {
+            
+            if(item.ratings !== undefined)
+            {
+                //inactive
+                if($scope.rankingsService.rankingsList.region in item.ratings)
+                {
+                    var ratingObj = item.ratings[$scope.rankingsService.rankingsList.region];
+                    player.rating = ratingObj.mu - 3*ratingObj.sigma;
+                    player.ratingType=1;
+                }
+                //OOR
+                else
+                {
+                    for (var first in item.ratings) break;//this is whack
+                    if(first !== undefined){
+                        player.rating = item.ratings[first].mu;
+                        player.oorRanking = first;
+                        player.ratingType = 2;
+                    }
+                }
+            }
+        }
+
+        $scope.resortSeeding();
+    }
+
+    $scope.prompt = function() {
+        $scope.modalInstance = $modal.open({
+            templateUrl: 'import_tournament_modal_challonge_only.html',
+            scope: $scope,
+            size: 'lg'
+        });
+    };
+
+    $scope.resortSeeding = function()
+    {
+        $scope.seeding.players.sort(function(a, b) {
+            if(b.rating === undefined)
+                return -1;
+            else if (a.rating === undefined)
+                return 1;
+            else
+                return b.rating - a.rating;
+        });
+        $scope.seeding.players.forEach(function(player, index)
+        {
+            player.seed = index + 1;
+        });
+    }
+
+     $scope.prettyPrintRegionListForPlayer = function(player) {
+        var retString = 'None';
+        if (player != null && player.hasOwnProperty('regions')) {
+            var regions = player.regions;
+            for (i = 0; i < regions.length; i++) {
+                r = regions[i];
+                if (retString == 'None') {
+                    retString = $scope.regionService.getRegionDisplayNameFromRegionId(r);
+                }
+                else {
+                    retString += ', ' + $scope.regionService.getRegionDisplayNameFromRegionId(r);
+                }
+            }
+        }
+
+        return retString;
+    };
+
+
+
+
+
+
+
+    $scope.open = function() {
+        $scope.disableButtons = false;
+        $scope.modalInstance = $modal.open({
+            templateUrl: 'import_tournament_modal_challonge_only.html',
+            scope: $scope,
+            size: 'lg'
+        });
+    };
+
+    $scope.setBracketType = function(bracketType) {
+        $scope.postParams = {};
+        $scope.postParams.type = bracketType;
+        $scope.errorMessage = false;
+    };
+
+    $scope.close = function() {
+        $scope.modalInstance.close();
+    };
+
+
+    $scope.submit = function() {
+        console.log($scope.postParams);
+        $scope.disableButtons = true;
+
+        url = hostname + $routeParams.region + '/tournamentseed';
+        successCallback = function(data) {
+            data.players.forEach(function(player){
+            var players = $scope.playerService.getPlayerListFromQuery(player);
+            if(players.length > 0)
+            {
+                $scope.seeding.players.push({'seed':$scope.seeding.players.length, 'tag':""});
+                $scope.playerSelected($scope.seeding.players[$scope.seeding.players.length-1], players[0]);
+            }
+            else
+                $scope.seeding.players.push({'seed':$scope.seeding.players.length, 'tag':player, new:true});
+           });
+            $scope.tournament_name = data.name;
+            $scope.close();
+        };
+
+        failureCallback = function(data) {
+            $scope.disableButtons = false;
+            $scope.errorMessage = true;
+        };
+
+        $scope.sessionService.authenticatedPost(url, $scope.postParams, successCallback, failureCallback);
+    };
+
+
+     $scope.loadFile = function(fileContents) {
+        $scope.postParams.data = fileContents;
+    };
+
+    $scope.openDeleteTournamentModal = function(tournamentId) {
+        $scope.modalInstance = $modal.open({
+            templateUrl: 'delete_tournament_modal.html',
+            scope: $scope,
+            size: 'lg'
+        });
+    $scope.tournamentId = tournamentId;
+    };
+
+    $scope.isNewPlayer = function(player)
+    {
+        return player.rating === undefined;
+    }
+
+    $scope.setPlayerNew = function(player)
+    {
+        
+        if(player.new)
+            player.rating = undefined;
+
+        $scope.resortSeeding();
+    }
+
+    $scope.removePlayer = function(seed)
+    {
+        $scope.seeding.players.splice(seed-1,1);
+        $scope.resortSeeding();
+    }
+
+    $scope.close = function(){
+        $scope.modalInstance.close();
+    }
+});
+
+function resetForm(form) {
+    // clearing inputs
+    var inputs = form.getElementsByTagName('input');
+    for (var i = 0; i<inputs.length; i++) {
+        switch (inputs[i].type) {
+            // case 'hidden':
+            case 'text':
+                inputs[i].value = '';
+                break;
+            case 'radio':
+            case 'checkbox':
+                inputs[i].checked = false;
+        }
+    }
+
+    // clearing selects
+    var selects = form.getElementsByTagName('select');
+    for (var i = 0; i<selects.length; i++)
+        selects[i].selectedIndex = 0;
+
+    // clearing textarea
+    var text= form.getElementsByTagName('textarea');
+    for (var i = 0; i<text.length; i++)
+        text[i].innerHTML= '';
+
+    var pword = form.getElementsByTagName('password');
+    for (var i = 0; i<text.length; i++)
+        text[i].innerHTML= '';
+
+    return false;
+};
+
+function sleep (time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
