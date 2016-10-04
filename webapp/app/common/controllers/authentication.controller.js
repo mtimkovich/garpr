@@ -35,7 +35,7 @@ angular.module('app.common').controller("AuthenticationController", function($sc
 
     $scope.openLoginModal = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'common/login/login_modal.html',
+            templateUrl: 'common/views/login_modal.html',
             scope: $scope,
             size: 'lg'
         });
