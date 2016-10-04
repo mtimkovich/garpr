@@ -337,7 +337,7 @@ app.config(['$routeProvider', function($routeProvider) {
         activeTab: 'headtohead'
     }).
     when('/:region/seed', {
-        templateUrl: 'seed.html',
+        templateUrl: 'tools/seed_tournament/seed.html',
         controller: 'SeedController',
         activeTab: 'seed'
     }).
@@ -346,7 +346,7 @@ app.config(['$routeProvider', function($routeProvider) {
         activeTab: 'about'
     }).
     when('/adminfunctions',{
-        templateUrl: 'admin_functions.html',
+        templateUrl: 'tools/admin_functions/admin_functions.html',
         controller: 'AdminFunctionsController'
     }).
     otherwise({
@@ -1282,7 +1282,7 @@ app.controller("SeedController", function($scope, $http, $routeParams, $modal,Se
 
     $scope.prompt = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'import_tournament_modal_challonge_only.html',
+            templateUrl: 'tools/seed_tournament/import_tournament_modal_challonge_only.html',
             scope: $scope,
             size: 'lg'
         });
