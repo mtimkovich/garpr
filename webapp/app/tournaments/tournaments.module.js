@@ -1,1 +1,1 @@
-angular.module('app.tournaments');
+angular.module('app.tournaments', []);

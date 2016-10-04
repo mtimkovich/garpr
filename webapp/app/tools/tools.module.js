@@ -1,1 +1,1 @@
-angular.module('app.tools');
+angular.module('app.tools', []);

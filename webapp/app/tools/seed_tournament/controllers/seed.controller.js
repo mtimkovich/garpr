@@ -1,4 +1,4 @@
-angular.module('app.seed').controller("SeedController", function($scope, $http, $routeParams, $modal,SessionService, RegionService, PlayerService, RankingsService) {
+angular.module('app.tools').controller("SeedController", function($scope, $http, $routeParams, $modal,SessionService, RegionService, PlayerService, RankingsService) {
     RegionService.setRegion($routeParams.region);
     $scope.regionService = RegionService;
     $scope.playerService = PlayerService;
@@ -73,7 +73,7 @@ angular.module('app.seed').controller("SeedController", function($scope, $http, 
 
     $scope.prompt = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'tools/seed_tournament/import_tournament_modal_challonge_only.html',
+            templateUrl: 'app/tools/common/views/import_tournament_modal_challonge_only.html',
             scope: $scope,
             size: 'lg'
         });
@@ -122,7 +122,7 @@ angular.module('app.seed').controller("SeedController", function($scope, $http, 
     $scope.open = function() {
         $scope.disableButtons = false;
         $scope.modalInstance = $modal.open({
-            templateUrl: 'import_tournament_modal_challonge_only.html',
+            templateUrl: 'app/tools/common/views/import_tournament_modal_challonge_only.html',
             scope: $scope,
             size: 'lg'
         });
@@ -174,7 +174,7 @@ angular.module('app.seed').controller("SeedController", function($scope, $http, 
 
     $scope.openDeleteTournamentModal = function(tournamentId) {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'delete_tournament_modal.html',
+            templateUrl: 'app/tools/common/views/delete_tournament_modal.html',
             scope: $scope,
             size: 'lg'
         });

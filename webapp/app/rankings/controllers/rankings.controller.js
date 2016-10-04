@@ -9,7 +9,7 @@ angular.module('app.rankings').controller("RankingsController", function($scope,
 
     $scope.prompt = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'generate_rankings_prompt_modal.html',
+            templateUrl: 'app/tools/rankings/views/generate_rankings_prompt_modal.html',
             scope: $scope,
             size: 'lg'
         });

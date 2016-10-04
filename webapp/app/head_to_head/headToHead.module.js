@@ -1,1 +1,1 @@
-angular.module('app.headToHead');
+angular.module('app.headToHead', []);

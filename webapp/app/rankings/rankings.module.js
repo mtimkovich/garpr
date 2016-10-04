@@ -1,1 +1,1 @@
-angular.module('app.rankings');
+angular.module('app.rankings', []);

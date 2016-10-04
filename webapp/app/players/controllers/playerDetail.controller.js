@@ -25,7 +25,7 @@ angular.module('app.players').controller("PlayerDetailController", function($sco
 
     $scope.openDetailsModal = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'players/views/player_details_modal.html',
+            templateUrl: 'app/players/views/player_details_modal.html',
             scope: $scope,
             size: 'lg'
         });

@@ -19,7 +19,7 @@ angular.module('app.tournaments').controller("TournamentDetailController", funct
 
     $scope.openDetailsModal = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'tournaments/views/tournament_details_modal.html',
+            templateUrl: 'app/tournaments/views/tournament_details_modal.html',
             scope: $scope,
             size: 'lg'
         });
@@ -72,7 +72,7 @@ angular.module('app.tournaments').controller("TournamentDetailController", funct
 
     $scope.openSubmitPendingTournamentModal = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'submit_pending_tournament_confirmation_modal.html',
+            templateUrl: 'app/tournaments/views/submit_pending_tournament_confirmation_modal.html',
             scope: $scope,
             size: 'lg'
         });

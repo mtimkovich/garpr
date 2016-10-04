@@ -17,7 +17,7 @@ angular.module('app.tournaments').controller("TournamentsController", function($
     $scope.open = function() {
         $scope.disableButtons = false;
         $scope.modalInstance = $modal.open({
-            templateUrl: 'tournaments/views/import_tournament_modal.html',
+            templateUrl: 'app/tournaments/views/import_tournament_modal.html',
             scope: $scope,
             size: 'lg'
         });
@@ -74,7 +74,7 @@ angular.module('app.tournaments').controller("TournamentsController", function($
 
     $scope.openDeleteTournamentModal = function(tournamentId) {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'delete_tournament_modal.html',
+            templateUrl: 'app/tournaments/views/delete_tournament_modal.html',
             scope: $scope,
             size: 'lg'
         });

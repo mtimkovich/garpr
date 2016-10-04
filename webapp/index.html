@@ -18,6 +18,7 @@
         <script src="lib/angular-facebook.js"></script>
         <script src="script-config.js"></script>
         <script src="app/app.js"></script>
+        <script src="app/common/common.module.js"></script> 
         <script src="app/common/controllers/authentication.controller.js"></script>
         <script src="app/common/controllers/merges.controller.js"></script>
         <script src="app/common/controllers/navbar.controller.js"></script>
@@ -26,14 +27,19 @@
         <script src="app/common/services/merge.service.js"></script>
         <script src="app/common/services/region.service.js"></script>
         <script src="app/common/services/session.service.js"></script>
+        <script src="app/head_to_head/headToHead.module.js"></script>
         <script src="app/head_to_head/controllers/headToHead.controller.js"></script>
+        <script src="app/players/players.module.js"></script>
         <script src="app/players/controllers/players.controller.js"></script>
         <script src="app/players/controllers/playerDetail.controller.js"></script>
         <script src="app/players/services/players.service.js"></script>
-        <script src="app/rankings/controllers/rankings.controllers.js"></script>
+        <script src="app/rankings/rankings.module.js"></script>
+        <script src="app/rankings/controllers/rankings.controller.js"></script>
         <script src="app/rankings/services/rankings.service.js"></script>
-        <script src="app/tools/admin_funcitons/controllers/adminFunctions.controller.js"></script>
+        <script src="app/tools/tools.module.js"></script>
+        <script src="app/tools/admin_functions/controllers/adminFunctions.controller.js"></script>
         <script src="app/tools/seed_tournament/controllers/seed.controller.js"></script>
+        <script src="app/tournaments/tournaments.module.js"></script>
         <script src="app/tournaments/controllers/tournaments.controller.js"></script>
         <script src="app/tournaments/controllers/tournamentDetail.controller.js"></script>
         <script src="app/tournaments/directives/onReadFile.directive.js"></script>
@@ -42,7 +48,7 @@
 
     <body>
 
-        <navbar></navbar>
+        <div navbar-directive></div>
 
         <div>
             <alert type="danger">NOTGARPR is in super alpha mode. Tread carefully</alert>
