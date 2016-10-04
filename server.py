@@ -1,3 +1,5 @@
+
+
 from bson.objectid import ObjectId
 from datetime import datetime
 from flask import Flask, request, Response, jsonify
@@ -6,9 +8,9 @@ from flask.ext.restful import reqparse
 
 from pymongo import MongoClient
 
+import os
 import re
 import sys
-import logging
 import alias_service
 import model as M
 import rankings
@@ -28,11 +30,16 @@ BASE_REGION = 'newjersey'
 config = Config()
 
 # setup logging
+import logging
 try:
-    logging.basicConfig(filename='garprLogging/garpr.log',
+    dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'garprLogging')
+    logging.getLogger('').handlers = []
+    logging.basicConfig(filename=os.path.join(dir,'garpr.log'),
+                        filemode='w',
                         level=logging.INFO,
                         format='%(asctime)s %(message)s')
     logging.info('API Booted')
+    print('Logging setup succeeded')
 except Exception as ex:
     print('Failed to set up logging: ' + str(ex))
 
