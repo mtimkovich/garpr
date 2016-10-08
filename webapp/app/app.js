@@ -57,16 +57,16 @@ app.config(['$routeProvider', function($routeProvider) {
         activeTab: 'headtohead'
     }).
     when('/:region/seed', {
-        templateUrl: 'app/tools/seed_tournament/seed.html',
+        templateUrl: 'app/tools/seed_tournament/views/seed.html',
         controller: 'SeedController',
         activeTab: 'seed'
     }).
     when('/about', {
-        templateUrl: 'app/common/about/about.html',
+        templateUrl: 'app/common/views/about.html',
         activeTab: 'about'
     }).
     when('/adminfunctions',{
-        templateUrl: 'app/tools/admin_functions/admin_functions.html',
+        templateUrl: 'app/tools/admin_functions/views/admin_functions.html',
         controller: 'AdminFunctionsController'
     }).
     otherwise({

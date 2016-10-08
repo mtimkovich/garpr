@@ -1,4 +1,4 @@
-angular.module('app.common').controller("NavbarController", function($scope, $route, $location, RegionService, PlayerService, navbarDirective) {
+angular.module('app.common').controller("NavbarController", function($scope, $route, $location, RegionService, PlayerService) {
     $scope.regionService = RegionService;
     $scope.playerService = PlayerService;
     $scope.$route = $route;

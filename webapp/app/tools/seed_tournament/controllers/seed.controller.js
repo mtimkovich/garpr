@@ -73,7 +73,7 @@ angular.module('app.tools').controller("SeedController", function($scope, $http,
 
     $scope.prompt = function() {
         $scope.modalInstance = $modal.open({
-            templateUrl: 'app/tools/common/views/import_tournament_modal_challonge_only.html',
+            templateUrl: 'app/tools/seed_tournament/views/import_tournament_modal_challonge_only.html',
             scope: $scope,
             size: 'lg'
         });
@@ -122,7 +122,7 @@ angular.module('app.tools').controller("SeedController", function($scope, $http,
     $scope.open = function() {
         $scope.disableButtons = false;
         $scope.modalInstance = $modal.open({
-            templateUrl: 'app/tools/common/views/import_tournament_modal_challonge_only.html',
+            templateUrl: 'app/tools/seed_tournament/views/import_tournament_modal_challonge_only.html',
             scope: $scope,
             size: 'lg'
         });
