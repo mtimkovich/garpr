@@ -344,7 +344,7 @@ class Merge(orm.Document):
     collection_name = 'merges'
     fields = [('id', orm.ObjectIDField(required=True, load_from=MONGO_ID_SELECTOR,
                                        dump_to=MONGO_ID_SELECTOR)),
-              ('requester_user_id', orm.StringField(required=True)),
+              ('requester_user_id', orm.StringField()),
               ('source_player_obj_id', orm.ObjectIDField(required=True)),
               ('target_player_obj_id', orm.ObjectIDField(required=True)),
               ('time', orm.DateTimeField())]
