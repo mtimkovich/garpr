@@ -9,9 +9,12 @@ angular.module('app.rankings').controller("RankingsController", function($scope,
 
     $scope.rankingNumDaysBack = 0;
     $scope.rankingsNumTourneysAttended = 0;
-    $scope.tourneyNumDaysBack = 999;
 
+    $scope.tourneyNumDaysBack = null;
     $scope.tourneyDaysBackStartDate = null;
+
+    $scope.tourneyRangeStartDate = null;
+    $scope.tourneyRangeEndDate = null;
 
     $scope.prompt = function() {
         $scope.modalInstance = $modal.open({
@@ -43,8 +46,38 @@ angular.module('app.rankings').controller("RankingsController", function($scope,
     };
 
     $scope.getNumberDaysBack = function(){
+        $scope.clearTournamentRange();
+
         var startDate = new Date($scope.tourneyDaysBackStartDate);
         $scope.tourneyNumDaysBack = $scope.rankingsService.calculateDaysSince(startDate);
+    }
+
+    $scope.clearNumDaysBack = function(){
+        $scope.tourneyNumDaysBack = null;
+        $scope.tourneyDaysBackStartDate = null;
+    }
+
+    $scope.clearTournamentRange = function(){
+        $scope.tourneyRangeStartDate = null;
+        $scope.tourneyRangeEndDate = null;
+    }
+
+    $scope.saveTournamentQualificationCriteria = function(){
+        url = hostname + $routeParams.region + '/rankings';
+        var putParams = {
+            tourneyNumDaysBack: $scope.tourneyNumDaysBack,
+            tourneyDaysBackStartDate: $scope.tourneyDaysBackStartDate,
+            tourneyRangeStartDate: $scope.tourneyRangeStartDate,
+            tourneyRangeEndDate: $scope.tourneyRangeEndDate
+        }
+
+        $scope.sessionService.authenticatedPut(url, putParams,
+             (res) => {
+                alert('Successfully updated Region: ' + $routeParams.region + ' Tournament Qualification Criteria.');
+            },
+            (err) => {
+                alert('There was an error updating the Tournament Qualification Criteria. Please try again.');
+            });
     }
 
     $scope.getRegionRankingCriteria = function(){
@@ -55,7 +88,6 @@ angular.module('app.rankings').controller("RankingsController", function($scope,
             $scope.rankingNumDaysBack = res.data.ranking_criteria.ranking_activity_day_limit;
             $scope.rankingsNumTourneysAttended = res.data.ranking_criteria.ranking_num_tourneys_attended;
             $scope.tourneyNumDaysBack = res.data.ranking_criteria.tournament_qualified_day_limit;
-
         },
         (err) => {
             alert('There was an error getting the Ranking Criteria for the region')

@@ -44,18 +44,22 @@
                 <!-- Options to tweak tournament qualifications go here -->
                 <span>
                     <h3>Tournament Inclusion:</h3>
-                    Include Tournaments <input type="number" maxlength="3" ng-model="tourneyNumDaysBack" style="3px"/> Days Back
-                    <br/><br/>
+                    Include Tournaments <input type="number" maxlength="3" ng-model="tourneyNumDaysBack" ng-change="clearTournamentRange()" style="3px"/> Days Back
+                    <br/><hr/>
                     Begin at Date: <input type="date" ng-model="tourneyDaysBackStartDate" placeholder="mm/dd/yyyy" ng-change="getNumberDaysBack()">
-                    <br/><hr/><br/>
-                    <!--
-                    Include Tournaments From
-                    <input type="date" ng-model="tourneyRangeStartDate" placeholder="mm/dd/yyyy"/>
+                    <br/>
+                    <input type="button" value="Clear" ng-click="clearNumDaysBack()" />
+
+                    <br/><hr/>
+
+                    <h4>Include Tournaments From</h4>
+                    <input type="date" ng-model="tourneyRangeStartDate" placeholder="mm/dd/yyyy" ng-change="clearNumDaysBack()"/>
                     to
-                    <input type="date" ng-model="tourneyRangeDaysStartDate" placeholder="mm/dd/yyyy"/>
-                    -->
+                    <input type="date" ng-model="tourneyRangeEndDate" placeholder="mm/dd/yyyy" ng-change="clearNumDaysBack()"/>
+                    <input type="button" value="Clear" ng-click="clearTournamentRange()" />
+                    <hr/>
                 </span>
-                <br/><br/>
+                <br/>
                 <input type="submit" value="Save Changes"/>
                 </form>
             </div>
