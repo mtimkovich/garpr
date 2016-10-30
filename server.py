@@ -64,9 +64,12 @@ smashGGMap_get_parser = reqparse.RequestParser()
 smashGGMap_get_parser.add_argument('bracket_url', type=str)
 
 rankings_criteria_get_parser = reqparse.RequestParser()
+rankings_criteria_get_parser.add_argument('type', type=str)
 rankings_criteria_get_parser.add_argument('ranking_activity_day_limit', type=str)
 rankings_criteria_get_parser.add_argument('ranking_num_tourneys_attended', type=str)
 rankings_criteria_get_parser.add_argument('tournament_qualified_day_limit', type=str)
+rankings_criteria_get_parser.add_argument('tournament_qualified_start_date', type=str)
+rankings_criteria_get_parser.add_argument('tournament_qualified_end_date', type=str)
 
 merges_put_parser = reqparse.RequestParser()
 merges_put_parser.add_argument('source_player_id', type=str)
@@ -849,11 +852,16 @@ class RankingsResource(restful.Resource):
     def put(self, region):
         dao = Dao(region, mongo_client=mongo_client)
         args = rankings_criteria_get_parser.parse_args()
+        type = args['type']
 
         try:
-            ranking_num_tourneys_attended = int(args['ranking_num_tourneys_attended'])
-            ranking_activity_day_limit = int(args['ranking_activity_day_limit'])
-            #tournament_qualified_day_limit = int(args['tournament_qualified_day_limit'])
+            if type == 'ranking':
+                ranking_num_tourneys_attended = int(args['ranking_num_tourneys_attended'])
+                ranking_activity_day_limit = int(args['ranking_activity_day_limit'])
+            elif type == 'tournament':
+                tournament_qualified_day_limit = int(args['tournament_qualified_day_limit'])
+                tournament_qualified_start_date = args['tournament_qualified_start_date']
+                tournament_qualified_end_date = args['tournament_qualified_end_date']
         except Exception as e:
             return 'Error parsing Ranking Criteria, please try again: ' + str(e), 400
 
@@ -869,11 +877,18 @@ class RankingsResource(restful.Resource):
             return 'Permission denied', 403
 
         try:
-            # TODO Update rankings and store criteria in db
-            dao.update_region_ranking_criteria(region,
-                                               ranking_num_tourneys_attended=ranking_num_tourneys_attended,
-                                               ranking_activity_day_limit=ranking_activity_day_limit)
-                                               #tournament_qualified_day_limit=tournament_qualified_day_limit)
+            if type == 'ranking':
+                # TODO Update rankings and store criteria in db
+                dao.update_region_ranking_criteria(region,
+                                                   ranking_num_tourneys_attended=ranking_num_tourneys_attended,
+                                                   ranking_activity_day_limit=ranking_activity_day_limit)
+                                                   #tournament_qualified_day_limit=tournament_qualified_day_limit)
+            elif type == 'tournament':
+                dao.update_tournament_qualification_criteria(region,
+                                                             tournament_qualified_start_date,
+                                                             tournament_qualified_end_date)
+
+
         except Exception as e:
             print str(e)
             return 'There was an error updating the region rankings criteria', 400

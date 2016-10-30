@@ -65,10 +65,9 @@ angular.module('app.rankings').controller("RankingsController", function($scope,
     $scope.saveTournamentQualificationCriteria = function(){
         url = hostname + $routeParams.region + '/rankings';
         var putParams = {
-            tourneyNumDaysBack: $scope.tourneyNumDaysBack,
-            tourneyDaysBackStartDate: $scope.tourneyDaysBackStartDate,
-            tourneyRangeStartDate: $scope.tourneyRangeStartDate,
-            tourneyRangeEndDate: $scope.tourneyRangeEndDate
+            tournament_qualified_day_limit: $scope.tourneyNumDaysBack,
+            tournament_qualified_start_date: $scope.tourneyRangeStartDate,
+            tournament_qualified_end_date: $scope.tourneyRangeEndDate
         }
 
         $scope.sessionService.authenticatedPut(url, putParams,

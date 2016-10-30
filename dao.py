@@ -278,6 +278,26 @@ class Dao(object):
 
         return [M.Tournament.load(t, context='db') for t in tournaments]
 
+    def get_all_tournaments_in_date_range(self, players=None, regions=None, start_date=None, end_date=None):
+        '''players is a list of Players'''
+        query_dict = {}
+        query_list = []
+
+        if players:
+            for player in players:
+                query_list.append({'players': {'$in': [player.id]}})
+
+        if regions:
+            query_list.append({'regions': {'$in': regions}})
+
+        if query_list:
+            query_dict['$and'] = query_list
+
+        tournaments = [t for t in self.tournaments_col.find(
+            query_dict).sort([('date', 1)]) if t.date > start_date and t.date < end_date]
+
+        return [M.Tournament.load(t, context='db') for t in tournaments]
+
     def get_tournament_by_id(self, id):
         '''id must be an ObjectId'''
         return M.Tournament.load(self.tournaments_col.find_one({'_id': id}), context='db')
@@ -549,18 +569,29 @@ class Dao(object):
 
     def update_region_ranking_criteria(self, region_id,
                                        ranking_num_tourneys_attended,
-                                       ranking_activity_day_limit):
-                                       #tournament_qualified_day_limit):
+                                       ranking_activity_day_limit,
+                                       tournament_qualified_day_limit):
         if self.regions_col.find_one({'_id': region_id}):
             self.regions_col.update({'_id': region_id},
                                     {'$set':
                                         {
                                          'ranking_num_tourneys_attended': ranking_num_tourneys_attended,
-                                         'ranking_activity_day_limit': ranking_activity_day_limit
-                                         #'tournament_qualified_day_limit': tournament_qualified_day_limit
+                                         'ranking_activity_day_limit': ranking_activity_day_limit,
+                                         'tournament_qualified_day_limit': tournament_qualified_day_limit
                                         }
                                      })
 
+    def update_tournament_qualification_criteria(self, region_id,
+                                                 tournament_qualified_start_date,
+                                                 tournament_qualified_end_date):
+        if self.regions_col.find_one({'_id': region_id}):
+            self.regions_col.update({'_id': region_id},
+                                    {'$set':
+                                        {
+                                            'tournament_qualified_start_date': tournament_qualified_start_date,
+                                            'tournament_qualified_end_date': tournament_qualified_end_date
+                                        }
+                                    })
 
     def get_region_ranking_criteria(self, region_id):
         print region_id
