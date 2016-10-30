@@ -1,4 +1,5 @@
 <div class="container">
+    <br />
     <div class="panel panel-default" id="rankingsControlPanel" ng-show="sessionService.isAdminForRegion(regionService.region.id)">
         <div class="panel-heading">
             <h4 class="panel-title">
@@ -7,7 +8,7 @@
                 </a>
             </h4>
         </div>
-        <div collapse="isRankingsCollapsed">
+        <div collapse="!isRankingsCollapsed">
             <div class="panel-body">
                 <form id="rankingsControlPanelForm" ng-submit="saveRegionRankingsCriteria()">
                 <!-- Options to tweak rankings go here -->
@@ -19,20 +20,6 @@
                 <span>
                 Has Attended At Least <input type="number" maxlength="3" ng-model="rankingsNumTourneysAttended"
                                                    style="3px"/> Tournaments
-                    <!--
-                </span>
-                    </br>
-                    <hr/>
-                    <br/>
-                <span>
-                    <h3>Tournament Inclusion:</h3>
-                  Include Tournaments <input type="number" maxlength="3" ng-model="tourneyNumDaysBack" style="3px"/> Days Back
-                    <br/>
-                    OR
-                    <br/>
-                    Include Tournaments From <input type="date" ng-model="tourneyNumDaysStartDate" hint="mm/dd/yyyy"/>
-                    to <input type="date" ng-model="tourneyNumDaysStartDate" hint="mm/dd/yyyy"/>
-                    -->
                 </span>
                     <br/><br/>
                     <input type="submit" value="Save Changes"/>
@@ -40,6 +27,41 @@
             </div>
         </div>
     </div>
+
+    <br/>
+
+    <div class="panel panel-default" id="tournamentQualificationControlPanel" ng-show="sessionService.isAdminForRegion(regionService.region.id)">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a ng-click="isTournamentQCollapsed = !isTournamentQCollapsed">
+                    Tournament Qualification Control Panel
+                </a>
+            </h4>
+        </div>
+        <div collapse="!isTournamentQCollapsed">
+            <div class="panel-body">
+                <form id="tournamentControlPanelForm" ng-submit="saveTournamentQualificationCriteria()">
+                <!-- Options to tweak tournament qualifications go here -->
+                <span>
+                    <h3>Tournament Inclusion:</h3>
+                    Include Tournaments <input type="number" maxlength="3" ng-model="tourneyNumDaysBack" style="3px"/> Days Back
+                    <br/><br/>
+                    Begin at Date: <input type="date" ng-model="tourneyDaysBackStartDate" placeholder="mm/dd/yyyy" ng-change="getNumberDaysBack()">
+                    <br/><hr/><br/>
+                    <!--
+                    Include Tournaments From
+                    <input type="date" ng-model="tourneyRangeStartDate" placeholder="mm/dd/yyyy"/>
+                    to
+                    <input type="date" ng-model="tourneyRangeDaysStartDate" placeholder="mm/dd/yyyy"/>
+                    -->
+                </span>
+                <br/><br/>
+                <input type="submit" value="Save Changes"/>
+                </form>
+            </div>
+        </div>
+    </div>
+
 
 
     <div class="row">

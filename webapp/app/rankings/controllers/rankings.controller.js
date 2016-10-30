@@ -11,6 +11,8 @@ angular.module('app.rankings').controller("RankingsController", function($scope,
     $scope.rankingsNumTourneysAttended = 0;
     $scope.tourneyNumDaysBack = 999;
 
+    $scope.tourneyDaysBackStartDate = null;
+
     $scope.prompt = function() {
         $scope.modalInstance = $modal.open({
             templateUrl: 'app/rankings/views/generate_rankings_prompt_modal.html',
@@ -39,6 +41,11 @@ angular.module('app.rankings').controller("RankingsController", function($scope,
     $scope.cancel = function() {
         $scope.modalInstance.close();
     };
+
+    $scope.getNumberDaysBack = function(){
+        var startDate = new Date($scope.tourneyDaysBackStartDate);
+        $scope.tourneyNumDaysBack = $scope.rankingsService.calculateDaysSince(startDate);
+    }
 
     $scope.getRegionRankingCriteria = function(){
         url = hostname + $routeParams.region + '/rankings';
