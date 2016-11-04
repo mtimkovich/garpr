@@ -556,10 +556,10 @@ class Dao(object):
 
 
     def get_region_ranking_criteria(self, region_id):
-        print region_id
-        if self.regions_col.find_one({'_id': region_id}):
-            result = M.Region.load(self.regions_col.find_one({'_id': region_id}))
-            return result.dump(context='web')
+        result = self.regions_col.find_one({'_id': region_id})
+        if result:
+            region = M.Region.load(result, context='db')
+            return region.dump(context='web')
 
     # throws an exception, which is okay because this is called from just create_user
     def insert_user(self, user):
