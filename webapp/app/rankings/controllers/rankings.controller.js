@@ -62,23 +62,6 @@ angular.module('app.rankings').controller("RankingsController", function($scope,
         $scope.tourneyRangeEndDate = null;
     }
 
-    $scope.saveTournamentQualificationCriteria = function(){
-        url = hostname + $routeParams.region + '/rankings';
-        var putParams = {
-            tournament_qualified_day_limit: $scope.tourneyNumDaysBack,
-            tournament_qualified_start_date: $scope.tourneyRangeStartDate,
-            tournament_qualified_end_date: $scope.tourneyRangeEndDate
-        }
-
-        $scope.sessionService.authenticatedPut(url, putParams,
-             (res) => {
-                alert('Successfully updated Region: ' + $routeParams.region + ' Tournament Qualification Criteria.');
-            },
-            (err) => {
-                alert('There was an error updating the Tournament Qualification Criteria. Please try again.');
-            });
-    }
-
     $scope.getRegionRankingCriteria = function(){
         url = hostname + $routeParams.region + '/rankings';
         $http.get(url)
@@ -94,9 +77,28 @@ angular.module('app.rankings').controller("RankingsController", function($scope,
 
     }
 
+    $scope.saveTournamentQualificationCriteria = function(){
+        url = hostname + $routeParams.region + '/rankings';
+        var putParams = {
+            type: 'tournament',
+            tournament_qualified_day_limit: $scope.tourneyNumDaysBack,
+            tournament_qualified_start_date: $scope.tourneyRangeStartDate,
+            tournament_qualified_end_date: $scope.tourneyRangeEndDate
+        }
+
+        $scope.sessionService.authenticatedPut(url, putParams,
+             (res) => {
+                alert('Successfully updated Region: ' + $routeParams.region + ' Tournament Qualification Criteria.');
+            },
+            (err) => {
+                alert('There was an error updating the Tournament Qualification Criteria. Please try again.');
+            });
+    }
+
     $scope.saveRegionRankingsCriteria = function(){
         url = hostname + $routeParams.region + '/rankings';
         var putParams = {
+            type: 'ranking',
             ranking_num_tourneys_attended: $scope.rankingsNumTourneysAttended,
             ranking_activity_day_limit: $scope.rankingNumDaysBack,
             tournament_qualified_day_limit: $scope.tourneyNumDaysBack

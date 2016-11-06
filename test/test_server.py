@@ -360,7 +360,7 @@ class TestServer(unittest.TestCase):
             expected_keys = set(['id', 'name', 'date', 'regions', 'pending'])
             print tournament.keys()
             self.assertEquals(set(tournament.keys()), expected_keys)
-            self.assertEquals(tournament['id'], str(tournament_from_db.id))
+            self.assertEquals(tournament['id'], str(tournament_from_db.id))1
             self.assertEquals(tournament['name'], tournament_from_db.name)
             self.assertEquals(tournament['date'], tournament_from_db.date.strftime('%x'))
             self.assertEquals(tournament['regions'], [dao.region_id])
