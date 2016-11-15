@@ -35,6 +35,9 @@
                          <li ng-class="{active: $route.current.activeTab == 'headtohead'}">
                             <a ng-href="#/{{regionService.region.id}}/headtohead">Head-to-Head</a>
                         </li>
+                        <li ng-show="sessionService.isAdmin()" ng-class="{active: $route.current.activeTab == 'merges'}">
+                           <a ng-href="#/{{regionService.region.id}}/merges">Merges</a>
+                       </li>
                     </ul>
                 </li>
                 <li ng-class="{active: $route.current.activeTab == 'about'}">
