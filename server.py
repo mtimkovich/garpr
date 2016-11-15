@@ -1026,18 +1026,19 @@ class MergeListResource(restful.Resource):
             return "user is not an admin", 403
 
         return_dict = {}
+        merges = dao.get_all_merges()
         return_dict['merges'] = [m.dump(context='web')
-                                 for m in dao.get_all_merges()]
+                                 for m in merges]
 
-        for merge in return_dict['merges']:
+        for merge, merge_dump in zip(merges, return_dict['merges']):
             # TODO: store names in merge object
-            source_player = dao.get_player_by_id(merge['source_player_obj_id'])
-            target_player = dao.get_player_by_id(merge['target_player_obj_id'])
+            source_player = dao.get_player_by_id(merge.source_player_obj_id)
+            target_player = dao.get_player_by_id(merge.target_player_obj_id)
 
             if source_player is not None and target_player is not None:
-                merge['source_player_name'] = source_player.name
-                merge['target_player_name'] = target_player.name
-                merge['requester_name'] = user.username
+                merge_dump['source_player_name'] = source_player.name
+                merge_dump['target_player_name'] = target_player.name
+                merge_dump['requester_name'] = user.username
 
         return return_dict
 
