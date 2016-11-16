@@ -918,7 +918,7 @@ class RankingsResource(restful.Resource):
                                                    ranking_activity_day_limit=ranking_activity_day_limit,
                                                    tournament_qualified_day_limit=tournament_qualified_day_limit)
                 print 'Running rankings. day_limit: ' + str(ranking_activity_day_limit) + ' and num_tourneys: ' \
-                      + str(ranking_num_tourneys_attended) + 'and tournament_qualified_day_limit: ' + str(tournament_qualified_day_limit)
+                      + str(ranking_num_tourneys_attended) + ' and tournament_qualified_day_limit: ' + str(tournament_qualified_day_limit)
 
                 rankings.generate_ranking(dao, now=now,
                                           day_limit=ranking_activity_day_limit,
