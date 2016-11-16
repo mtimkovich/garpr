@@ -160,8 +160,6 @@ class Tournament(orm.Document):
             self.orig_ids = [player for player in self.players]
 
     def replace_player(self, player_to_remove=None, player_to_add=None):
-        # TODO edge cases with this
-        # TODO the player being added cannot play himself in any match
         if player_to_remove is None or player_to_add is None:
             raise TypeError(
                 "player_to_remove and player_to_add cannot be None!")
@@ -300,6 +298,19 @@ class PendingTournament(orm.Document):
             raw_id=raw_file.id,
             players=scraper.get_players(),
             matches=scraper.get_matches())
+
+        # check if scraper returned valid pending tournament:
+        valid, errors = pending_tournament.validate()
+        if not valid:
+            print "ERROR:", errors
+            print pending_tournament.url
+
+            # for scrapers that may return some extra players not in matches
+            # remove these players:
+            pending_tournament.players = list(
+                {match.winner for match in pending_tournament.matches} | \
+                {match.loser for match in pending_tournament.matches})
+
         return pending_tournament, raw_file
 
 # used to store large blobs of data (e.g. raw tournament data) so we don't
@@ -360,4 +371,3 @@ class Session(orm.Document):
     collection_name = 'sessions'
     fields = [('session_id', orm.StringField(required=True)),
               ('user_id', orm.StringField(required=True))]
-
