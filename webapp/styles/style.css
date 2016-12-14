@@ -313,11 +313,35 @@ div.forumlaDiv{
         font-size: 18pt;
     }
 
+    tr.pending_tournament_line{
+        height: 50px;
+        font-size: 16pt;
+    }
+
     tr.tournament_line_center{
         text-align:center;
     }
 
     td.tournament{
         font-size: 18pt;
+    }
+
+    button.mobile{
+        height: 100px;
+        width: 300px;
+        font-size: 18pt;
+        font-weight:bold;
+    }
+
+    button.mobile_small_text{
+        font-size:15pt;
+    }
+
+    input[type="checkbox"].mobile{
+        transform: scale(2);
+    }
+
+    input[type="text"].mobile{
+        text-size:16pt;
     }
 }
