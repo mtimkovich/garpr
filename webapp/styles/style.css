@@ -280,3 +280,44 @@ div.forumlaDiv{
     top:0;
 }
 
+/* MOBILE FIRST BOOTSTRAP STUFF */
+@media screen and (max-width: 62em){
+    tr.table_header,
+    tr.table-header{
+        height: 50px;
+        font-size: 24pt;
+    }
+
+    tr.table_header_center > th,
+    tr.table_header_center > td{
+        text-align:center;
+        align:center;
+    }
+
+    tr.table_line{
+        height: 50px;
+        font-size: 24pt;
+    }
+
+    tr.player_line{
+        height: 50px;
+        font-size: 20pt;
+    }
+
+    tr.player_line_center{
+        text-align: center
+    }
+
+    tr.tournament_line{
+        height: 50px;
+        font-size: 18pt;
+    }
+
+    tr.tournament_line_center{
+        text-align:center;
+    }
+
+    td.tournament{
+        font-size: 18pt;
+    }
+}

@@ -19,13 +19,13 @@
         <div class="col-md-12">
             <h3>Players</h3>
             <table class="table table-condensed table-striped">
-                <tr>
+                <tr class="table_header">
                     <th><strong>New Player?</strong></th>
                     <th><strong>Tag</strong></th>
                     <th><strong>Player Details</strong></th>
                     <th><strong>Player Search</strong></th>
                 </tr>
-                <tr ng-repeat="player in tournament.players">
+                <tr ng-repeat="player in tournament.players" class="tournament_line tournament_line_center">
                     <td>
                         <input type="checkbox"
                                ng-model="playerCheckboxState[player]"
@@ -85,10 +85,10 @@
         <div class="col-md-4">
             <h3>Players</h3>
             <table class="table table-condensed table-striped">
-                <tr>
+                <tr class="table_header">
                     <th>Name</th>
                 </tr>
-                <tr ng-repeat="player in tournament.players">
+                <tr ng-repeat="player in tournament.players" class="player_line">
                     <td><a href="#/{{regionService.region.id}}/players/{{player.id}}">{{player.name}}</a></td>
                 </tr>
             </table>
@@ -104,7 +104,7 @@
                     </td>
                 </tr>
 
-                <tr>
+                <tr class="table_header">
                     <th>Winner</th>
                     <th ng-show="sessionService.isAdmin()" width="5%">
                         Swap
@@ -114,7 +114,7 @@
                        Exclude
                     </th>
                 </tr>
-                <tr ng-repeat="match in tournament.matches">
+                <tr ng-repeat="match in tournament.matches" class="tournament_line">
                     <td class="success" id="winner_{{ match.match_id }}">
                         <a href="#/{{regionService.region.id}}/players/{{match.winner_id}}">
                             {{match.winner_name}}
