@@ -281,7 +281,7 @@ div.forumlaDiv{
 }
 
 /* MOBILE FIRST BOOTSTRAP STUFF */
-@media screen and (max-width: 62em){
+@media screen and (max-width: 64em){
     tr.table_header,
     tr.table-header{
         height: 50px;
@@ -343,5 +343,56 @@ div.forumlaDiv{
 
     input[type="text"].mobile{
         text-size:16pt;
+    }
+}
+
+/* THIS CHANGES THE SIZE WHEN NAVBAR COLLAPSES */
+@media (max-width: 64em) {
+    .navbar-header {
+        float: none;
+    }
+    .navbar-left,.navbar-right {
+        float: none !important;
+    }
+    .navbar-toggle {
+        display: block;
+    }
+    .navbar-collapse {
+        border-top: 1px solid transparent;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .navbar-fixed-top {
+        top: 0;
+        border-width: 0 0 1px;
+    }
+    .navbar-collapse.collapse {
+        display: none!important;
+    }
+    .navbar-nav {
+        float: none!important;
+        margin-top: 7.5px;
+    }
+    .navbar-nav>li {
+        float: none;
+    }
+    .navbar-nav>li>a {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .collapse.in{
+        display:block !important;
+    }
+
+    ul.nav, ul.dropdown-menu{
+        font-size:24pt;
+    }
+
+    li.nav_item{
+        font-size:24pt;
+    }
+
+    .navbar-right{
+        display:inline-block;
+        float:right;
     }
 }
