@@ -382,6 +382,14 @@ div.forumlaDiv{
     .collapse.in{
         display:block !important;
     }
+    .navbar-brand{
+        padding-top:35px;
+        font-size:40pt;
+    }
+    .navbar-toggle .icon-bar {
+        height:12px;
+        width:50px;
+    }
 
     ul.nav, ul.dropdown-menu{
         font-size:24pt;
@@ -394,5 +402,14 @@ div.forumlaDiv{
     .navbar-right{
         display:inline-block;
         float:right;
+    }
+
+    div.about{
+        font-size: 19pt;
+    }
+
+    div.about>h4{
+        font-size: 24pt;
+        font-weight: bold;
     }
 }
