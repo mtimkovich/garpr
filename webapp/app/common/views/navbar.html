@@ -1,11 +1,16 @@
 
 <div class="header vignette" ng-controller="NavbarController">
-    <div class="header-wrapper">
-        <p id="header1">{{regionService.region.id}}</p>
-        <p id="header2">GAR</p>
-        <p id="header3">PR</p>
-        <div id="beta">BETA</div>
-    </div>
+
+    <a ng-href="#/{{regionService.region.id}}/rankings">
+        <button style="background:none !important;border:none !important">
+            <div class="header-wrapper">
+                <p id="header1">{{regionService.region.id}}</p>
+                <p id="header2">GAR</p>
+                <p id="header3">PR</p>
+                <div id="beta">BETA</div>
+            </div>
+        </button>
+    </a>
 </div>
 
 <div class="navbar navbar-default" role="navigation" ng-controller="NavbarController">
