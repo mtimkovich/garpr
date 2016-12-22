@@ -346,6 +346,10 @@ div.forumlaDiv{
     }
 }
 
+.pull-right{
+    float:right;
+}
+
 /* THIS CHANGES THE SIZE WHEN NAVBAR COLLAPSES */
 @media (max-width: 64em) {
     .navbar-header {
@@ -411,5 +415,9 @@ div.forumlaDiv{
     div.about>h4{
         font-size: 24pt;
         font-weight: bold;
+    }
+
+    .navbar-toggle {
+        z-index:3;
     }
 }
