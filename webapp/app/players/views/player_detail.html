@@ -4,7 +4,7 @@
             <h1>{{player.name}}</h1>
         </div>
         <div class="col-md-2" ng-show="sessionService.isAdmin()">
-            <h1 class="text-right"><button type="button" class="btn btn-danger" ng-click="openDetailsModal()">Edit Player Details</button></h1>
+            <h1 class="text-right"><button type="button" class="btn btn-danger mobile" ng-click="openDetailsModal()">Edit Player Details</button></h1>
         </div>
     </div>
     <div class="row" ng-show="player.merged">
@@ -22,7 +22,7 @@
                 </h2>
                 <span>
                     <h4>Unadjusted: {{player.ratings[regionService.region.id].mu | number:3}} (+/- {{player.ratings[regionService.region.id].sigma | number:3}})
-                    <button type="button" class="btn btn-primary btn-sm" ng-click="showFormulasFcn()">?</button></h4>
+                    <button type="button" class="btn btn-primary btn-sm mobile_xxs" ng-click="showFormulasFcn()">?</button></h4>
                 </span>
             </div>
         </div>
@@ -59,10 +59,10 @@
                 <label class="control-label">Merge with player: </label>
             </div>
             <div class="col-md-8">
-                <input type="text" class="form-control" ng-model="mergePlayer" placeholder="Search for player..." typeahead="p as p.typeahead for p in getMergePlayers($viewValue)">
+                <input type="text" class="form-control mobile" ng-model="mergePlayer" placeholder="Search for player..." typeahead="p as p.typeahead for p in getMergePlayers($viewValue)">
             </div>
             <div class="col-md-2">
-                <button type="button" class="btn btn-danger"  ng-click="submitMerge()">Send Merge Request</button>
+                <button type="button" class="btn btn-danger mobile"  ng-click="submitMerge()">Send Merge Request</button>
             </div>
         </div>
     </div>

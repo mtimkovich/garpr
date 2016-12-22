@@ -280,6 +280,11 @@ div.forumlaDiv{
     top:0;
 }
 
+input[type="number"].mobile{
+    width: 50px;
+    color:red;
+}
+
 /* MOBILE FIRST BOOTSTRAP STUFF */
 @media screen and (max-width: 64em){
     tr.table_header,
@@ -333,6 +338,27 @@ div.forumlaDiv{
         font-weight:bold;
     }
 
+    button.mobile_small{
+        height:100px;
+        width:200px;
+        font-size: 18pt;
+        font-weight:bold;
+    }
+
+    button.mobile_xs{
+        height:100px;
+        width:100px;
+        font-size: 18pt;
+        font-weight:bold;
+    }
+
+    button.mobile_xxs{
+        height:50px;
+        width:50px;
+        font-size: 18pt;
+        font-weight:bold;
+    }
+
     button.mobile_small_text{
         font-size:15pt;
     }
@@ -342,12 +368,52 @@ div.forumlaDiv{
     }
 
     input[type="text"].mobile{
-        font-size:50px;
+        font-size:35px;
+    }
+
+    input[type="number"].mobile{
+        font-size: 35px;
+        width: 100px;
+        color:red;
+    }
+
+    input[type="submit"].mobile{
+        height:100px;
+        width:200px;
+        font-size: 18pt;
+        font-weight:bold;
     }
 
     .modal-body{
         font-size:12pt;
     }
+
+    .modal-body{
+        max-height: 800px;
+        max-width: 1500px;
+    }
+
+    div.about{
+        font-size: 18pt;
+    }
+
+    div.about>h4{
+        font-size: 24pt;
+        font-weight: bold;
+    }
+
+    .navbar-toggle {
+        z-index:3;
+    }
+
+    p{
+        font-size:20pt;
+    }
+
+    label{
+        font-size:24pt;
+    }
+
 }
 
 .pull-right{
@@ -412,16 +478,5 @@ div.forumlaDiv{
         float:right;
     }
 
-    div.about{
-        font-size: 19pt;
-    }
 
-    div.about>h4{
-        font-size: 24pt;
-        font-weight: bold;
-    }
-
-    .navbar-toggle {
-        z-index:3;
-    }
 }
