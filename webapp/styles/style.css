@@ -318,6 +318,11 @@ input[type="number"].mobile{
         font-size: 24pt;
     }
 
+    tr.tournament_match_line{
+        height: 50px;
+        font-size: 24pt;
+    }
+
     tr.pending_tournament_line{
         height: 50px;
         font-size: 16pt;
@@ -369,6 +374,12 @@ input[type="number"].mobile{
 
     input[type="text"].mobile{
         font-size:35px;
+        color: darkblue;
+    }
+
+    input[type="text"].mobile_small{
+        font-size:25px;
+        color: darkblue;
     }
 
     input[type="number"].mobile{
@@ -389,8 +400,6 @@ input[type="number"].mobile{
     }
 
     .modal-body{
-        max-height: 800px;
-        max-width: 1500px;
     }
 
     div.about{
@@ -413,6 +422,8 @@ input[type="number"].mobile{
     label{
         font-size:24pt;
     }
+
+
 
 }
 
@@ -479,4 +490,73 @@ input[type="number"].mobile{
     }
 
 
+    /*BEGIN Header/Nav styling */
+
+    .header{
+        text-align: center;
+        width: 100%;
+        font-family: "Roboto Condensed",Helvetica,Arial,sans-serif;
+        font-size: 72px;
+        letter-spacing: 10px;
+        height: 120px;
+        background-color: #a9a9a9 !important;
+        border-bottom: 1px solid #666;
+    }
+
+    .header-wrapper>p{
+        font-family: "Roboto Condensed",Helvetica,Arial,sans-serif;
+        font-size: 72px;
+        letter-spacing: 10px;
+        height: 120px;
+    }
+
+    .vignette {
+
+        background:
+                -webkit-linear-gradient(left,
+                rgba(100,100,100,0.65) 0%,
+                rgba(0,0,0,0) 20%,
+                rgba(0,0,0,0) 80%,
+                rgba(100,100,100,0.65) 100%
+                );
+    }
+
+
+    .header-wrapper{
+        display:inline-flex;
+    }
+
+    #header1{
+        color:var(--blue-base);
+    }
+
+    #header2{
+        color:var(--red-base) ;
+    }
+
+    #header3{
+        color:#222222;
+    }
+
+    #beta{
+        font-size: 12px;
+        color: white;
+        margin-top: 35px;
+    }
+
+    .navbar{
+        margin-bottom: 0px;
+        border-bottom: 1px solid #666;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+    }
+
+    .navbar-brand:hover{
+        cursor: default;
+        color: #666666 !important;
+    }
+
+
+
+    /*END Header/Nav styling */
 }

@@ -54,7 +54,7 @@
                     </td>
                     <td>
                         <div class="form-group">
-                            <input type="text" class="form-control" ng-model="playerData[player]" placeholder="Search for player..." typeahead="p as p.typeahead for p in playerService.getPlayerListFromQuery($viewValue)" typeahead-on-select="playerSelected(player, $item)">
+                            <input type="text" class="form-control mobile_small" ng-model="playerData[player]" placeholder="Search for player..." typeahead="p as p.typeahead for p in playerService.getPlayerListFromQuery($viewValue)" typeahead-on-select="playerSelected(player, $item)">
                         </div>
                     </td>
                 </tr>
@@ -74,7 +74,7 @@
                     <th>Winner</th>
                     <th>Loser</th>
                 </tr>
-                <tr ng-repeat="match in tournament.matches" class="pending_tournament_line">
+                <tr ng-repeat="match in tournament.matches" class="tournament_match_line">
                     <td class="success">{{match.winner}}</a></td>
                     <td class="danger">{{match.loser}}</a></td>
                 </tr>
@@ -83,7 +83,7 @@
     </div>
     <div class="row" ng-show="isPendingTournament">
         <div class="col-md-2 col-md-offset-10">
-            <button type="button" class="btn btn-primary pull-right" ng-click="openSubmitPendingTournamentModal()">Submit</button>
+            <button type="button" class="btn btn-primary pull-right mobile" ng-click="openSubmitPendingTournamentModal()">Submit</button>
         </div>
     </div>
 
@@ -121,7 +121,7 @@
                        Exclude
                     </th>
                 </tr>
-                <tr ng-repeat="match in tournament.matches" class="tournament_line">
+                <tr ng-repeat="match in tournament.matches" class="tournament_match_line">
                     <td class="success" id="winner_{{ match.match_id }}">
                         <a href="#/{{regionService.region.id}}/players/{{match.winner_id}}">
                             {{match.winner_name}}
