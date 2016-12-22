@@ -301,7 +301,7 @@ div.forumlaDiv{
 
     tr.player_line{
         height: 50px;
-        font-size: 20pt;
+        font-size: 24pt;
     }
 
     tr.player_line_center{
@@ -310,7 +310,7 @@ div.forumlaDiv{
 
     tr.tournament_line{
         height: 50px;
-        font-size: 18pt;
+        font-size: 24pt;
     }
 
     tr.pending_tournament_line{
@@ -342,7 +342,11 @@ div.forumlaDiv{
     }
 
     input[type="text"].mobile{
-        text-size:16pt;
+        font-size:50px;
+    }
+
+    .modal-body{
+        font-size:12pt;
     }
 }
 
