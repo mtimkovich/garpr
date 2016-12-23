@@ -623,8 +623,6 @@ class Dao(object):
         user = None
         if self.users_col.find_one({'_id': user_id}):
             user = M.User.load(self.users.find_one({'_id': user_id}))
-
-            print user.is_superadmin
             return user.is_superadmin
         else:
             return False
