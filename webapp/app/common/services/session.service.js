@@ -52,6 +52,14 @@ angular.module('app.common').service('SessionService', function($http) {
                 return this.userInfo.admin_regions.length > 0
             }
         },
+        isSuperAdmin: function(){
+            if(!this.loggedIn){
+                return false;
+            }
+            else{
+                return this.userInfo.is_superadmin;
+            }
+        },
         isAdminForRegion: function(regionId) {
             if (!this.loggedIn) {
                 return false;

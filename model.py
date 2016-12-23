@@ -348,7 +348,8 @@ class User(orm.Document):
               ('username', orm.StringField(required=True)),
               ('salt', orm.StringField(required=True)),
               ('hashed_password', orm.StringField(required=True)),
-              ('admin_regions', orm.ListField(orm.StringField()))]
+              ('admin_regions', orm.ListField(orm.StringField())),
+              ('is_superadmin', orm.BooleanField(required=True))]
 
 
 class Merge(orm.Document):

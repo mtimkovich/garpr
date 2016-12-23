@@ -619,6 +619,25 @@ class Dao(object):
     def get_user_by_region(self, regions):
         pass
 
+    def get_is_superadmin(self, user_id):
+        user = None
+        if self.users_col.find_one({'_id': user_id}):
+            user = M.User.load(self.users.find_one({'_id': user_id}))
+
+            print user.is_superadmin
+            return user.is_superadmin
+        else:
+            return False
+
+    def set_user_superadmin(self, user_id, is_superadmin):
+        if self.users_col.find_one({'_id': user_id}):
+            self.user_col.update({'_id': user_id},
+                                 {'$set':
+                                      {
+                                          'is_superadmin': is_superadmin
+                                      }
+                                 })
+
     #### FOR INTERNAL USE ONLY ####
     #XXX: this method must NEVER be publicly routeable, or you have session-hijacking
     def get_session_id_by_user_or_none(self, User):
