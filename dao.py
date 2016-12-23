@@ -622,7 +622,9 @@ class Dao(object):
     def get_is_superadmin(self, user_id):
         user = None
         if self.users_col.find_one({'_id': user_id}):
-            user = M.User.load(self.users.find_one({'_id': user_id}))
+            user = M.User.load(self.users_col.find_one({'_id': user_id}))
+
+            print 'SuperADMIN: ' + str(user.is_superadmin)
             return user.is_superadmin
         else:
             return False

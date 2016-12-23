@@ -1176,8 +1176,8 @@ class AdminFunctionsResource(restful.Resource):
         user = get_user_from_request(request, dao)
         if not user:
             return 'Permission denied', 403
-        #if not is_user_admin_for_region(user, region='*'):
-        #    return 'Permission denied', 403
+        if not dao.get_is_superadmin(user.id):
+            return 'Permission denied', 403
 
         args = admin_functions_parser.parse_args()
 
