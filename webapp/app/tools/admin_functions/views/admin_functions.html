@@ -1,13 +1,13 @@
 <div class="container" ng-show="sessionService.isSuperAdmin()">
      <div ng-init="isRegionCollapsed = !isRegionCollapsed; isUserCollapsed = !isUserCollapsed">
-        <h3>Super Admin Functions</h3>
         <hr/>
+        <h3>Super Admin Functions</h3>
 
         <div class="panel panel-default">
             <div class="panel-heading">
               <h4 class="panel-title">
                 <a ng-click="isRegionCollapsed = !isRegionCollapsed">
-                  <label>Regions</label>
+                  <label>Regions<span class="caret"></span></label>
                 </a>
               </h4>
             </div>
@@ -29,7 +29,7 @@
             <div class="panel-heading">
               <h4 class="panel-title">
                 <a ng-click="isUserCollapsed = !isUserCollapsed">
-                  <label>Users</label>
+                  <label>Users<span class="caret"></span></label>
                 </a>
               </h4>
             </div>
@@ -56,6 +56,7 @@
                             <a ng-href="#/{{r.id}}/{{$route.current.activeTab}}"><label>{{r.display_name}}</label></a>
                         </li>
                     </ul>
+
                     <br />
                     <input class="btn btn-success mobile" type="submit" id="submit_new_user_btn" value="submit">
                 </form>
@@ -64,4 +65,37 @@
         </div>
         <br/>
     </div>
+    <hr/>
+    <div ng-show="sessionService.loggedIn" style="text-align:center">
+        <div class="row">
+            <div class="col-sm-12 col-md-12 col-lg-12">
+                <h1>{{sessionService.userInfo.username}} Info</h1>
+            </div>
+        </div>
+        <div class="row" style="text-align:left" style="background-color=grey">
+            <div class="col-lg-2">
+                <h2>Your Regions</h2>
+                <ul>
+                    <li ng-repeat="r in sessionService.userInfo.admin_regions"><h4>{{r}}</h4></li>
+                </ul>
+            </div>
+            <div class="col-md-12 col-lg-4">
+                <h2>Change Password</h2> <br/>
+                <form ng-submit="changePassword()" >
+                    <label id="oldPasswordLabel">Old Password</label> <input type="password" class="form-control mobile" ng-model="oldPassword" />
+                    <br/>
+                    <label id="newPasswordLabel">New Password</label> <input type="password" class="form-control mobile" ng-model="newPassword" />
+                    <br/>
+                    <label id="newPasswordRepeatLabel">Repeat New Password</label> <input type="password" class="form-control mobile" ng-model="newPasswordRepeat" />
+                    <br/>
+                    <input type="submit" class="btn btn-success mobile_small" value="submit" />
+                </form>
+            </div>
+            <div class="col-md-12 col-lg-6">
+
+            </div>
+        </div>
+    </div>
 </div>
+</div>
+

@@ -14,6 +14,10 @@ angular.module('app.tools').controller("AdminFunctionsController", function($sco
     $scope.regionStatusMessage = "";
     $scope.userStatusMessage = "";
 
+    $scope.oldPassword = "";
+    $scope.newPassword = "";
+    $scope.newPasswordRepeat = "";
+
     $scope.foo = null;
     $scope.postParams = {
         function_type: '',
@@ -98,6 +102,16 @@ angular.module('app.tools').controller("AdminFunctionsController", function($sco
         $scope.userStatusMessage = "An error occurred in inserting user."
         document.getElementById('userStatusMessage').innerHTML = "An error occurred in inserting user.";
     };
+
+    $scope.changePassword = function(){
+        if(!($scope.newPassword === $scope.newPasswordRepeat)){
+            //TODO Alert user to a mismatch and light the rows red
+        }
+
+        //TODO confirm old password is correct
+
+        //TODO send change request
+    }
 
     function resetForm(form) {
         // clearing inputs
