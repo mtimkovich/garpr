@@ -559,7 +559,7 @@ class Dao(object):
 
     # throws invalidRegionsException, which is okay, as this is only used by a
     # script
-    def create_user(self, username, password, regions):
+    def create_user(self, username, password, regions, perm=M.AdminLevels.REGION):
         valid_regions = [
             region.id for region in Dao.get_all_regions(self.mongo_client)]
 
@@ -576,7 +576,8 @@ class Dao(object):
                           admin_regions=regions,
                           username=username,
                           salt=salt,
-                          hashed_password=hashed_password)
+                          hashed_password=hashed_password,
+                          admin_level=perm)
 
         return self.insert_user(the_user)
 

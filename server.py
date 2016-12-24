@@ -1189,7 +1189,7 @@ class UserResource(restful.Resource):
                 dao.change_passwd(user.username, new_pass)
                 return 200
         except Exception as ex:
-            return 'Password change not successful', 500
+            return 'Password change not successful', 400
 
 
 class AdminFunctionsResource(restful.Resource):
@@ -1224,9 +1224,14 @@ class AdminFunctionsResource(restful.Resource):
             uperm = args['new_user_permissions']
             uregions = args['new_user_regions']
 
+            perm = None
+            if uperm == 'Super Admin': perm = M.AdminLevels.SUPER
+            elif uperm == 'Region Admin': perm = M.AdminLevels.REGION
+            else: return 'Invalid permission selection!', 400
+
             #Execute user addition
             dao = Dao(None, mongo_client)
-            if dao.create_user(uname, upass, uregions):
+            if dao.create_user(uname, upass, uregions, perm):
                 print("user created:" + uname)
 
 @api.representation('text/plain')

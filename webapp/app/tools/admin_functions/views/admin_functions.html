@@ -41,15 +41,18 @@
                         <p ng-model="userStatusMessage" id="userStatusMessage"></p>
                         <label>Username:</label> <input type="text" id="new_user_name" class="form-control mobile" ng-model="postParams.new_user_name"> <br/>
                         <label>Password:</label> <input type="password" id="new_user_pass" class="form-control" ng-model="postParams.new_user_pass"> <br/>
-                        <!--
-                        Permission Level:
-                        <select ng-model="postParams.new_user_permissions">
+                        <br/>
+
+                        <h4>Permission Level:</h4>
+                        <select ng-model="postParams.new_user_permissions" id="permissionLevelSelect">
+                            <option selected>Region Admin</option>
                             <option>Super Admin</option>
-                            <option>Region Admin</option>
                         </select>
+
                         <br />
-                        -->
-                        <p>Regions:</p>
+                        <br/>
+
+                        <h4>Regions:</h4>
                         <ul style="list-style: none;">
                             <li ng-repeat="r in regions">
                                 <input type="checkbox" class="admin_region_checkbox mobile" id="{{r.display_name}}_checkbox"
