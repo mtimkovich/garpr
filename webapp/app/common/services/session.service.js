@@ -57,7 +57,7 @@ angular.module('app.common').service('SessionService', function($http) {
                 return false;
             }
             else{
-                return this.userInfo.is_superadmin;
+                return this.userInfo.admin_level === 'SUPER';
             }
         },
         isAdminForRegion: function(regionId) {

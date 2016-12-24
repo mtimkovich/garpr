@@ -6,6 +6,8 @@ from flask.ext.restful import reqparse
 
 from pymongo import MongoClient
 
+from enum import Enum
+
 import re
 import sys
 
@@ -23,6 +25,7 @@ from scripts import create_user
 
 TYPEAHEAD_PLAYER_LIMIT = 20
 BASE_REGION = 'newjersey'
+
 
 # parse config file
 config = Config()

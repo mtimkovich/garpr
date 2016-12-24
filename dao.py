@@ -624,17 +624,19 @@ class Dao(object):
         if self.users_col.find_one({'_id': user_id}):
             user = M.User.load(self.users_col.find_one({'_id': user_id}))
 
-            print 'SuperADMIN: ' + str(user.is_superadmin)
-            return user.is_superadmin
+            print 'SuperADMIN: ' + str(user.admin_level)
+            return user.admin_level == 'SUPER'
         else:
             return False
 
-    def set_user_superadmin(self, user_id, is_superadmin):
+    def set_user_superadmin(self, user_id, admin_level):
+        if type(admin_level) is not M.AdminLevels:
+            raise Exception('Submitted admin level is not of correct type')
         if self.users_col.find_one({'_id': user_id}):
             self.user_col.update({'_id': user_id},
                                  {'$set':
                                       {
-                                          'is_superadmin': is_superadmin
+                                          'admin_level': admin_level.name
                                       }
                                  })
 

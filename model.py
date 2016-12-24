@@ -1,4 +1,5 @@
 from bson.objectid import ObjectId
+from enum import Enum
 
 import trueskill
 
@@ -349,7 +350,7 @@ class User(orm.Document):
               ('salt', orm.StringField(required=True)),
               ('hashed_password', orm.StringField(required=True)),
               ('admin_regions', orm.ListField(orm.StringField())),
-              ('is_superadmin', orm.BooleanField(required=True, default=False))]
+              ('admin_level', orm.StringField(required=True, default='REGION'))]
 
 
 class Merge(orm.Document):
@@ -372,3 +373,8 @@ class Session(orm.Document):
     collection_name = 'sessions'
     fields = [('session_id', orm.StringField(required=True)),
               ('user_id', orm.StringField(required=True))]
+
+
+class AdminLevels(Enum):
+    REGION = 1,
+    SUPER = 2
