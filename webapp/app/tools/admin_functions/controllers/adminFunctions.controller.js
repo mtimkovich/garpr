@@ -106,11 +106,28 @@ angular.module('app.tools').controller("AdminFunctionsController", function($sco
     $scope.changePassword = function(){
         if(!($scope.newPassword === $scope.newPasswordRepeat)){
             //TODO Alert user to a mismatch and light the rows red
+            alert('New passwords do not match!')
+            return
         }
 
-        //TODO confirm old password is correct
-
         //TODO send change request
+        var url = hostname + 'user';
+        var putParams = {
+            old_pass: $scope.oldPassword,
+            new_pass: $scope.newPassword
+        }
+
+        $scope.sessionService.authenticatedPut(url, putParams,
+            (data)=>{
+                alert('Password changed successfully!');
+                // TODO clear the form
+            },
+            (err)=>{
+                if(err) {
+                    alert(err.message);
+                    return;
+                }
+            })
     }
 
     function resetForm(form) {

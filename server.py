@@ -121,6 +121,10 @@ admin_functions_parser.add_argument('new_user_pass', location='json', type=str)
 admin_functions_parser.add_argument('new_user_permissions', location='json', type=str)
 admin_functions_parser.add_argument('new_user_regions', location='json', type=list)
 
+user_parser = reqparse.RequestParser()
+user_parser.add_argument('old_pass', location='json', type=str)
+user_parser.add_argument('new_pass', location='json', type=str)
+
 #TODO: major refactor to move auth code to a decorator
 
 
@@ -1166,6 +1170,27 @@ class SessionResource(restful.Resource):
 
         return return_dict
 
+class UserResource(restful.Resource):
+    def put(self):
+        dao = Dao(None, mongo_client=mongo_client)
+
+        if not dao:
+            return 'Dao not found', 404
+        user = get_user_from_request(request, dao)
+        if not user:
+            return 'Permission denied', 403
+
+        args = user_parser.parse_args()
+        old_pass = args['old_pass']
+        new_pass = args['new_pass']
+
+        try:
+            if dao.check_creds(user.username, old_pass):
+                dao.change_passwd(user.username, new_pass)
+                return 200
+        except Exception as ex:
+            return 'Password change not successful', 500
+
 
 class AdminFunctionsResource(restful.Resource):
     def get(self):
@@ -1275,6 +1300,8 @@ api.add_resource(SmashGGMappingResource, '/smashGgMap')
 api.add_resource(RankingsResource, '/<string:region>/rankings')
 
 api.add_resource(SessionResource, '/users/session')
+
+api.add_resource(UserResource, '/user')
 
 api.add_resource(LoaderIOTokenResource,
                  '/{}/'.format(config.get_loaderio_token()))

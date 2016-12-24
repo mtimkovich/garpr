@@ -666,6 +666,17 @@ class Dao(object):
         else:
             return None
 
+    def check_creds(self, username, password):
+        result = self.users_col.find({"username": username})
+        if result.count() == 0:
+            return None
+        assert result.count() == 1, "WE HAVE DUPLICATE USERNAMES IN THE DB"
+        user = M.User.load(result[0], context='db')
+        assert user, "mongo has stopped being consistent, abort ship"
+
+        return verify_password(password, user.salt, user.hashed_password)
+
+
     def update_session_id_for_user(self, user_id, session_id):
         # lets force people to have only one session at a time
         self.sessions_col.remove({"user_id": user_id})
