@@ -624,8 +624,6 @@ class Dao(object):
         user = None
         if self.users_col.find_one({'_id': user_id}):
             user = M.User.load(self.users_col.find_one({'_id': user_id}))
-
-            print 'SuperADMIN: ' + str(user.admin_level)
             return user.admin_level == 'SUPER'
         else:
             return False

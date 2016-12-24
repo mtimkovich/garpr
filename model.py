@@ -376,5 +376,5 @@ class Session(orm.Document):
 
 
 class AdminLevels(Enum):
-    REGION = 'REGION',
+    REGION = 'REGION'
     SUPER = 'SUPER'
