@@ -193,7 +193,8 @@ class TestDAO(unittest.TestCase):
                            admin_regions=self.user_admin_regions_1,
                            username='user1',
                            salt='nacl',
-                           hashed_password='browns')
+                           hashed_password='browns',
+                           admin_level='REGION')
 
         self.user_id_2 = 'asdfasdf'
         self.user_full_name_2 = 'Full Name'
@@ -202,9 +203,22 @@ class TestDAO(unittest.TestCase):
                            admin_regions=self.user_admin_regions_2,
                            username=self.user_full_name_2,
                            salt='nacl',
-                           hashed_password='browns')
+                           hashed_password='browns',
+                           admin_level='REGION')
 
-        self.users = [self.user_1, self.user_2]
+        self.superadmin_id = '123456'
+        self.superadmin_full_name = 'superadmin'
+        self.superadmin_admin_regions = []
+        self.superadmin = User(
+            id=self.superadmin_id,
+            user_admin_regions=self.superadmin_admin_regions,
+            username=self.superadmin_full_name,
+            salt='nacl',
+            hashed_password='browns',
+            admin_level='SUPER'
+        )
+
+        self.users = [self.user_1, self.user_2, self.superadmin]
 
         self.region_1 = Region(id='norcal', display_name='Norcal')
         self.region_2 = Region(id='texas', display_name='Texas')
@@ -232,6 +246,8 @@ class TestDAO(unittest.TestCase):
 
         for user in self.users:
             self.norcal_dao.insert_user(user)
+
+
 
     def tearDown(self):
         self.mongo_client.drop_database(DATABASE_NAME)
@@ -785,7 +801,7 @@ class TestDAO(unittest.TestCase):
 
     def test_get_all_users(self):
         users = self.norcal_dao.get_all_users()
-        self.assertEquals(len(users), 2)
+        self.assertEquals(len(users), 3)
 
         user = users[0]
         self.assertEquals(user.id, self.user_id_1)
@@ -797,6 +813,11 @@ class TestDAO(unittest.TestCase):
         self.assertEquals(user.username, self.user_full_name_2)
         self.assertEquals(user.admin_regions, self.user_admin_regions_2)
 
+        user = users[2]
+        self.assertEqual(user.id, self.superadmin_id)
+        self.assertEqual(user.username, self.superadmin_full_name)
+        self.assertEqual(user.admin_regions, self.superadmin_admin_regions)
+
     def test_create_user(self):
         username = 'abra'
         password = 'cadabra'
@@ -805,7 +826,7 @@ class TestDAO(unittest.TestCase):
         self.norcal_dao.create_user(username, password, regions)
 
         users = self.norcal_dao.get_all_users()
-        self.assertEquals(len(users), 3)
+        self.assertEquals(len(users), 4)
 
         user = users[-1]
         self.assertEquals(user.username, username)
@@ -938,3 +959,9 @@ class TestDAO(unittest.TestCase):
         dao = self.norcal_dao
         self.assertIsNone(dao.get_merge(
             ObjectId("420f53650181b84aaaa01051")))  # mlg1337noscope
+
+    def test_get_is_superadmin(self):
+        dao = self.norcal_dao
+        self.assertEqual(dao.get_is_superadmin(self.user_1.id), False)
+        self.assertEqual(dao.get_is_superadmin(self.user_2.id), False)
+        self.assertEqual(dao.get_is_superadmin(self.superadmin.id), True)

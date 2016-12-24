@@ -1188,6 +1188,7 @@ class UserResource(restful.Resource):
             if dao.check_creds(user.username, old_pass):
                 dao.change_passwd(user.username, new_pass)
                 return 200
+            else: return 'Bad password', 403
         except Exception as ex:
             return 'Password change not successful', 400
 

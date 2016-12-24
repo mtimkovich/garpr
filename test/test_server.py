@@ -97,6 +97,19 @@ class TestServer(unittest.TestCase):
             hashed_password=hashed_password)
         norcal_dao.insert_user(gar)
 
+
+        supersalt = base64.b64encode(os.urandom(16))
+        super_hashed_password = base64.b64encode(hashlib.pbkdf2_hmac('sha256', 'admin', supersalt, ITERATION_COUNT))
+        superadmin = User(
+            id='userid--superadmin',
+            user_admin_regions=['norcal', 'georgia'],
+            username='superadmin',
+            salt=supersalt,
+            hashed_password=super_hashed_password,
+            admin_level='SUPER'
+        )
+        norcal_dao.insert_user(superadmin)
+
         # store current mongo db instead of rerunning every time
         # (unfortunately mongomock doesn't implement copydb)
         cls.mongo_data = {}
@@ -1611,3 +1624,67 @@ class TestServer(unittest.TestCase):
         tournament = self.norcal_dao.get_all_tournaments(regions=['norcal'])[0]
         response = self.app.delete('/norcal/tournaments/' + str(tournament.id))
         self.assertEquals(response.status_code, 403)
+
+    def test_put_change_password(self):
+        username = "gar"
+        passwd = "rip"
+        raw_dict = {'username': username,
+                    'password': passwd}
+        the_data = json.dumps(raw_dict)
+        response = self.app.put('/users/session', data=the_data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        print 'logged in'
+        raw_dict = {}
+        raw_dict['old_pass'] = "badPassword"
+        raw_dict['new_pass'] = "newRip"
+        the_data = json.dumps(raw_dict)
+        response = self.app.put('/user', data=the_data, content_type='application/json')
+        self.assertEqual(response.status_code, 403)
+
+        raw_dict['old_pass'] = "rip"
+        raw_dict['new_pass'] = "newRip"
+        the_data = json.dumps(raw_dict)
+        response = self.app.put('/user', data=the_data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+    def test_put_add_new_region_with_superadmin(self):
+        username = "superadmin"
+        passwd = "admin"
+        raw_dict = {'username': username,
+                    'password': passwd}
+        the_data = json.dumps(raw_dict)
+        response = self.app.put('/users/session', data=the_data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        pass
+
+    def test_put_add_new_region_without_superadmin(self):
+        username = "gar"
+        passwd = "rip"
+        raw_dict = {'username': username,
+                    'password': passwd}
+        the_data = json.dumps(raw_dict)
+        response = self.app.put('/users/session', data=the_data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        pass
+
+    def test_put_add_new_user_with_superadmin(self):
+        username = "superadmin"
+        passwd = "admin"
+        raw_dict = {'username': username,
+                    'password': passwd}
+        the_data = json.dumps(raw_dict)
+        response = self.app.put('/users/session', data=the_data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        pass
+
+    def test_put_add_new_user_without_superadmin(self):
+        username = "gar"
+        passwd = "rip"
+        raw_dict = {'username': username,
+                    'password': passwd}
+        the_data = json.dumps(raw_dict)
+        response = self.app.put('/users/session', data=the_data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        pass
