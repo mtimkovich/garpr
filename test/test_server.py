@@ -150,6 +150,13 @@ class TestServer(unittest.TestCase):
         self.users_col = self.mongo_client[DATABASE_NAME][User.collection_name]
         self.sessions_col = self.mongo_client[DATABASE_NAME][Session.collection_name]
 
+        self.new_user_name = 'temp',
+        self.new_user_pass = 'password1234'
+        self.new_user_perm = 'Region Admin'
+        self.new_user_regions = ['georgia', 'nyc']
+
+        self.new_region = 'Sweden'
+
 ### start of actual test cases
 
     def test_cors_checker(self):
@@ -1657,7 +1664,11 @@ class TestServer(unittest.TestCase):
         response = self.app.put('/users/session', data=the_data, content_type='application/json')
         self.assertEqual(response.status_code, 200)
 
-        pass
+        raw_dict = {}
+        raw_dict['new_region'] = self.new_region
+        the_data = json.dumps(raw_dict)
+        response = self.app.put('/adminfunctions', data=the_data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
 
     def test_put_add_new_region_without_superadmin(self):
         username = "gar"
@@ -1667,7 +1678,12 @@ class TestServer(unittest.TestCase):
         the_data = json.dumps(raw_dict)
         response = self.app.put('/users/session', data=the_data, content_type='application/json')
         self.assertEqual(response.status_code, 200)
-        pass
+
+        raw_dict = {}
+        raw_dict['new_region'] = self.new_region
+        the_data = json.dumps(raw_dict)
+        response = self.app.put('/adminfunctions', data=the_data, content_type='application/json')
+        self.assertEqual(response.status_code, 403)
 
     def test_put_add_new_user_with_superadmin(self):
         username = "superadmin"
@@ -1677,7 +1693,15 @@ class TestServer(unittest.TestCase):
         the_data = json.dumps(raw_dict)
         response = self.app.put('/users/session', data=the_data, content_type='application/json')
         self.assertEqual(response.status_code, 200)
-        pass
+
+        raw_dict = {}
+        raw_dict['new_user_name'] = self.new_user_name
+        raw_dict['new_user_pass'] = self.new_user_pass
+        raw_dict['new_user_permissions'] = self.new_user_perm
+        raw_dict['new_user_regions'] = self.new_user_regions
+        the_data = json.dumps(raw_dict)
+        response = self.app.put('/adminfunctions', data=the_data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
 
     def test_put_add_new_user_without_superadmin(self):
         username = "gar"
@@ -1687,4 +1711,12 @@ class TestServer(unittest.TestCase):
         the_data = json.dumps(raw_dict)
         response = self.app.put('/users/session', data=the_data, content_type='application/json')
         self.assertEqual(response.status_code, 200)
-        pass
+
+        raw_dict = {}
+        raw_dict['new_user_name'] = self.new_user_name
+        raw_dict['new_user_pass'] = self.new_user_pass
+        raw_dict['new_user_permissions'] = self.new_user_perm
+        raw_dict['new_user_regions'] = self.new_user_regions
+        the_data = json.dumps(raw_dict)
+        response = self.app.put('/adminfunctions', data=the_data, content_type='application/json')
+        self.assertEqual(response.status_code, 403)

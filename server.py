@@ -1228,7 +1228,7 @@ class AdminFunctionsResource(restful.Resource):
             perm = None
             if uperm == 'Super Admin': perm = M.AdminLevels.SUPER
             elif uperm == 'Region Admin': perm = M.AdminLevels.REGION
-            else: return 'Invalid permission selection!', 400
+            else: return 'Invalid permission selection!', 403
 
             #Execute user addition
             dao = Dao(None, mongo_client)
