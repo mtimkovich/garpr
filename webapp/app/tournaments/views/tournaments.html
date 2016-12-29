@@ -20,7 +20,10 @@
                     ng-class="excluded: tournament.excluded == true">
                     <td ng-show="sessionService.isAdminForRegion(regionService.region.id)">
                         <input type="checkbox"
-                               />
+                               name="sessionService.excludedList[]"
+                               value="{{tournament}}"
+                               ng-checked="sessionService.excludedList.indexOf(tournament) > -1"
+                               ng-click="toggleExcludedTournament(tournament)"/>
                     </td>
                     <td>{{tournament.date}}</td>
                     <td ng-class="{'pending': tournament.pending}"><a href="#/{{regionService.region.id}}/tournaments/{{tournament.id}}">{{tournament.name}}</a></td>

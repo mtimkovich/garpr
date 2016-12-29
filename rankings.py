@@ -16,6 +16,8 @@ def generate_ranking(dao, now=datetime.now(), day_limit=60, num_tourneys=2, tour
 
     tournaments = dao.get_all_tournaments(regions=[dao.region_id])
     for tournament in tournaments:
+        if tournament.excluded is True:
+            continue
 
         if tournament_qualified_date <= tournament.date:
             print 'Processing:', tournament.name.encode('utf-8'), str(tournament.date)

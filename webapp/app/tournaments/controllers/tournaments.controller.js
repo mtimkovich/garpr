@@ -14,7 +14,6 @@ angular.module('app.tournaments').controller("TournamentsController", function($
 
     $scope.smashGGImportMessage = "";
 
-    $scope.excludedTournaments = [];
     $scope.toggleExcludedTournament = function(tournament) {
         var postParams = {
             excluded_tf: false
@@ -29,7 +28,7 @@ angular.module('app.tournaments').controller("TournamentsController", function($
           $scope.sessionService.authenticatedPost(url, postParams,
             (data) => {
                 // TODO remove tournament from excluded list
-                $scope.selection.splice(idx, 1);
+                $scope.sessionService.excludedList.splice(idx, 1);
 
                 // TODO unpaint the grey row
 
@@ -50,7 +49,7 @@ angular.module('app.tournaments').controller("TournamentsController", function($
           $scope.sessionService.authenticatedPost(url, postParams,
             (data) => {
                 // TODO add tournament to excluded list
-                $scope.selection.push(tournament);
+                $scope.sessionService.excludedList.push(tournament);
 
                 // TODO paint the row grey
 
