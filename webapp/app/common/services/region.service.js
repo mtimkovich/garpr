@@ -51,6 +51,10 @@ angular.module('app.common').service('RegionService', function ($http, PlayerSer
             SessionService.authenticatedGet(hostname + this.region.id + '/tournaments?includePending=true',
                 function(data) {
                     TournamentService.tournamentList = data.tournaments.reverse();
+                    TournamentService.tournamentList.forEach(function(tournament){
+                        if(tournament.excluded == true)
+                            TournamentService.excludedList.push(tournament);
+                    })
                 });
 
             $http.get(hostname + this.region.id + '/rankings').

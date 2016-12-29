@@ -61,7 +61,7 @@ angular.module('app.tournaments').controller("TournamentsController", function($
                 }
             })
         }
-      };
+    };
 
     $scope.open = function() {
         $scope.disableButtons = false;
