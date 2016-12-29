@@ -14,6 +14,27 @@ angular.module('app.tournaments').controller("TournamentsController", function($
 
     $scope.smashGGImportMessage = "";
 
+    $scope.excludedTournaments = [];
+    $scope.toggleExcludedTournament = function(tournament) {
+        var idx = $scope.selection.indexOf(fruitName);
+
+        // is currently selected
+        if (idx > -1) {
+          $scope.selection.splice(idx, 1);
+        }
+
+        // is newly selected
+        else {
+          // TODO http call to api
+
+
+          $scope.selection.push(tournament);
+
+          // TODO paint the row grey
+
+        }
+      };
+
     $scope.open = function() {
         $scope.disableButtons = false;
         $scope.modalInstance = $modal.open({
