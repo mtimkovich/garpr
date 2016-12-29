@@ -16,22 +16,50 @@ angular.module('app.tournaments').controller("TournamentsController", function($
 
     $scope.excludedTournaments = [];
     $scope.toggleExcludedTournament = function(tournament) {
-        var idx = $scope.selection.indexOf(fruitName);
+        var postParams = {
+            excluded_tf: false
+        }
+
+        var idx = $scope.selection.indexOf(tournament);
+        var url = hostname + $routeParams.region + '/tournaments/' + $scope.tournamentId;
 
         // is currently selected
         if (idx > -1) {
-          $scope.selection.splice(idx, 1);
+          // TODO send false to the api
+          $scope.sessionService.authenticatedPost(url, postParams,
+            (data) => {
+                // TODO remove tournament from excluded list
+                $scope.selection.splice(idx, 1);
+
+                // TODO unpaint the grey row
+
+            },
+            (err) => {
+                if(err){
+                    console.log(err.message);
+                }
+            })
+
         }
 
         // is newly selected
         else {
-          // TODO http call to api
+          // TODO send true to the api
+          postParams.excluded_tf = true;
 
+          $scope.sessionService.authenticatedPost(url, postParams,
+            (data) => {
+                // TODO add tournament to excluded list
+                $scope.selection.push(tournament);
 
-          $scope.selection.push(tournament);
+                // TODO paint the row grey
 
-          // TODO paint the row grey
-
+            },
+            (err) => {
+                if(err){
+                    console.log(err.message);
+                }
+            })
         }
       };
 
