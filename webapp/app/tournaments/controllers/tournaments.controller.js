@@ -19,7 +19,7 @@ angular.module('app.tournaments').controller("TournamentsController", function($
             excluded_tf: false
         }
 
-        var idx = $scope.selection.indexOf(tournament);
+        var idx = $scope.sessionService.indexOf(tournament);
         var url = hostname + $routeParams.region + '/tournaments/' + $scope.tournamentId;
 
         // is currently selected
