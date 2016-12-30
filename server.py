@@ -167,7 +167,7 @@ def is_user_admin_for_regions(user, regions):
         return True
 
 
-class RegionListResource(restful.Resouarce):
+class RegionListResource(restful.Resource):
 
     def get(self):
         regions_dict = {'regions': [
