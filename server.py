@@ -144,6 +144,8 @@ def get_user_from_request(request, dao):
 
 
 def is_user_admin_for_region(user, region):
+    if user.admin_level == 'SUPER':
+        return True
     if not region:
         return False
     if not user.admin_regions:
@@ -157,13 +159,15 @@ def is_user_admin_for_regions(user, regions):
     '''
     returns true is user is an admin for ANY of the regions
     '''
-    if len(set(regions).intersection(user.admin_regions)) == 0:
+    if user.admin_level == 'SUPER':
+        return True
+    elif len(set(regions).intersection(user.admin_regions)) == 0:
         return False
     else:
         return True
 
 
-class RegionListResource(restful.Resource):
+class RegionListResource(restful.Resouarce):
 
     def get(self):
         regions_dict = {'regions': [

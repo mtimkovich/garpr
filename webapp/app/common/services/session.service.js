@@ -48,6 +48,9 @@ angular.module('app.common').service('SessionService', function($http) {
             if (!this.loggedIn) {
                 return false;
             }
+            else if(this.isSuperAdmin()){
+                return true;
+            }
             else {
                 return this.userInfo.admin_regions.length > 0
             }
@@ -63,6 +66,9 @@ angular.module('app.common').service('SessionService', function($http) {
         isAdminForRegion: function(regionId) {
             if (!this.loggedIn) {
                 return false;
+            }
+            else if(this.isSuperAdmin()){
+                return true;
             }
             else {
                 return this.userInfo.admin_regions.indexOf(regionId) > -1;
