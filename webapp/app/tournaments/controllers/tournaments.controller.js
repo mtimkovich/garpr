@@ -20,7 +20,7 @@ angular.module('app.tournaments').controller("TournamentsController", function($
         if(excluded){
             var lineId = 'tournament_line_' + tournament.id;
             var lineElement = document.getElementById(lineId);
-            lineElement.className = 'excluded';
+            lineElement.className = 'tournament_line excluded ng-scope';
         }
 
         return excluded;
@@ -50,7 +50,7 @@ angular.module('app.tournaments').controller("TournamentsController", function($
                 // TODO remove tournament from excluded list
 
                 // TODO paint the row grey
-                lineId.className = 'excluded'
+                lineElement.className += ' excluded'
                 return;
             },
             (err) => {
@@ -66,8 +66,9 @@ angular.module('app.tournaments').controller("TournamentsController", function($
                 // TODO add tournament to excluded list
 
                 // TODO unpaint the grey row
-                lineId.className = '';
-                lineId.className = 'tournament_line';
+                lineElement.className = '';
+                lineElement.className = 'tournament_line ng-scope';
+                alert('Tournament Included Successfully!');
                 return;
             },
             (err) => {
@@ -78,52 +79,9 @@ angular.module('app.tournaments').controller("TournamentsController", function($
         }
     };
 
+
     $scope.toggleExcludedTournament = function(tournament) {
-        var postParams = {
-            excluded_tf: false
-        }
 
-        var idx = $scope.sessionService.indexOf(tournament);
-        var url = hostname + $routeParams.region + '/tournaments/' + $scope.tournamentId;
-
-        // is currently selected
-        if (idx > -1) {
-          // TODO send false to the api
-          $scope.sessionService.authenticatedPost(url, postParams,
-            (data) => {
-                // TODO remove tournament from excluded list
-                $scope.sessionService.excludedList.splice(idx, 1);
-
-                // TODO unpaint the grey row
-
-            },
-            (err) => {
-                if(err){
-                    console.log(err.message);
-                }
-            })
-
-        }
-
-        // is newly selected
-        else {
-          // TODO send true to the api
-          postParams.excluded_tf = true;
-
-          $scope.sessionService.authenticatedPost(url, postParams,
-            (data) => {
-                // TODO add tournament to excluded list
-                $scope.sessionService.excludedList.push(tournament);
-
-                // TODO paint the row grey
-
-            },
-            (err) => {
-                if(err){
-                    console.log(err.message);
-                }
-            })
-        }
     };
 
     $scope.open = function() {

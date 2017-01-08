@@ -17,7 +17,7 @@
                     <th></th>
                 </tr>
                 <tr ng-repeat="tournament in tournamentService.tournamentList" class="tournament_line"
-                    ng-class="excluded: tournament.excluded == true"
+                    ng-class="{excluded: tournament.excluded == true}"
                     id="tournament_line_{{tournament.id}}">
                     <td ng-show="sessionService.isAdminForRegion(regionService.region.id)">
                         <input type="checkbox"
