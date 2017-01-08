@@ -378,8 +378,6 @@ class TournamentListResource(restful.Resource):
                            'date',
                            'regions',
                            'excluded')
-        print 'server------------------------'
-        print only_properties
 
         # temporary fix
         all_tournament_jsons = []
@@ -387,6 +385,7 @@ class TournamentListResource(restful.Resource):
             try:
                 all_tournament_jsons.append(t.dump(context='web',
                                                    only=only_properties))
+
             except:
                 print 'error inserting tournament', t
 

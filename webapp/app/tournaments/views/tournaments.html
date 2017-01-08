@@ -19,14 +19,14 @@
                 <tr ng-repeat="tournament in tournamentService.tournamentList" class="tournament_line"
                     ng-class="excluded: tournament.excluded == true"
                     id="tournament_line_{{tournament.id}}">
-
                     <td ng-show="sessionService.isAdminForRegion(regionService.region.id)">
                         <input type="checkbox"
                                name="sessionService.excludedList[]"
                                value="{{tournament}}"
                                ng-checked="isMatchCurrentlyExcluded(tournament)"
                                ng-click="changeTournamentExclusion(tournament)"
-                               id="exclude_tournament_checkbox_{{tournament.id}}"/>
+                               id="exclude_tournament_checkbox_{{tournament.id}}"
+                               ng-show="!tournament.pending"/>
                     </td>
                     <td>{{tournament.date}}</td>
                     <td ng-class="{'pending': tournament.pending}"><a href="#/{{regionService.region.id}}/tournaments/{{tournament.id}}">{{tournament.name}}</a></td>
