@@ -29,7 +29,7 @@ angular.module('app.tournaments').controller("TournamentsController", function($
     $scope.changeTournamentExclusion = function(tournament){
 
         //var idx = $scope.sessionService.indexOf(tournament);
-        var url = hostname + $routeParams.region + '/tournaments/' + $scope.tournamentId;
+        var url = hostname + $routeParams.region + '/tournaments/' + tournament.id;
 
         var checkboxId = 'exclude_tournament_checkbox_' + tournament.id;
         var lineId = 'tournament_line_' + tournament.id;
@@ -43,15 +43,15 @@ angular.module('app.tournaments').controller("TournamentsController", function($
 
         // is currently selected
         if (checkboxElement.checked) {
-          // TODO send false to the api
+          // TODO send true to the api
+          postParams.excluded_tf = true;
           $scope.sessionService.authenticatedPost(url, postParams,
             (data) => {
                 // TODO remove tournament from excluded list
 
-                // TODO unpaint the grey row
-                lineId.className = '';
-                lineId.className = 'tournament_line';
-                return false;
+                // TODO paint the row grey
+                lineId.className = 'excluded'
+                return;
             },
             (err) => {
                 if(err){
@@ -60,17 +60,15 @@ angular.module('app.tournaments').controller("TournamentsController", function($
             })
         }
         else {
-          // TODO send true to the api
-          postParams.excluded_tf = true;
+          // TODO send false to the api
           $scope.sessionService.authenticatedPost(url, postParams,
             (data) => {
                 // TODO add tournament to excluded list
 
-                // TODO paint the row grey
+                // TODO unpaint the grey row
                 lineId.className = '';
                 lineId.className = 'tournament_line';
-                return false;
-
+                return;
             },
             (err) => {
                 if(err){

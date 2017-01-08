@@ -376,7 +376,10 @@ class TournamentListResource(restful.Resource):
         only_properties = ('id',
                            'name',
                            'date',
-                           'regions')
+                           'regions',
+                           'excluded')
+        print 'server------------------------'
+        print only_properties
 
         # temporary fix
         all_tournament_jsons = []
