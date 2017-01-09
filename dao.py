@@ -559,7 +559,7 @@ class Dao(object):
 
     # throws invalidRegionsException, which is okay, as this is only used by a
     # script
-    def create_user(self, username, password, regions, perm=M.AdminLevels.REGION):
+    def create_user(self, username, password, regions, perm='REGION'):
         valid_regions = [
             region.id for region in Dao.get_all_regions(self.mongo_client)]
 
@@ -628,7 +628,7 @@ class Dao(object):
         else:
             return False
 
-    def set_user_superadmin(self, user_id, admin_level):
+    def set_user_admin_level(self, user_id, admin_level):
         if type(admin_level) is not M.AdminLevels:
             raise Exception('Submitted admin level is not of correct type')
         if self.users_col.find_one({'_id': user_id}):
@@ -666,15 +666,17 @@ class Dao(object):
             return None
 
     def check_creds(self, username, password):
+        user = self.get_and_verify_user_by_username(username)
+        return verify_password(password, user.salt, user.hashed_password)
+
+    def get_and_verify_user_by_username(self, username):
         result = self.users_col.find({"username": username})
         if result.count() == 0:
             return None
         assert result.count() == 1, "WE HAVE DUPLICATE USERNAMES IN THE DB"
         user = M.User.load(result[0], context='db')
         assert user, "mongo has stopped being consistent, abort ship"
-
-        return verify_password(password, user.salt, user.hashed_password)
-
+        return user
 
     def update_session_id_for_user(self, user_id, session_id):
         # lets force people to have only one session at a time

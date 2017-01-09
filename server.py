@@ -6,8 +6,6 @@ from flask.ext.restful import reqparse
 
 from pymongo import MongoClient
 
-from enum import Enum
-
 import re
 import sys
 
@@ -1209,7 +1207,7 @@ class AdminFunctionsResource(restful.Resource):
         user = get_user_from_request(request, dao)
         if not user:
             return 'Permission denied', 403
-        if not dao.get_is_superadmin(user.id):
+        if not user.admin_level == 'SUPER':
             return 'Permission denied', 403
 
         args = admin_functions_parser.parse_args()
@@ -1230,13 +1228,11 @@ class AdminFunctionsResource(restful.Resource):
             uregions = args['new_user_regions']
 
             perm = None
-            if uperm == 'Super Admin': perm = M.AdminLevels.SUPER
-            elif uperm == 'Region Admin': perm = M.AdminLevels.REGION
-            else: return 'Invalid permission selection!', 403
+            if uperm is not 'REGION' and uperm is not 'SUPER': return 'Invalid permission selection!', 403
 
             #Execute user addition
             dao = Dao(None, mongo_client)
-            if dao.create_user(uname, upass, uregions, perm):
+            if dao.create_user(uname, upass, uregions, uperm):
                 print("user created:" + uname)
 
 @api.representation('text/plain')

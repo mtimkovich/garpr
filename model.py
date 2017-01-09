@@ -1,12 +1,11 @@
 from bson.objectid import ObjectId
-from enum import Enum
 
 import trueskill
 
 import orm
 
 SOURCE_TYPE_CHOICES = ('tio', 'challonge', 'smashgg', 'other')
-
+ADMIN_LEVEL_CHOICES = ('REGION', 'SUPER')
 # Embedded documents
 
 class AliasMapping(orm.Document):
@@ -373,8 +372,3 @@ class Session(orm.Document):
     collection_name = 'sessions'
     fields = [('session_id', orm.StringField(required=True)),
               ('user_id', orm.StringField(required=True))]
-
-
-class AdminLevels(Enum):
-    REGION = 'REGION'
-    SUPER = 'SUPER'
