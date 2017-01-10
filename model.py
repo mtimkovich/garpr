@@ -349,7 +349,9 @@ class User(orm.Document):
               ('salt', orm.StringField(required=True)),
               ('hashed_password', orm.StringField(required=True)),
               ('admin_regions', orm.ListField(orm.StringField())),
-              ('admin_level', orm.StringField(required=True, default='REGION'))]
+              ('admin_level', orm.StringField(required=True, default='REGION',
+                                      validators=[orm.validate_choices(ADMIN_LEVEL_CHOICES)])
+               )]
 
 
 class Merge(orm.Document):

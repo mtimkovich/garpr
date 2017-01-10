@@ -557,8 +557,6 @@ class Dao(object):
 
         return self.users_col.insert(user.dump(context='db'))
 
-    # throws invalidRegionsException, which is okay, as this is only used by a
-    # script
     def create_user(self, username, password, regions, perm='REGION'):
         valid_regions = [
             region.id for region in Dao.get_all_regions(self.mongo_client)]
@@ -666,7 +664,12 @@ class Dao(object):
             return None
 
     def check_creds(self, username, password):
-        user = self.get_and_verify_user_by_username(username)
+        result = self.users_col.find({"username": username})
+        if result.count() == 0:
+            return None
+        assert result.count() == 1, "WE HAVE DUPLICATE USERNAMES IN THE DB"
+        user = M.User.load(result[0], context='db')
+        assert user, "mongo has stopped being consistent, abort ship"
         return verify_password(password, user.salt, user.hashed_password)
 
     def get_and_verify_user_by_username(self, username):
