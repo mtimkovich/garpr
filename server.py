@@ -68,6 +68,8 @@ def is_user_admin_for_regions(user, regions):
         return True
     return any(r in user.admin_regions for r in regions)
 
+# start of URL resources
+
 
 class RegionListResource(restful.Resource):
 
@@ -159,7 +161,6 @@ class PlayerListResource(restful.Resource):
                                       for p in sorted(all_players, key=lambda player: player.name.lower())]
         # all players within region
         else:
-            print 'test'
             return_dict['players'] = [p.dump(context='web',
                                              exclude=exclude_properties)
                                       for p in sorted(dao.get_all_players(),
@@ -177,9 +178,9 @@ class PlayerResource(restful.Resource):
         try:
             player = dao.get_player_by_id(ObjectId(id))
         except:
-            return 'Invalid ObjectID', 400
+            err('Invalid ObjectID')
         if not player:
-            return 'Player not found', 404
+            err('Player not found')
 
         return player.dump(context='web')
 
@@ -207,15 +208,15 @@ class PlayerResource(restful.Resource):
         if args['aliases'] is not None:
             for a in args['aliases']:
                 if not isinstance(a, unicode):
-                    return "each alias must be a string", 400
+                    err("Each alias must be a string")
             new_aliases = [a.lower() for a in args['aliases']]
             if player.name.lower() not in new_aliases:
-                return "aliases must contain the players name!", 400
+                err("Aliases must contain the players name!")
             player.aliases = new_aliases
         if args['regions'] is not None:
             for a in args['regions']:
                 if not isinstance(a, unicode):
-                    return "each region must be a string", 400
+                    err("Each region must be a string")
             player.regions = args['regions']
 
         dao.update_player(player)
@@ -233,13 +234,12 @@ class TournamentSeedResource(restful.Resource):
         args = parser.parse_args()
 
         if args['data'] is None:
-            return "data required", 400
+            err("Data required. (TournamentSeedResource.post)")
 
         the_bytes = bytearray(args['data'], "utf8")
 
         if the_bytes[0] == 0xef:
-            print "found magic numbers"
-            return "magic numbers!", 503
+            err("Magic numbers! (TournamentSeedResource.post)")
 
         type = args['type']
         data = args['data']
@@ -250,14 +250,14 @@ class TournamentSeedResource(restful.Resource):
             if type == 'challonge':
                 scraper = ChallongeScraper(data)
             else:
-                return "Unknown type", 400
+                err("Unknown type")
             pending_tournament, raw_file = M.PendingTournament.from_scraper(
                 type, scraper, region)
         except Exception as ex:
-            return 'Scraper encountered an error ' + str(ex), 400
+            err('Scraper encountered an error ' + str(ex))
 
         if not pending_tournament or not raw_file:
-            return 'Scraper encountered an error - null', 400
+            err('Scraper encountered an error - null')
 
         pending_tournament_json = pending_tournament.dump(
             context='web', exclude=('date', 'matches', 'regions', 'type'))
@@ -326,13 +326,13 @@ class TournamentListResource(restful.Resource):
         args = parser.parse_args()
 
         if args['data'] is None:
-            return "data required", 400
+            err("Tournament data required.")
 
         the_bytes = bytearray(args['data'], "utf8")
 
         if the_bytes[0] == 0xef:
             print "found magic numbers"
-            return "magic numbers!", 503
+            err("Magic numbers!")
 
         type = args['type']
         data = args['data']
@@ -342,7 +342,7 @@ class TournamentListResource(restful.Resource):
         try:
             if type == 'tio':
                 if args['bracket'] is None:
-                    return "Missing bracket name", 400
+                    err("Missing bracket name")
                 data_bytes = bytes(data)
                 if data_bytes[0] == '\xef':
                     data = data[:3]
@@ -352,20 +352,20 @@ class TournamentListResource(restful.Resource):
             elif type == 'smashgg':
                 scraper = SmashGGScraper(data, included_phases)
             else:
-                return "Unknown type", 400
+                err("Unknown tournament type")
             pending_tournament, raw_file = M.PendingTournament.from_scraper(
                 type, scraper, region)
         except Exception as ex:
-            return 'Scraper encountered an error ' + str(ex), 400
+            err('Scraper encountered an error: ' + str(ex))
 
         if not pending_tournament or not raw_file:
-            return 'Scraper encountered an error', 400
+            err('Scraper encountered an error.')
 
         try:
             pending_tournament.alias_to_id_map = alias_service.get_alias_to_id_map_in_list_format(
                 dao, pending_tournament.players)
         except:
-            return 'Alias service encountered an error', 400
+            err('Alias service encountered an error')
 
         # If the tournament is too large, don't insert the raw file into the db.
         if len(pending_tournament.players) < 1000:
@@ -384,10 +384,9 @@ class TournamentListResource(restful.Resource):
             }
             return return_dict
         except Exception as ex:
-            print ex
-            return 'Dao insert_pending_tournament encountered an error', 400
+            err('Dao insert_pending_tournament encountered an error')
 
-        return 'Unknown error!', 400
+        err('Unknown error!')
 
 # TODO: we shouldn't be doing this, instead we should pass the relevant player/
 # match information in different objects
@@ -422,7 +421,7 @@ class TournamentResource(restful.Resource):
         try:
             tournament = dao.get_tournament_by_id(ObjectId(id))
         except:
-            return 'Invalid ObjectID', 400
+            err('Invalid ObjectID')
         if tournament is not None:
             response = convert_tournament_to_response(tournament, dao)
         else:
@@ -430,7 +429,7 @@ class TournamentResource(restful.Resource):
 
             pending_tournament = dao.get_pending_tournament_by_id(ObjectId(id))
             if not pending_tournament:
-                return 'Not found!', 404
+                err('Not found!')
             response = pending_tournament.dump(context='web')
 
         return response
@@ -456,9 +455,9 @@ class TournamentResource(restful.Resource):
             else:
                 tournament = dao.get_tournament_by_id(ObjectId(id))
         except:
-            return 'Invalid ObjectID', 400
+            err('Invalid ObjectID')
         if not tournament:
-            return "No tournament found with that id.", 404
+            err("No tournament found with that id.")
 
         try:
             if args['name']:
@@ -468,22 +467,22 @@ class TournamentResource(restful.Resource):
                     tournament.date = datetime.strptime(
                         args['date'].strip(), '%m/%d/%y')
                 except:
-                    return "Invalid date format", 400
+                    err("Invalid date format")
             if args['players']:
                 # this should rarely be used (if it is used, players will not
                 # unmerge reliably)
                 for p in args['players']:
                     if not isinstance(p, unicode):
-                        return "each player must be a string", 400
+                        err("each player must be a string")
                 tournament.players = [ObjectId(i) for i in args['players']]
                 tournament.orig_ids = [pid for pid in tournament.players]
             if args['matches']:
                 for d in args['matches']:
                     if not isinstance(d, dict):
-                        return "matches must be a dict", 400
+                        err("matches must be a dict")
                     if (not isinstance(d['winner'], unicode)) or (
                             not isinstance(d['loser'], unicode)):
-                        return "winner and loser must be strings", 400
+                        err("winner and loser must be strings")
                 # turn the list of dicts into list of matchresults
                 matches = [M.Match(winner=ObjectId(m['winner']), loser=ObjectId(
                     m['loser'])) for m in args['matches']]
@@ -491,10 +490,10 @@ class TournamentResource(restful.Resource):
             if args['regions']:
                 for p in args['regions']:
                     if not isinstance(p, unicode):
-                        return "each region must be a string", 400
+                        err("each region must be a string")
                 tournament.regions = args['regions']
         except:
-            return 'Invalid ObjectID', 400
+            err('Invalid ObjectID')
 
         try:
             if args['pending']:
@@ -503,7 +502,7 @@ class TournamentResource(restful.Resource):
                 print tournament
                 dao.update_tournament(tournament)
         except:
-            return 'Update Tournament Error', 400
+            err('Update Tournament Error')
 
         if args['pending']:
             return dao.get_pending_tournament_by_id(
@@ -524,20 +523,20 @@ class TournamentResource(restful.Resource):
             tournament_to_delete = dao.get_pending_tournament_by_id(
                 ObjectId(id))
         except:
-            return 'Invalid ObjectID', 400
+            err('Invalid ObjectID')
         if tournament_to_delete:  # its a pending tournament
             if not is_user_admin_for_regions(
                     user, tournament_to_delete.regions):
-                return 'Permission denied', 403
+                err('Permission denied', 403)
             dao.delete_pending_tournament(tournament_to_delete)
         else:  # not a pending tournament, might be a finalized tournament
             tournament_to_delete = dao.get_tournament_by_id(
                 ObjectId(id))  # ID must be valid if we got here
             if not tournament_to_delete:  # can't find anything, whoops
-                return "No tournament (pending or finalized) found with that id.", 404
+                err("No tournament (pending or finalized) found with that id.")
             if not is_user_admin_for_regions(
                     user, tournament_to_delete.regions):
-                return 'Permission denied', 403
+                err('Permission denied')
             dao.delete_tournament(tournament_to_delete)
 
         return {"success": True}
@@ -585,15 +584,15 @@ class PendingTournamentResource(restful.Resource):
         try:
             pending_tournament = dao.get_pending_tournament_by_id(ObjectId(id))
         except:
-            return 'Invalid ObjectID', 400
+            err('Invalid ObjectID')
         if not pending_tournament:
-            return "No pending tournament found with that id.", 404
+            err("No pending tournament found with that id.")
 
         data = {'alias_to_id_map': [M.AliasMapping.load(
             alias_item, context='web') for alias_item in args['alias_to_id_map']]}
 
         if not data:
-            return 'Request couldnt be converted to pending tournament', 400
+            err('Request couldnt be converted to pending tournament')
 
         try:
             print "Incoming", data["alias_to_id_map"]
@@ -605,13 +604,13 @@ class PendingTournamentResource(restful.Resource):
                     player_alias, player_id)
         except:
             print 'Error processing alias_to_id map'
-            return 'Error processing alias_to_id map', 400
+            err('Error processing alias_to_id map')
 
         try:
             dao.update_pending_tournament(pending_tournament)
             return pending_tournament.dump(context='web')
         except:
-            return 'Encountered an error inserting pending tournament', 400
+            err('Encountered an error inserting pending tournament')
 
 
 class FinalizeTournamentResource(restful.Resource):
@@ -626,9 +625,9 @@ class FinalizeTournamentResource(restful.Resource):
         try:
             pending_tournament = dao.get_pending_tournament_by_id(ObjectId(id))
         except:
-            return 'Invalid ObjectID', 400
+            err('Invalid ObjectID')
         if not pending_tournament:
-            return 'No pending tournament found with that id.', 400
+            err('No pending tournament found with that id.')
         auth_user(request, dao)
 
         new_player_names = []
@@ -648,10 +647,9 @@ class FinalizeTournamentResource(restful.Resource):
                 # TODO: reduce queries to DB by batching
                 player = dao.get_player_by_id(player_id)
                 if player.merged:
-                    return "Player {} has already been merged".format(
-                        player.name), 400
+                    err('Player {} has already been merged'.format(player.name))
             except:
-                return "Not all player ids are valid", 400
+                err('Not all player ids are valid')
 
         try:
             dao.update_pending_tournament(pending_tournament)
@@ -662,9 +660,9 @@ class FinalizeTournamentResource(restful.Resource):
             return {"success": True, "tournament_id": str(tournament_id)}
         except ValueError as e:
             print e
-            return 'Not all player aliases in this pending tournament have been mapped to player ids.', 400
+            err('Not all player aliases in this pending tournament have been mapped to player ids.')
         except:
-            return 'Dao threw an error somewhere', 400
+            err('Dao threw an error somewhere')
 
 
 class AddTournamentMatchResource(restful.Resource):
@@ -685,24 +683,22 @@ class AddTournamentMatchResource(restful.Resource):
         tournament = dao.get_tournament_by_id(ObjectId(id))
 
         if not user:
-            return 'Permission denied', 403
+            err('Permission denied', 403)
         if not is_user_admin_for_regions(user, tournament.regions):
-            return 'Permission denied', 403
+            err('Permission denied', 403)
 
         winner_id = args['winner_id']
         loser_id = args['loser_id']
 
         if winner_id is None or loser_id is None:
-            print "winner and loser IDs not present. Cannot continue"
-            return "winner and loser IDs not present. Cannot continue", 400
+            err("winner and loser IDs not present. Cannot continue")
 
         try:
             dao.add_match_by_tournament_id(
                 ObjectId(id), ObjectId(winner_id), ObjectId(loser_id))
-            return 'Successful addition', 200
         except Exception as e:
             print 'error adding match to tournament: ' + str(e)
-            return 'error adding match to tournament: ' + str(e), 400
+            err('error adding match to tournament: ' + str(e))
 
 
 class ExcludeTournamentMatchResource(restful.Resource):
@@ -723,10 +719,10 @@ class ExcludeTournamentMatchResource(restful.Resource):
         try:
             tournament = dao.get_tournament_by_id(ObjectId(id))
         except:
-            return "Casting error", 400
+            err('Casting error')
 
         if not is_user_admin_for_regions(user, tournament.regions):
-            return 'Permission denied', 403
+            err('Permission denied', 403)
 
         match_id = int(args['match_id'])
         excluded = (args['excluded_tf'].lower() == 'true')
@@ -736,7 +732,7 @@ class ExcludeTournamentMatchResource(restful.Resource):
                 ObjectId(id), match_id, excluded)
         except Exception as e:
             print e
-            return 'Match exclusion failed', 400
+            err('Match exclusion failed')
 
 
 class SwapWinnerLoserMatchResource(restful.Resource):
@@ -760,14 +756,13 @@ class SwapWinnerLoserMatchResource(restful.Resource):
         tournament = dao.get_tournament_by_id(ObjectId(tournament_id))
 
         if not is_user_admin_for_regions(user, tournament.regions):
-            return 'Permission denied', 403
+            err('Permission denied')
 
         try:
             dao.swap_winner_loser_by_tournament_id_and_match_id(
                 ObjectId(tournament_id), match_id)
         except Exception as e:
-            print e
-            return 'Swap Winner Loser failed.', 400
+            err('Swap Winner Loser failed: ' + str(e))
 
 
 class RankingsResource(restful.Resource):
@@ -777,7 +772,7 @@ class RankingsResource(restful.Resource):
 
         return_dict = dao.get_latest_ranking().dump(context='web')
         if not return_dict:
-            return 'Dao couldnt give us rankings', 400
+            err('Dao couldnt give us rankings')
 
         ranking_list = []
         for r in return_dict['ranking']:
@@ -816,8 +811,7 @@ class RankingsResource(restful.Resource):
             tournament_qualified_day_limit = int(
                 args['tournament_qualified_day_limit'])
         except Exception as e:
-            return 'Error parsing Ranking Criteria, please try again: ' + \
-                str(e), 400
+            err('Error parsing Ranking Criteria, please try again: ' + str(e))
 
         print ranking_num_tourneys_attended
         print ranking_activity_day_limit
@@ -829,8 +823,7 @@ class RankingsResource(restful.Resource):
                                                ranking_activity_day_limit=ranking_activity_day_limit,
                                                tournament_qualified_day_limit=tournament_qualified_day_limit)
         except Exception as e:
-            print str(e)
-            return 'There was an error updating the region rankings criteria', 400
+            err('There was an error updating the region rankings criteria:' + str(e))
 
         return dao.get_region_ranking_criteria(region)
 
@@ -879,7 +872,7 @@ class RankingsResource(restful.Resource):
                 rankings.generate_ranking(dao, now=now)
         except Exception as e:
             print str(e)
-            return 'There was an error updating rankings', 400
+            err('There was an error updating rankings')
 
         return self.get(region)
 
@@ -899,7 +892,7 @@ class MatchesResource(restful.Resource):
         try:
             player = dao.get_player_by_id(ObjectId(id))
         except:
-            return 'Invalid ObjectID', 400
+            err('Invalid ObjectID')
 
         return_dict['player'] = {'id': str(player.id), 'name': player.name}
         player_list = [player]
@@ -912,7 +905,7 @@ class MatchesResource(restful.Resource):
                     'id': str(opponent.id), 'name': opponent.name}
                 player_list.append(opponent)
             except:
-                return 'Invalid ObjectID', 400
+                err('Invalid ObjectID')
 
         match_list = []
         return_dict['matches'] = match_list
@@ -925,7 +918,7 @@ class MatchesResource(restful.Resource):
 
         tournaments = dao.get_all_tournaments(players=player_list)
         if not tournaments:
-            return 'No tournaments found', 400
+            err('No tournaments found')
         for tournament in tournaments:
             for match in tournament.matches:
                 if (opponent_id is not None and match.contains_players(player.id, opponent.id)) or \
@@ -941,7 +934,7 @@ class MatchesResource(restful.Resource):
                         match_dict['opponent_name'] = dao.get_player_by_id(
                             ObjectId(match_dict['opponent_id'])).name
                     except:
-                        return 'Invalid ObjectID', 400
+                        err('Invalid ObjectID')
 
                     if match.excluded is True:
                         match_dict['result'] = 'excluded'
@@ -1007,20 +1000,20 @@ class MergeListResource(restful.Resource):
             source_player_id = ObjectId(args['source_player_id'])
             target_player_id = ObjectId(args['target_player_id'])
         except:
-            return "invalid ids, that wasn't an ObjectID", 400
+            err('invalid ids')
         # the above should validate that we have real objectIDs
         # now lets validate that both of those players exist
         player1 = dao.get_player_by_id(source_player_id)
         player2 = dao.get_player_by_id(target_player_id)
 
         if not player1:
-            return "source_player not found", 400
+            err('source_player not found')
         if not player2:
-            return "target_player not found", 400
+            err('target_player not found')
         if not is_user_admin_for_regions(user, player1.regions):
-            return "Permission denied", 403
+            err('Permission denied', 403)
         if not is_user_admin_for_regions(user, player2.regions):
-            return "Permission denied", 403
+            err('Permission denied', 403)
 
         # get curr time
         now = datetime.now()
@@ -1034,8 +1027,7 @@ class MergeListResource(restful.Resource):
             return_dict = {'status': "success", 'id': str(the_merge.id)}
             return return_dict, 200
         except Exception as e:
-            print 'error merging players: ' + str(e)
-            return 'error merging players: ' + str(e), 400
+            err('error merging players: ' + str(e))
 
 
 class MergeResource(restful.Resource):
@@ -1051,15 +1043,13 @@ class MergeResource(restful.Resource):
         try:
             merge_id = ObjectId(id)
         except:
-            return "invalid ids, that wasn't an ObjectID", 400
+            err('invalid ids')
 
         try:
             the_merge = dao.get_merge(merge_id)
             dao.undo_merge(the_merge)
-            return "successfully undid merge", 200
         except Exception as e:
-            print 'error merging players: ' + str(e)
-            return 'error merging players: ' + str(e), 400
+            err('error merging players: ' + str(e))
 
 
 class SessionResource(restful.Resource):
@@ -1076,7 +1066,7 @@ class SessionResource(restful.Resource):
         session_id = dao.check_creds_and_get_session_id_or_none(
             args['username'], args['password'])
         if not session_id:
-            return 'Permission denied', 403
+            err('Permission denied', 403)
         resp = jsonify({"status": "connected"})
         resp.set_cookie('session_id', session_id)
         return resp
@@ -1092,7 +1082,7 @@ class SessionResource(restful.Resource):
         args = parser.parse_args()
         logout_success = dao.logout_user_or_none(args['session_id'])
         if not logout_success:
-            return 'who is you', 404
+            err('who is you')
         return ('logout success', 200,
                 {'Set-Cookie': "session_id=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT"})
 

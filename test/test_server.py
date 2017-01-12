@@ -1403,7 +1403,7 @@ class TestServer(unittest.TestCase):
         test_data = json.dumps(raw_dict)
         #test player not found
         rv = self.app.put('/norcal/players/' + str(ObjectId()), data=test_data, content_type='application/json')
-        self.assertEquals(rv.status, '404 NOT FOUND')
+        self.assertEquals(rv.status, '400 BAD REQUEST')
 
     @patch('server.get_user_from_request')
     def test_put_player_nonstring_aliases(self, mock_get_user_from_request):
