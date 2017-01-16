@@ -129,10 +129,10 @@ class PlayerListResource(restful.Resource):
     def get(self, region):
         dao = get_dao(region)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('alias', type=str)
-        parser.add_argument('query', type=str)
-        parser.add_argument('all', type=bool)
+        parser = reqparse.RequestParser() \
+            .add_argument('alias', type=str) \
+            .add_argument('query', type=str) \
+            .add_argument('all', type=bool)
 
         args = parser.parse_args()
 
@@ -196,10 +196,10 @@ class PlayerResource(restful.Resource):
         if not player:
             err('No player found with that region/id.')
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str)
-        parser.add_argument('aliases', type=list)
-        parser.add_argument('regions', type=list)
+        parser = reqparse.RequestParser() \
+            .add_argument('name', type=str) \
+            .add_argument('aliases', type=list) \
+            .add_argument('regions', type=list)
 
         args = parser.parse_args()
 
@@ -227,10 +227,10 @@ class PlayerResource(restful.Resource):
 class TournamentSeedResource(restful.Resource):
 
     def post(self, region):
-        parser = reqparse.RequestParser()
-        parser.add_argument('type', type=str, location='json')
-        parser.add_argument('data', type=unicode, location='json')
-        parser.add_argument('bracket', type=str, location='json')
+        parser = reqparse.RequestParser() \
+            .add_argument('type', type=str, location='json') \
+            .add_argument('data', type=unicode, location='json') \
+            .add_argument('bracket', type=str, location='json')
         args = parser.parse_args()
 
         if args['data'] is None:
@@ -269,8 +269,8 @@ class TournamentListResource(restful.Resource):
     def get(self, region):
         dao = get_dao(region)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('includePending', type=str, default='false')
+        parser = reqparse.RequestParser() \
+            .add_argument('includePending', type=str, default='false')
         args = parser.parse_args()
 
         if args['includePending'] == 'true':
@@ -318,11 +318,11 @@ class TournamentListResource(restful.Resource):
         dao = get_dao(region)
         auth_user(request, dao)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('type', type=str, location='json')
-        parser.add_argument('data', type=unicode, location='json')
-        parser.add_argument('bracket', type=str, location='json')
-        parser.add_argument('included_phases', type=list, location='json')
+        parser = reqparse.RequestParser() \
+            .add_argument('type', type=str, location='json') \
+            .add_argument('data', type=unicode, location='json') \
+            .add_argument('bracket', type=str, location='json') \
+            .add_argument('included_phases', type=list, location='json')
         args = parser.parse_args()
 
         if args['data'] is None:
@@ -438,13 +438,13 @@ class TournamentResource(restful.Resource):
         dao = get_dao(region)
         auth_user(request, dao)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str)
-        parser.add_argument('date', type=str)
-        parser.add_argument('players', type=list)
-        parser.add_argument('matches', type=list)
-        parser.add_argument('regions', type=list)
-        parser.add_argument('pending', type=bool)
+        parser = reqparse.RequestParser() \
+            .add_argument('name', type=str) \
+            .add_argument('date', type=str) \
+            .add_argument('players', type=list) \
+            .add_argument('matches', type=list) \
+            .add_argument('regions', type=list) \
+            .add_argument('pending', type=bool)
 
         args = parser.parse_args()
 
@@ -571,12 +571,12 @@ class PendingTournamentResource(restful.Resource):
         dao = get_dao(region)
         auth_user(request, dao)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str)
-        parser.add_argument('players', type=list)
-        parser.add_argument('matches', type=list)
-        parser.add_argument('regions', type=list)
-        parser.add_argument('alias_to_id_map', type=list)
+        parser = reqparse.RequestParser() \
+            .add_argument('name', type=str) \
+            .add_argument('players', type=list) \
+            .add_argument('matches', type=list) \
+            .add_argument('regions', type=list) \
+            .add_argument('alias_to_id_map', type=list)
 
         args = parser.parse_args()
 
@@ -674,10 +674,10 @@ class AddTournamentMatchResource(restful.Resource):
         dao = get_dao(region)
         user = auth_user(request, dao)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('tournament_id', type=str)
-        parser.add_argument('winner_id', type=str)
-        parser.add_argument('loser_id', type=str)
+        parser = reqparse.RequestParser() \
+            .add_argument('tournament_id', type=str) \
+            .add_argument('winner_id', type=str) \
+            .add_argument('loser_id', type=str)
 
         args = parser.parse_args()
         tournament = dao.get_tournament_by_id(ObjectId(id))
@@ -710,10 +710,10 @@ class ExcludeTournamentMatchResource(restful.Resource):
         dao = get_dao(region)
         user = auth_user(request, dao)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('tournament_id', type=str)
-        parser.add_argument('match_id', type=str)
-        parser.add_argument('excluded_tf', type=str)
+        parser = reqparse.RequestParser() \
+            .add_argument('tournament_id', type=str) \
+            .add_argument('match_id', type=str) \
+            .add_argument('excluded_tf', type=str)
 
         args = parser.parse_args()
         try:
@@ -744,9 +744,9 @@ class SwapWinnerLoserMatchResource(restful.Resource):
         dao = get_dao(region)
         user = auth_user(request, dao)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('tournament_id', type=str)
-        parser.add_argument('match_id', type=str)
+        parser = reqparse.RequestParser() \
+            .add_argument('tournament_id', type=str) \
+            .add_argument('match_id', type=str)
 
         args = parser.parse_args()
 
@@ -793,13 +793,10 @@ class RankingsResource(restful.Resource):
         dao = get_dao(region)
         auth_user(request, dao)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument(
-            'ranking_activity_day_limit', type=str)
-        parser.add_argument(
-            'ranking_num_tourneys_attended', type=str)
-        parser.add_argument(
-            'tournament_qualified_day_limit', type=str)
+        parser = reqparse.RequestParser() \
+            .add_argument('ranking_activity_day_limit', type=str) \
+            .add_argument('ranking_num_tourneys_attended', type=str) \
+            .add_argument('tournament_qualified_day_limit', type=str)
 
         args = parser.parse_args()
 
@@ -831,13 +828,10 @@ class RankingsResource(restful.Resource):
         dao = get_dao(region)
         auth_user(request, dao)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument(
-            'ranking_activity_day_limit', type=str)
-        parser.add_argument(
-            'ranking_num_tourneys_attended', type=str)
-        parser.add_argument(
-            'tournament_qualified_day_limit', type=str)
+        parser = reqparse.RequestParser() \
+            .add_argument('ranking_activity_day_limit', type=str) \
+            .add_argument('ranking_num_tourneys_attended', type=str) \
+            .add_argument('tournament_qualified_day_limit', type=str)
 
         args = parser.parse_args()
 
@@ -882,8 +876,8 @@ class MatchesResource(restful.Resource):
     def get(self, region, id):
         dao = get_dao(region)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('opponent', type=str)
+        parser = reqparse.RequestParser() \
+            .add_argument('opponent', type=str)
 
         args = parser.parse_args()
         return_dict = {}
@@ -953,8 +947,8 @@ class MatchesResource(restful.Resource):
 class SmashGGMappingResource(restful.Resource):
 
     def get(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('bracket_url', type=str)
+        parser = reqparse.RequestParser() \
+            .add_argument('bracket_url', type=str)
 
         args = parser.parse_args()
         url = args['bracket_url']
@@ -990,9 +984,9 @@ class MergeListResource(restful.Resource):
         dao = get_dao(region)
         user = auth_user(request, dao)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('source_player_id', type=str)
-        parser.add_argument('target_player_id', type=str)
+        parser = reqparse.RequestParser() \
+            .add_argument('source_player_id', type=str) \
+            .add_argument('target_player_id', type=str)
 
         args = parser.parse_args()
         try:
@@ -1057,9 +1051,9 @@ class SessionResource(restful.Resource):
     def put(self):
         dao = get_dao(None)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('username', type=str)
-        parser.add_argument('password', type=str)
+        parser = reqparse.RequestParser() \
+            .add_argument('username', type=str) \
+            .add_argument('password', type=str)
 
         args = parser.parse_args()
 
@@ -1076,8 +1070,8 @@ class SessionResource(restful.Resource):
     def delete(self):
         dao = get_dao(None)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('session_id', location='cookies', type=str)
+        parser = reqparse.RequestParser() \
+            .add_argument('session_id', location='cookies', type=str)
 
         args = parser.parse_args()
         logout_success = dao.logout_user_or_none(args['session_id'])
@@ -1128,15 +1122,13 @@ class AdminFunctionsResource(restful.Resource):
         dao = get_dao(None)
         auth_user(request, dao, check_regions=False)
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('function_type', location='json', type=str)
-        parser.add_argument('new_region', location='json', type=str)
-        parser.add_argument('new_user_name', location='json', type=str)
-        parser.add_argument('new_user_pass', location='json', type=str)
-        parser.add_argument(
-            'new_user_permissions', location='json', type=str)
-        parser.add_argument(
-            'new_user_regions', location='json', type=list)
+        parser = reqparse.RequestParser() \
+            .add_argument('function_type', location='json', type=str) \
+            .add_argument('new_region', location='json', type=str) \
+            .add_argument('new_user_name', location='json', type=str) \
+            .add_argument('new_user_pass', location='json', type=str) \
+            .add_argument('new_user_permissions', location='json', type=str) \
+            .add_argument('new_user_regions', location='json', type=list)
         args = parser.parse_args()
 
         function_type = args['function_type']
