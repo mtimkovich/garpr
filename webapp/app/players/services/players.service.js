@@ -1,7 +1,7 @@
 angular.module('app.players').service('PlayerService', function($http) {
     var service = {
         playerList: null,
-        allPlayerList:null,
+        allPlayerList: null,
         getPlayerIdFromName: function (name) {
             for (i = 0; i < this.playerList.players.length; i++) {
                 p = this.playerList.players[i]
@@ -62,6 +62,7 @@ angular.module('app.players').service('PlayerService', function($http) {
             return 0;
         },
         getPlayerListFromQuery: function(query, filter_fn) {
+          console.log("query = " + query);
             var TYPEAHEAD_PLAYER_LIMIT = 20;
             var filteredPlayers = [];
             for (var i = 0; i < this.allPlayerList.players.length; i++) {

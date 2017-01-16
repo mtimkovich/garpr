@@ -1,1 +1,1 @@
-angular.module('app.players', []);
+angular.module('app.players', []);
