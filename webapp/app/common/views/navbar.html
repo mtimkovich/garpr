@@ -81,7 +81,10 @@
                 </li>
             </ul>
             <form class="nav navbar-form navbar-right" role="search">
-              <div class="form-group" player-typeahead-directive typeahead-class="form-control mobile" player="selectedPlayer" placeholder="Search for player" on-player-selected="myPlayerSelected(item)"/>
+              <div class="form-group" player-typeahead-directive
+                typeahead-class="form-control mobile"
+                player="selectedPlayer" placeholder="Search for player"
+                on-player-select="playerSelected(item)"/>
             </form>
         </div><!--/.nav-collapse -->
 

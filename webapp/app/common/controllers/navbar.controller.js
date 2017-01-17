@@ -5,7 +5,7 @@ angular.module('app.common').controller("NavbarController", function($scope, $ro
 
     $scope.selectedPlayer = null;
 
-    $scope.myPlayerSelected = function($item) {
+    $scope.playerSelected = function($item) {
         $location.path($scope.regionService.region.id + '/players/' + $item.id);
         $scope.selectedPlayer = null;
     };

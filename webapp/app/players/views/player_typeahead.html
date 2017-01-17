@@ -4,6 +4,6 @@
   ng-model="player"
   placeholder="{{placeholder}}"
   typeahead="player as player.typeahead for player in playerService.getPlayerListFromQuery($viewValue)"
-  typeahead-on-select="onPlayerSelected({item: $item})"
+  typeahead-on-select="onPlayerSelect({item: $item})"
   />
 
