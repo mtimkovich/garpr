@@ -6,11 +6,10 @@
 
 <div class="container">
     <div class="form-group row shadow-container">
-        <div class="col-md-5 col-xs-5">
-            <input type="text" placeholder="Player Name" class="form-control input-lg h2h_player_input mobile"
-                   ng-model="player1"
-                   typeahead="player as player.typeahead for player in playerService.getPlayerListFromQuery($viewValue)"
-                   typeahead-on-select="onChange()">
+        <div class="col-md-5 col-xs-5" player-typeahead-directive
+            typeahead-class="form-control input-lg h2h player_input mobile"
+            player="player1" placeholder="Player Name"
+            on-player-select="onPlayer1Change(item)">
         </div>
 
         <div class="col-md-2 col-xs-2">
@@ -18,10 +17,10 @@
         </div>
 
         <div class="col-md-5 col-xs-5">
-            <input type="text" placeholder="Player Name" class="form-control input-lg h2h_player_input input-right mobile"
-                   ng-model="player2"
-                   typeahead="player as player.typeahead for player in playerService.getPlayerListFromQuery($viewValue)"
-                   typeahead-on-select="onChange()">
+        <div class="col-md-5 col-xs-5" player-typeahead-directive
+            typeahead-class="form-control input-lg h2h player_input mobile"
+            player="player2" placeholder="Player Name"
+            on-player-select="onPlayer2Change(item)">
         </div>
     </div>
     <table class="table table-condensed">

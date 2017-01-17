@@ -7,7 +7,18 @@ angular.module('app.headToHead').controller("HeadToHeadController", function($sc
     $scope.wins = 0;
     $scope.losses = 0;
 
-    $scope.onChange = function() {
+    // get fresh "player" from the change listener, since the model updates after the change listener is fired...
+    $scope.onPlayer1Change = function(player) {
+      $scope.player1 = player;
+      onChange();
+    }
+
+    $scope.onPlayer2Change = function(player) {
+      $scope.player2 = player;
+      onChange();
+    }
+
+    onChange = function() {
         if ($scope.player1 != null && $scope.player2 != null) {
             $http.get(hostname + $routeParams.region +
                 '/matches/' + $scope.player1.id + '?opponent=' + $scope.player2.id).
