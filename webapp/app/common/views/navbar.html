@@ -81,9 +81,7 @@
                 </li>
             </ul>
             <form class="nav navbar-form navbar-right" role="search">
-                  <!-- <input type="text" class="form-control mobile" ng-model="selectedPlayer" placeholder="Search for player" typeahead="player as player.typeahead for player in playerService.getPlayerListFromQuery($viewValue)" typeahead-on-select="playerSelected($item)"> -->
-                  <div class="form-group" player-typeahead-directive player="selectedPlayer"
-                      placeholder="Search for player" on-player-selected="myPlayerSelected(item)"/>
+              <div class="form-group" player-typeahead-directive typeahead-class="form-control mobile" player="selectedPlayer" placeholder="Search for player" on-player-selected="myPlayerSelected(item)"/>
             </form>
         </div><!--/.nav-collapse -->
 

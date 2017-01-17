@@ -5,6 +5,7 @@ angular.module('app.players')
       controller: "PlayerTypeaheadController",
       // transclude: true,
       scope: {
+        typeaheadClass: "@",
         player: "=",
         placeholder: "@",
         onPlayerSelected: "&"

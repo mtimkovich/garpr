@@ -62,7 +62,6 @@ angular.module('app.players').service('PlayerService', function($http) {
             return 0;
         },
         getPlayerListFromQuery: function(query, filter_fn) {
-          console.log("query = " + query);
             var TYPEAHEAD_PLAYER_LIMIT = 20;
             var filteredPlayers = [];
             for (var i = 0; i < this.allPlayerList.players.length; i++) {

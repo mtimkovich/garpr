@@ -1,6 +1,6 @@
 <input
   type="text"
-  class="form-control mobile"
+  class="{{typeaheadClass}}"
   ng-model="player"
   placeholder="{{placeholder}}"
   typeahead="player as player.typeahead for player in playerService.getPlayerListFromQuery($viewValue)"
