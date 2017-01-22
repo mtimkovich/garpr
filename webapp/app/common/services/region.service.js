@@ -66,6 +66,14 @@ angular.module('app.common').service('RegionService', function ($http, PlayerSer
                 function(data) {
                     MergeService.mergeList = data;
                 });
+        },
+        setTournamentExcluded: function(id, excludedTF){
+            var i = _.findLastIndex(TournamentService.tournamentList, {id: id});
+            if(i >= 0){
+                var tournament = TournamentService.tournamentList[i];
+                tournament.excluded = excludedTF;
+                TournamentService.tournamentList[i] = tournament;
+            }
         }
     };
 

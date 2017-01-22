@@ -51,6 +51,7 @@ angular.module('app.tournaments').controller("TournamentsController", function($
 
                 // TODO paint the row grey
                 lineElement.className += ' excluded'
+                $scope.regionService.setTournamentExcluded(tournament.id, true);
                 return;
             },
             (err) => {
@@ -68,6 +69,8 @@ angular.module('app.tournaments').controller("TournamentsController", function($
                 // TODO unpaint the grey row
                 lineElement.className = '';
                 lineElement.className = 'tournament_line ng-scope';
+
+                $scope.regionService.setTournamentExcluded(tournament.id, false);
                 alert('Tournament Included Successfully!');
                 return;
             },
