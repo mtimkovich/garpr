@@ -71,7 +71,6 @@ angular.module('app.tournaments').controller("TournamentsController", function($
                 lineElement.className = 'tournament_line ng-scope';
 
                 $scope.regionService.setTournamentExcluded(tournament.id, false);
-                alert('Tournament Included Successfully!');
                 return;
             },
             (err) => {
