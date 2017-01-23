@@ -621,21 +621,20 @@ class Dao(object):
     def get_is_superadmin(self, user_id):
         user = None
         if self.users_col.find_one({'_id': user_id}):
-            user = M.User.load(self.users_col.find_one({'_id': user_id}))
+            user = self.get_user_by_id_or_none(user_id)
             return user.admin_level == 'SUPER'
         else:
             return False
 
+    '''
     def set_user_admin_level(self, user_id, admin_level):
-        if type(admin_level) is not M.AdminLevels:
+        if type(admin_level) not in M.ADMIN_LEVEL_CHOICES:
             raise Exception('Submitted admin level is not of correct type')
-        if self.users_col.find_one({'_id': user_id}):
-            self.user_col.update({'_id': user_id},
-                                 {'$set':
-                                      {
-                                          'admin_level': admin_level.name
-                                      }
-                                 })
+        else:
+            user = self.get_user_by_id_or_none(user_id)
+            user.admin_level = admin_level
+            self.users_col.update({'_id': user.id}, user.dump(context='db'))
+     '''
 
     #### FOR INTERNAL USE ONLY ####
     #XXX: this method must NEVER be publicly routeable, or you have session-hijacking
@@ -671,15 +670,6 @@ class Dao(object):
         user = M.User.load(result[0], context='db')
         assert user, "mongo has stopped being consistent, abort ship"
         return verify_password(password, user.salt, user.hashed_password)
-
-    def get_and_verify_user_by_username(self, username):
-        result = self.users_col.find({"username": username})
-        if result.count() == 0:
-            return None
-        assert result.count() == 1, "WE HAVE DUPLICATE USERNAMES IN THE DB"
-        user = M.User.load(result[0], context='db')
-        assert user, "mongo has stopped being consistent, abort ship"
-        return user
 
     def update_session_id_for_user(self, user_id, session_id):
         # lets force people to have only one session at a time
