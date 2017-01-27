@@ -48,7 +48,11 @@ angular.module('app.common').service('RegionService', function ($http, PlayerSer
                         };
                     });
 
-            SessionService.authenticatedGet(hostname + this.region.id + '/tournaments?includePending=true',
+            var tournamentURL = '/tournaments';
+            if(SessionService.loggedIn){
+                tournamentURL += '?includePending=true';
+            }
+            SessionService.authenticatedGet(hostname + this.region.id + tournamentURL,
                 function(data) {
                     TournamentService.tournamentList = data.tournaments.reverse();
                     TournamentService.tournamentList.forEach(function(tournament){
@@ -62,10 +66,12 @@ angular.module('app.common').service('RegionService', function ($http, PlayerSer
                     RankingsService.rankingsList = data;
                 });
 
-            SessionService.authenticatedGet(hostname + this.region.id + '/merges',
-                function(data) {
-                    MergeService.mergeList = data;
-                });
+            if(SessionService.loggedIn){
+                SessionService.authenticatedGet(hostname + this.region.id + '/merges',
+                    function(data) {
+                        MergeService.mergeList = data;
+                    });
+            }
         },
         setTournamentExcluded: function(id, excludedTF){
             var i = _.findLastIndex(TournamentService.tournamentList, {id: id});

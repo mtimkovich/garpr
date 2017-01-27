@@ -405,7 +405,7 @@ class Document(object):
         return_document = cls(**init_args)
 
         if validate_on_load and not return_document.validate():
-            is_valid, errors = self.validate()
+            is_valid, errors = return_document.validate()
             if not is_valid:
                 if strict:
                     raise ValidationError(errors)

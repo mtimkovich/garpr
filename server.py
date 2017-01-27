@@ -54,7 +54,7 @@ def auth_user(request, dao, check_regions=True, needs_super=False):
         err("Permission denied", 403)
     if user.admin_level == 'REGION' and \
             check_regions and \
-            dao.region not in user.admin_regions:
+            dao.region_id not in user.admin_regions:
         err("Permission denied", 403)
     return user
 
