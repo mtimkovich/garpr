@@ -37,8 +37,10 @@ class DuplicateUsernameException(Exception):
     # safe, only used from script
     pass
 
+
 class DuplicateRegionException(Exception):
     pass
+
 
 class InvalidNameException(Exception):
     # safe only used in dead code
@@ -566,7 +568,7 @@ class Dao(object):
                 print 'Invalid region name:', region
 
         regions = [region for region in regions if region in valid_regions]
-        if len(regions) == 0:
+        if len(regions) == 0 and perm == 'REGION':
             raise InvalidRegionsException("No valid region for new user")
 
         salt, hashed_password = gen_password(password)

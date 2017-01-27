@@ -1216,8 +1216,7 @@ class AdminFunctionsResource(restful.Resource):
         if function_type == 'region':
             region_name = args['new_region']
 
-            #Execute region addition
-            config = Config()
+            # Execute region addition
             if dao.create_region(region_name):
                 print("region created:" + region_name)
 
@@ -1227,13 +1226,18 @@ class AdminFunctionsResource(restful.Resource):
             uperm = args['new_user_permissions']
             uregions = args['new_user_regions']
 
-            perm = None
-            if uperm is not 'REGION' and uperm is not 'SUPER': return 'Invalid permission selection!', 403
+            if uperm not in M.ADMIN_LEVEL_CHOICES:
+                return 'Invalid permission selection!', 403
 
-            #Execute user addition
+            # Execute user addition
             dao = Dao(None, mongo_client)
-            if dao.create_user(uname, upass, uregions, uperm):
+            try:
+                dao.create_user(uname, upass, uregions, uperm)
                 print("user created:" + uname)
+            except Exception as e:
+                print e
+                return 'Error creating user', 400
+
 
 @api.representation('text/plain')
 class LoaderIOTokenResource(restful.Resource):
