@@ -14,7 +14,10 @@ angular.module('app.tools').controller("AdminFunctionsController", function($sco
     $scope.regionStatusMessage = "";
     $scope.userStatusMessage = "";
 
-    $scope.foo = null;
+    $scope.oldPassword = "";
+    $scope.newPassword = "";
+    $scope.newPasswordRepeat = "";
+
     $scope.postParams = {
         function_type: '',
         new_region: '',
@@ -99,36 +102,42 @@ angular.module('app.tools').controller("AdminFunctionsController", function($sco
         document.getElementById('userStatusMessage').innerHTML = "An error occurred in inserting user.";
     };
 
-    function resetForm(form) {
-        // clearing inputs
-        var inputs = form.getElementsByTagName('input');
-        for (var i = 0; i<inputs.length; i++) {
-            switch (inputs[i].type) {
-                // case 'hidden':
-                case 'text':
-                    inputs[i].value = '';
-                    break;
-                case 'radio':
-                case 'checkbox':
-                    inputs[i].checked = false;
-            }
+    $scope.changePassword = function(){
+        if(!($scope.newPassword === $scope.newPasswordRepeat)){
+            //TODO Alert user to a mismatch and light the rows red
+            alert('New passwords do not match!')
+            return
         }
 
-        // clearing selects
-        var selects = form.getElementsByTagName('select');
-        for (var i = 0; i<selects.length; i++)
-            selects[i].selectedIndex = 0;
+        //TODO send change request
+        var url = hostname + 'user';
+        var putParams = {
+            old_pass: $scope.oldPassword,
+            new_pass: $scope.newPassword
+        }
 
-        // clearing textarea
-        var text= form.getElementsByTagName('textarea');
-        for (var i = 0; i<text.length; i++)
-            text[i].innerHTML= '';
+        $scope.sessionService.authenticatedPut(url, putParams,
+            (data)=>{
+                alert('Password changed successfully!');
+                // TODO clear the form
+            },
+            (err)=>{
+                if(err) {
+                    alert(err.message);
+                    return;
+                }
+            })
+    }
 
-        var pword = form.getElementsByTagName('password');
-        for (var i = 0; i<text.length; i++)
-            text[i].innerHTML= '';
-
-        return false;
+    function resetForm(form) {
+        $scope.postParams = {
+            function_type: '',
+            new_region: '',
+            new_user_name: '',
+            new_user_pass: '',
+            new_user_permissions: '',
+            new_user_regions: []
+        };
     };
 
 });

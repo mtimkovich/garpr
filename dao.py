@@ -37,8 +37,10 @@ class DuplicateUsernameException(Exception):
     # safe, only used from script
     pass
 
+
 class DuplicateRegionException(Exception):
     pass
+
 
 class InvalidNameException(Exception):
     # safe only used in dead code
@@ -566,9 +568,7 @@ class Dao(object):
 
         return self.users_col.insert(user.dump(context='db'))
 
-    # throws invalidRegionsException, which is okay, as this is only used by a
-    # script
-    def create_user(self, username, password, regions):
+    def create_user(self, username, password, regions, perm='REGION'):
         valid_regions = [
             region.id for region in Dao.get_all_regions(self.mongo_client)]
 
@@ -577,7 +577,7 @@ class Dao(object):
                 print 'Invalid region name:', region
 
         regions = [region for region in regions if region in valid_regions]
-        if len(regions) == 0:
+        if len(regions) == 0 and perm == 'REGION':
             raise InvalidRegionsException("No valid region for new user")
 
         salt, hashed_password = gen_password(password)
@@ -585,7 +585,8 @@ class Dao(object):
                           admin_regions=regions,
                           username=username,
                           salt=salt,
-                          hashed_password=hashed_password)
+                          hashed_password=hashed_password,
+                          admin_level=perm)
 
         return self.insert_user(the_user)
 
@@ -628,6 +629,24 @@ class Dao(object):
     def get_user_by_region(self, regions):
         pass
 
+    def get_is_superadmin(self, user_id):
+        user = None
+        if self.users_col.find_one({'_id': user_id}):
+            user = self.get_user_by_id_or_none(user_id)
+            return user.admin_level == 'SUPER'
+        else:
+            return False
+
+    '''
+    def set_user_admin_level(self, user_id, admin_level):
+        if type(admin_level) not in M.ADMIN_LEVEL_CHOICES:
+            raise Exception('Submitted admin level is not of correct type')
+        else:
+            user = self.get_user_by_id_or_none(user_id)
+            user.admin_level = admin_level
+            self.users_col.update({'_id': user.id}, user.dump(context='db'))
+     '''
+
     #### FOR INTERNAL USE ONLY ####
     #XXX: this method must NEVER be publicly routeable, or you have session-hijacking
     def get_session_id_by_user_or_none(self, User):
@@ -653,6 +672,15 @@ class Dao(object):
             return session_id
         else:
             return None
+
+    def check_creds(self, username, password):
+        result = self.users_col.find({"username": username})
+        if result.count() == 0:
+            return None
+        assert result.count() == 1, "WE HAVE DUPLICATE USERNAMES IN THE DB"
+        user = M.User.load(result[0], context='db')
+        assert user, "mongo has stopped being consistent, abort ship"
+        return verify_password(password, user.salt, user.hashed_password)
 
     def update_session_id_for_user(self, user_id, session_id):
         # lets force people to have only one session at a time

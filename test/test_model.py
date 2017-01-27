@@ -616,18 +616,21 @@ class TestUser(unittest.TestCase):
         self.username = 'ASDF fdsa'
         self.salt = 'nacl'
         self.hashed_password = 'browns'
+        self.admin_level = 'REGION'
         self.user = User(id=self.id,
                          admin_regions=self.admin_regions,
                          username=self.username,
                          salt=self.salt,
-                         hashed_password=self.hashed_password)
+                         hashed_password=self.hashed_password,
+                         admin_level=self.admin_level)
 
         self.user_json_dict = {
             '_id': self.id,
             'username': self.username,
             'admin_regions': self.admin_regions,
             'salt': self.salt,
-            'hashed_password': self.hashed_password
+            'hashed_password': self.hashed_password,
+            'admin_level': self.admin_level
         }
 
     def test_dump(self):

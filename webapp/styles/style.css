@@ -285,6 +285,11 @@ input[type="number"].mobile{
     color:red;
 }
 
+select{
+    width:300px;
+    font-size:20pt;
+}
+
 /* MOBILE FIRST BOOTSTRAP STUFF */
 @media screen and (max-width: 64em){
     tr.table_header,

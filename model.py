@@ -5,7 +5,7 @@ import trueskill
 import orm
 
 SOURCE_TYPE_CHOICES = ('tio', 'challonge', 'smashgg', 'other')
-
+ADMIN_LEVEL_CHOICES = ('REGION', 'SUPER')
 # Embedded documents
 
 class AliasMapping(orm.Document):
@@ -353,7 +353,10 @@ class User(orm.Document):
               ('username', orm.StringField(required=True)),
               ('salt', orm.StringField(required=True)),
               ('hashed_password', orm.StringField(required=True)),
-              ('admin_regions', orm.ListField(orm.StringField()))]
+              ('admin_regions', orm.ListField(orm.StringField())),
+              ('admin_level', orm.StringField(required=True, default='REGION',
+                                      validators=[orm.validate_choices(ADMIN_LEVEL_CHOICES)])
+               )]
 
 
 class Merge(orm.Document):

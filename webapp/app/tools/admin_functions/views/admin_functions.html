@@ -1,65 +1,106 @@
-<div class="container" ng-init="isRegionCollapsed = !isRegionCollapsed; isUserCollapsed = !isUserCollapsed">
-    <h3>Super Admin Functions</h3>
+<div class="container">
+    <div ng-show="sessionService.isSuperAdmin()">
+         <div ng-init="isRegionCollapsed = !isRegionCollapsed; isUserCollapsed = !isUserCollapsed">
+            <hr/>
+            <h3>Super Admin Functions</h3>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+                    <a ng-click="isRegionCollapsed = !isRegionCollapsed">
+                      <label>Regions<span class="caret"></span></label>
+                    </a>
+                  </h4>
+                </div>
+                <div collapse="isRegionCollapsed" id="regionsCollapsable" collapsed>
+                  <div class="panel-body">
+                      <form ng-submit="submitNewRegion()" id="newRegionForm">
+                          <h4>Add New Region</h4>
+
+                          <p ng-model="regionStatusMessage" id="regionStatusMessage"></p>
+                          <label>Name:</label> <input type="text" id="region_name_text" class="form-control mobile" ng-model="postParams.new_region"><br/>
+
+                          <input class="btn btn-success mobile_small" type="submit" id="submit_new_region_btn" value="submit">
+                      </form>
+                  </div>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+                    <a ng-click="isUserCollapsed = !isUserCollapsed">
+                      <label>Users<span class="caret"></span></label>
+                    </a>
+                  </h4>
+                </div>
+                <div collapse="isUserCollapsed" id="userCollapsable">
+                  <div class="panel-body">
+                      <form ng-submit="submitNewUser()" id="newUserForm">
+                        <h4>Add New Admin</h4>
+                        <p ng-model="userStatusMessage" id="userStatusMessage"></p>
+                        <label>Username:</label> <input type="text" id="new_user_name" class="form-control mobile" ng-model="postParams.new_user_name"> <br/>
+                        <label>Password:</label> <input type="password" id="new_user_pass" class="form-control" ng-model="postParams.new_user_pass"> <br/>
+                        <br/>
+
+                        <h4>Permission Level:</h4>
+                        <select ng-model="postParams.new_user_permissions" id="permissionLevelSelect">
+                            <option>REGION</option>
+                            <option>SUPER</option>
+                        </select>
+
+                        <br />
+                        <br/>
+
+                        <h4>Regions:</h4>
+                        <ul style="list-style: none;">
+                            <li ng-repeat="r in regions">
+                                <input type="checkbox" class="admin_region_checkbox mobile" id="{{r.display_name}}_checkbox"
+                                    region="{{r.display_name}}" ng-change="checkRegionBox(r)" ng-model="foo"/>
+                                <a ng-href="#/{{r.id}}/{{$route.current.activeTab}}"><label>{{r.display_name}}</label></a>
+                            </li>
+                        </ul>
+
+                        <br />
+                        <input class="btn btn-success mobile" type="submit" id="submit_new_user_btn" value="submit">
+                    </form>
+                  </div>
+                </div>
+            </div>
+            <br/>
+        </div>
+    </div>
     <hr/>
-
-    <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4 class="panel-title">
-            <a ng-click="isRegionCollapsed = !isRegionCollapsed">
-              <label>Regions</label>
-            </a>
-          </h4>
+    <div ng-show="sessionService.loggedIn" style="text-align:center">
+        <div class="row">
+            <div class="col-sm-12 col-md-12 col-lg-12">
+                <h1><u>Profile Info For: {{sessionService.userInfo.username}}</u></h1>
+            </div>
         </div>
-        <div collapse="isRegionCollapsed" id="regionsCollapsable" collapsed>
-          <div class="panel-body">
-              <form ng-submit="submitNewRegion()" id="newRegionForm">
-                  <h4>Add New Region</h4>
-
-                  <p ng-model="regionStatusMessage" id="regionStatusMessage"></p>
-                  <label>Name:</label> <input type="text" id="region_name_text" class="form-control mobile" ng-model="postParams.new_region"><br/>
-
-                  <input class="btn btn-success mobile_small" type="submit" id="submit_new_region_btn" value="submit">
-              </form>
-          </div>
-        </div>
-    </div>
-
-    <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4 class="panel-title">
-            <a ng-click="isUserCollapsed = !isUserCollapsed">
-              <label>Users</label>
-            </a>
-          </h4>
-        </div>
-        <div collapse="isUserCollapsed" id="userCollapsable">
-          <div class="panel-body">
-              <form ng-submit="submitNewUser()" id="newUserForm">
-                <h4>Add New Admin</h4>
-                <p ng-model="userStatusMessage" id="userStatusMessage"></p>
-                <label>Username:</label> <input type="text" id="new_user_name" class="form-control mobile" ng-model="postParams.new_user_name"> <br/>
-                <label>Password:</label> <input type="password" id="new_user_pass" class="form-control" ng-model="postParams.new_user_pass"> <br/>
-                <!--
-                Permission Level:
-                <select ng-model="postParams.new_user_permissions">
-                    <option>Super Admin</option>
-                    <option>Region Admin</option>
-                </select>
-                <br />
-                -->
-                <p>Regions:</p>
-                <ul style="list-style: none;">
-                    <li ng-repeat="r in regions">
-                        <input type="checkbox" class="admin_region_checkbox mobile" id="{{r.display_name}}_checkbox"
-                            region="{{r.display_name}}" ng-change="checkRegionBox(r)" ng-model="foo"/>
-                        <a ng-href="#/{{r.id}}/{{$route.current.activeTab}}"><label>{{r.display_name}}</label></a>
-                    </li>
+        <div class="row" style="text-align:left" style="background-color=grey">
+            <div class="col-lg-2">
+                <h2>Your Regions</h2>
+                <ul>
+                    <li ng-repeat="r in sessionService.userInfo.admin_regions"><h4>{{r}}</h4></li>
                 </ul>
-                <br />
-                <input class="btn btn-success mobile" type="submit" id="submit_new_user_btn" value="submit">
-            </form>
-          </div>
+            </div>
+            <div class="col-md-12 col-lg-4">
+                <h2>Change Password</h2> <br/>
+                <form ng-submit="changePassword()" >
+                    <label id="oldPasswordLabel">Old Password</label> <input type="password" class="form-control mobile" ng-model="oldPassword" />
+                    <br/>
+                    <label id="newPasswordLabel">New Password</label> <input type="password" class="form-control mobile" ng-model="newPassword" />
+                    <br/>
+                    <label id="newPasswordRepeatLabel">Repeat New Password</label> <input type="password" class="form-control mobile" ng-model="newPasswordRepeat" />
+                    <br/>
+                    <input type="submit" class="btn btn-success mobile_small" value="submit" />
+                </form>
+            </div>
+            <div class="col-md-12 col-lg-6">
+
+            </div>
         </div>
     </div>
-    <br/>
 </div>
+</div>
+

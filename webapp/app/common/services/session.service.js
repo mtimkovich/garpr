@@ -48,13 +48,27 @@ angular.module('app.common').service('SessionService', function($http) {
             if (!this.loggedIn) {
                 return false;
             }
+            else if(this.isSuperAdmin()){
+                return true;
+            }
             else {
                 return this.userInfo.admin_regions.length > 0
+            }
+        },
+        isSuperAdmin: function(){
+            if(!this.loggedIn){
+                return false;
+            }
+            else{
+                return this.userInfo.admin_level === 'SUPER';
             }
         },
         isAdminForRegion: function(regionId) {
             if (!this.loggedIn) {
                 return false;
+            }
+            else if(this.isSuperAdmin()){
+                return true;
             }
             else {
                 return this.userInfo.admin_regions.indexOf(regionId) > -1;

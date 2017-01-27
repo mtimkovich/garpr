@@ -24,6 +24,7 @@ from scripts import create_user
 TYPEAHEAD_PLAYER_LIMIT = 20
 BASE_REGION = 'newjersey'
 
+
 # parse config file
 config = Config()
 
@@ -121,6 +122,10 @@ admin_functions_parser.add_argument('new_user_pass', location='json', type=str)
 admin_functions_parser.add_argument('new_user_permissions', location='json', type=str)
 admin_functions_parser.add_argument('new_user_regions', location='json', type=list)
 
+user_parser = reqparse.RequestParser()
+user_parser.add_argument('old_pass', location='json', type=str)
+user_parser.add_argument('new_pass', location='json', type=str)
+
 #TODO: major refactor to move auth code to a decorator
 
 
@@ -140,6 +145,8 @@ def get_user_from_request(request, dao):
 
 
 def is_user_admin_for_region(user, region):
+    if user.admin_level == 'SUPER':
+        return True
     if not region:
         return False
     if not user.admin_regions:
@@ -153,7 +160,9 @@ def is_user_admin_for_regions(user, regions):
     '''
     returns true is user is an admin for ANY of the regions
     '''
-    if len(set(regions).intersection(user.admin_regions)) == 0:
+    if user.admin_level == 'SUPER':
+        return True
+    elif len(set(regions).intersection(user.admin_regions)) == 0:
         return False
     else:
         return True
@@ -1201,6 +1210,28 @@ class SessionResource(restful.Resource):
 
         return return_dict
 
+class UserResource(restful.Resource):
+    def put(self):
+        dao = Dao(None, mongo_client=mongo_client)
+
+        if not dao:
+            return 'Dao not found', 404
+        user = get_user_from_request(request, dao)
+        if not user:
+            return 'Permission denied', 403
+
+        args = user_parser.parse_args()
+        old_pass = args['old_pass']
+        new_pass = args['new_pass']
+
+        try:
+            if dao.check_creds(user.username, old_pass):
+                dao.change_passwd(user.username, new_pass)
+                return 200
+            else: return 'Bad password', 403
+        except Exception as ex:
+            return 'Password change not successful', 400
+
 
 class AdminFunctionsResource(restful.Resource):
     def get(self):
@@ -1214,8 +1245,8 @@ class AdminFunctionsResource(restful.Resource):
         user = get_user_from_request(request, dao)
         if not user:
             return 'Permission denied', 403
-        #if not is_user_admin_for_region(user, region='*'):
-        #    return 'Permission denied', 403
+        if not user.admin_level == 'SUPER':
+            return 'Permission denied', 403
 
         args = admin_functions_parser.parse_args()
 
@@ -1223,8 +1254,7 @@ class AdminFunctionsResource(restful.Resource):
         if function_type == 'region':
             region_name = args['new_region']
 
-            #Execute region addition
-            config = Config()
+            # Execute region addition
             if dao.create_region(region_name):
                 print("region created:" + region_name)
 
@@ -1234,10 +1264,18 @@ class AdminFunctionsResource(restful.Resource):
             uperm = args['new_user_permissions']
             uregions = args['new_user_regions']
 
-            #Execute user addition
+            if uperm not in M.ADMIN_LEVEL_CHOICES:
+                return 'Invalid permission selection!', 403
+
+            # Execute user addition
             dao = Dao(None, mongo_client)
-            if dao.create_user(uname, upass, uregions):
+            try:
+                dao.create_user(uname, upass, uregions, uperm)
                 print("user created:" + uname)
+            except Exception as e:
+                print e
+                return 'Error creating user', 400
+
 
 @api.representation('text/plain')
 class LoaderIOTokenResource(restful.Resource):
@@ -1310,6 +1348,8 @@ api.add_resource(SmashGGMappingResource, '/smashGgMap')
 api.add_resource(RankingsResource, '/<string:region>/rankings')
 
 api.add_resource(SessionResource, '/users/session')
+
+api.add_resource(UserResource, '/user')
 
 api.add_resource(LoaderIOTokenResource,
                  '/{}/'.format(config.get_loaderio_token()))

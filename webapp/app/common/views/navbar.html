@@ -63,8 +63,9 @@
                         {{sessionService.loggedIn ? sessionService.userInfo.username : "Login"}}
                         <span class="caret"></span>
                     </a>
-                    <ul class="dropdown-menu" role="menu">
+                    <ul class="dropdown-menu dropdown-menu-left" role="menu">
                         <li ng-hide="sessionService.loggedIn"><a href="javascript:void(0)" ng-click="openLoginModal()">Login</a></li>
+                        <li ng-show="sessionService.loggedIn"><a href="#/adminfunctions" >Admin Console</a></li>
                         <li ng-show="sessionService.loggedIn"><a href="javascript:void(0)" ng-click="logout()">Logout</a></li>
                     </ul>
                 </li>
@@ -75,7 +76,7 @@
                         {{regionService.region.display_name}}
                         <span class="caret"></span>
                     </a>
-                    <ul class="dropdown-menu" role="menu">
+                    <ul class="dropdown-menu dropdown-menu-left" role="menu">
                         <li ng-repeat="r in regionService.display_regions"><a ng-href="#/{{r.id}}/{{$route.current.activeTab}}">{{r.display_name}}</a></li>
                     </ul>
                 </li>
