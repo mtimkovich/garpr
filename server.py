@@ -45,12 +45,16 @@ def get_dao(region):
     return dao
 
 
-def auth_user(request, dao, check_regions=True):
+def auth_user(request, dao, check_regions=True, needs_super=False):
     session_id = request.cookies.get('session_id')
     user = dao.get_user_by_session_id_or_none(session_id)
     if not user:
         err("Permission denied", 403)
-    if check_regions and dao.region not in user.admin_regions:
+    if needs_super and user.admin_level != 'SUPER':
+        err("Permission denied", 403)
+    if user.admin_level == 'REGION' and \
+            check_regions and \
+            dao.region not in user.admin_regions:
         err("Permission denied", 403)
     return user
 
@@ -373,7 +377,7 @@ class TournamentListResource(restful.Resource):
                 raw_file = dao.insert_raw_file(raw_file)
             except Exception as ex:
                 print ex
-                return 'Dao insert_raw_file encountered an error', 400
+                err('Dao insert_raw_file encountered an error')
         else:
             print 'Skipping inserting raw file for tournament because it is too large'
 
@@ -1107,10 +1111,10 @@ class UserResource(restful.Resource):
                 dao.change_passwd(user.username, new_pass)
                 return 200
             else:
-                return 'Bad password', 403
+                err('Bad password')
         except Exception as ex:
             print ex
-            return 'Password change not successful', 400
+            err('Password change not successful')
 
 
 class AdminFunctionsResource(restful.Resource):
@@ -1120,7 +1124,8 @@ class AdminFunctionsResource(restful.Resource):
 
     def put(self):
         dao = get_dao(None)
-        auth_user(request, dao, check_regions=False)
+        auth_user(request, dao, check_regions=False, needs_super=True)
+
 
         parser = reqparse.RequestParser() \
             .add_argument('function_type', location='json', type=str) \
@@ -1146,7 +1151,7 @@ class AdminFunctionsResource(restful.Resource):
             uregions = args['new_user_regions']
 
             if uperm not in M.ADMIN_LEVEL_CHOICES:
-                return 'Invalid permission selection!', 403
+                err('Invalid permission selection!')
 
             # Execute user addition
             dao = Dao(None, mongo_client)
@@ -1155,7 +1160,7 @@ class AdminFunctionsResource(restful.Resource):
                 print("user created:" + uname)
             except Exception as e:
                 print e
-                return 'Error creating user', 400
+                err('Error creating user!')
 
 
 @api.representation('text/plain')
@@ -1236,7 +1241,6 @@ api.add_resource(LoaderIOTokenResource,
                  '/{}/'.format(config.get_loaderio_token()))
 
 api.add_resource(AdminFunctionsResource, '/adminfunctions')
-# api.add_resource(AdminFunctionsResource, '/adminfunctions/<string:type>/<string:new_region>')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(

@@ -1587,7 +1587,7 @@ class TestServer(unittest.TestCase):
         raw_dict['new_pass'] = "newRip"
         the_data = json.dumps(raw_dict)
         response = self.app.put('/user', data=the_data, content_type='application/json')
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 400)
 
         raw_dict['old_pass'] = "rip"
         raw_dict['new_pass'] = "newRip"
