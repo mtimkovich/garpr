@@ -26,6 +26,7 @@ NORCAL_PENDING_FILES = [('test/data/pending1.tio', 'bam 6 singles')]
 
 TEMP_DB_NAME = 'garpr_test_tmp'
 
+
 def _import_file(f, dao):
     scraper = TioScraper.from_file(f[0], f[1])
     _import_players(scraper, dao)
@@ -34,6 +35,7 @@ def _import_file(f, dao):
     pending_tournament.alias_to_id_map = player_map
     tournament = Tournament.from_pending_tournament(pending_tournament)
     dao.insert_tournament(tournament)
+
 
 def _import_players(scraper, dao):
     for player in scraper.get_players():
@@ -46,6 +48,7 @@ def _import_players(scraper, dao):
                     ratings={dao.region_id: Rating()},
                     regions=[dao.region_id])
             dao.insert_player(db_player)
+
 
 class TestServer(unittest.TestCase):
     @classmethod
@@ -96,7 +99,6 @@ class TestServer(unittest.TestCase):
             salt=salt,
             hashed_password=hashed_password)
         norcal_dao.insert_user(gar)
-
 
         supersalt = base64.b64encode(os.urandom(16))
         super_hashed_password = base64.b64encode(hashlib.pbkdf2_hmac('sha256', 'admin', supersalt, ITERATION_COUNT))
@@ -359,10 +361,10 @@ class TestServer(unittest.TestCase):
         data = self.app.get('/texas/tournaments').data
         for_region(data, self.texas_dao)
 
-    @patch('server.get_user_from_request')
-    def test_get_tournament_list_include_pending(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_get_tournament_list_include_pending(self, mock_auth_user):
         dao = self.norcal_dao
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         data = self.app.get('/norcal/tournaments?includePending=true').data
         json_data = json.loads(data)
 
@@ -396,34 +398,12 @@ class TestServer(unittest.TestCase):
         self.assertEquals(pending_tournament['regions'], [dao.region_id])
         self.assertEquals(pending_tournament['pending'], True)
 
-    @patch('server.get_user_from_request')
-    def test_get_tournament_list_include_pending_false(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_get_tournament_list_include_pending_false(self, mock_auth_user):
         dao = self.norcal_dao
         data = self.app.get('/norcal/tournaments?includePending=false').data
         json_data = json.loads(data)
-        mock_get_user_from_request.return_value = self.user
-
-
-        self.assertEquals(json_data.keys(), ['tournaments'])
-        tournaments_list = json_data['tournaments']
-        tournaments_from_db = dao.get_all_tournaments(regions=[dao.region_id])
-        self.assertEquals(len(tournaments_list), len(tournaments_from_db))
-
-        for tournament in tournaments_list:
-            tournament_from_db = dao.get_tournament_by_id(ObjectId(tournament['id']))
-            expected_keys = set(['id', 'name', 'date', 'regions', 'excluded'])
-            self.assertEquals(set(tournament.keys()), expected_keys)
-            self.assertEquals(tournament['id'], str(tournament_from_db.id))
-            self.assertEquals(tournament['name'], tournament_from_db.name)
-            self.assertEquals(tournament['date'], tournament_from_db.date.strftime('%x'))
-            self.assertEquals(tournament['regions'], [dao.region_id])
-
-    @patch('server.get_user_from_request')
-    def test_get_tournament_list_include_pending_not_logged_in(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = None
-        dao = self.norcal_dao
-        data = self.app.get('/norcal/tournaments?includePending=true').data
-        json_data = json.loads(data)
+        mock_auth_user.return_value = self.user
 
         self.assertEquals(json_data.keys(), ['tournaments'])
         tournaments_list = json_data['tournaments']
@@ -439,32 +419,21 @@ class TestServer(unittest.TestCase):
             self.assertEquals(tournament['date'], tournament_from_db.date.strftime('%x'))
             self.assertEquals(tournament['regions'], [dao.region_id])
 
-    @patch('server.get_user_from_request')
-    def test_get_tournament_list_include_pending_not_admin(self, mock_get_user_from_request):
+
+    def test_get_tournament_list_include_pending_not_logged_in(self):
+        response = self.app.get('/norcal/tournaments?includePending=true')
+        self.assertEqual(response.status_code, 403)
+
+    def test_get_tournament_list_include_pending_not_admin(self):
         self.user.admin_regions = []
-        mock_get_user_from_request.return_value = self.user
-        dao = self.norcal_dao
-        data = self.app.get('/norcal/tournaments?includePending=true').data
-        json_data = json.loads(data)
+        response = self.app.get('/norcal/tournaments?includePending=true')
+        self.assertEqual(response.status_code, 403)
 
-        self.assertEquals(json_data.keys(), ['tournaments'])
-        tournaments_list = json_data['tournaments']
-        tournaments_from_db = dao.get_all_tournaments(regions=[dao.region_id])
-        self.assertEquals(len(tournaments_list), len(tournaments_from_db))
 
-        for tournament in tournaments_list:
-            tournament_from_db = dao.get_tournament_by_id(ObjectId(tournament['id']))
-            expected_keys = set(['id', 'name', 'date', 'regions', 'excluded'])
-            self.assertEquals(set(tournament.keys()), expected_keys)
-            self.assertEquals(tournament['id'], str(tournament_from_db.id))
-            self.assertEquals(tournament['name'], tournament_from_db.name)
-            self.assertEquals(tournament['date'], tournament_from_db.date.strftime('%x'))
-            self.assertEquals(tournament['regions'], [dao.region_id])
-
-    @patch('server.get_user_from_request')
+    @patch('server.auth_user')
     @patch('server.TioScraper')
-    def test_post_to_tournament_list_tio(self, mock_tio_scraper, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    def test_post_to_tournament_list_tio(self, mock_tio_scraper, mock_auth_user):
+        mock_auth_user.return_value = self.user
         scraper = TioScraper.from_file(NORCAL_FILES[0][0], NORCAL_FILES[0][1])
         mock_tio_scraper.return_value = scraper
         data = {
@@ -484,9 +453,9 @@ class TestServer(unittest.TestCase):
         self.assertIsNotNone(pending_tournament)
         self.assertEquals(len(pending_tournament.alias_to_id_map), 59)
 
-    @patch('server.get_user_from_request')
-    def test_post_to_tournament_list_tio_missing_bracket(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_post_to_tournament_list_tio_missing_bracket(self, mock_auth_user):
+        mock_auth_user.return_value = self.user
         data = {
             'data': 'data',
             'type': 'tio',
@@ -495,12 +464,11 @@ class TestServer(unittest.TestCase):
         response = self.app.post('/norcal/tournaments', data=json.dumps(data), content_type='application/json')
 
         self.assertEquals(response.status_code, 400)
-        self.assertEquals(response.data, '"Missing bracket name"')
 
-    @patch('server.get_user_from_request')
+    @patch('server.auth_user')
     @patch('server.ChallongeScraper')
-    def test_post_to_tournament_list_challonge(self, mock_challonge_scraper, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    def test_post_to_tournament_list_challonge(self, mock_challonge_scraper, mock_auth_user):
+        mock_auth_user.return_value = self.user
         scraper = TioScraper.from_file(NORCAL_FILES[0][0], NORCAL_FILES[0][1])
         mock_challonge_scraper.return_value = scraper
         data = {
@@ -519,31 +487,26 @@ class TestServer(unittest.TestCase):
         self.assertIsNotNone(pending_tournament)
         self.assertEquals(len(pending_tournament.alias_to_id_map), 59)
 
-    @patch('server.get_user_from_request')
-    def test_post_to_tournament_list_missing_data(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_post_to_tournament_list_missing_data(self, mock_auth_user):
+        mock_auth_user.return_value = self.user
         data = {'type': 'tio'}
         response = self.app.post('/norcal/tournaments', data=json.dumps(data), content_type='application/json')
         self.assertEquals(response.status_code, 400)
-        self.assertEquals(response.data, '"data required"')
 
-    @patch('server.get_user_from_request')
-    def test_post_to_tournament_list_unknown_type(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_post_to_tournament_list_unknown_type(self, mock_auth_user):
+        mock_auth_user.return_value = self.user
         data = {
             'data': 'data',
             'type': 'unknown'
         }
         response = self.app.post('/norcal/tournaments', data=json.dumps(data), content_type='application/json')
         self.assertEquals(response.status_code, 400)
-        self.assertEquals(response.data, '"Unknown type"')
 
-    @patch('server.get_user_from_request')
-    def test_post_to_tournament_list_invalid_permissions(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    def test_post_to_tournament_list_invalid_permissions(self):
         response = self.app.post('/texas/tournaments')
         self.assertEquals(response.status_code, 403)
-        self.assertEquals(response.data, '"Permission denied"')
 
     def setup_finalize_tournament_fixtures(self):
         player_1_id = ObjectId()
@@ -676,36 +639,20 @@ class TestServer(unittest.TestCase):
         self.norcal_dao.delete_pending_tournament(pending_tournament_3)
         self.texas_dao.delete_pending_tournament(pending_tournament_2)
 
-    @patch('server.get_user_from_request')
-    def test_finalize_tournament_incorrect_region(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_finalize_nonexistent_tournament(self, mock_auth_user):
         fixtures = self.setup_finalize_tournament_fixtures()
-        fixture_pending_tournaments = fixtures["pending_tournaments"]
-        mock_get_user_from_request.return_value = self.user
-
-        # incorrect region
-        no_permissions_response = self.app.post(
-            '/texas/tournaments/' + str(fixture_pending_tournaments[2].id) + '/finalize')
-        self.assertEquals(no_permissions_response.status_code, 403)
-        self.assertEquals(no_permissions_response.data, '"Permission denied"')
-
-        self.cleanup_finalize_tournament_fixtures(fixtures)
-
-    @patch('server.get_user_from_request')
-    def test_finalize_nonexistent_tournament(self, mock_get_user_from_request):
-        fixtures = self.setup_finalize_tournament_fixtures()
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
 
         # no pending tournament with this id
         missing_response = self.app.post('/norcal/tournaments/' + str(ObjectId()) + '/finalize')
         self.assertEquals(missing_response.status_code, 400, msg=str(missing_response.data))
-        self.assertEquals(missing_response.data,
-            '"No pending tournament found with that id."')
 
         self.cleanup_finalize_tournament_fixtures(fixtures)
 
-    @patch('server.get_user_from_request')
-    def test_finalize_incompletely_mapped_tournament(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_finalize_incompletely_mapped_tournament(self, mock_auth_user):
+        mock_auth_user.return_value = self.user
         fixtures = self.setup_finalize_tournament_fixtures()
         fixture_pending_tournaments = fixtures["pending_tournaments"]
 
@@ -713,16 +660,14 @@ class TestServer(unittest.TestCase):
         incomplete_response = self.app.post(
             '/norcal/tournaments/' + str(fixture_pending_tournaments[3].id) + '/finalize')
         self.assertEquals(incomplete_response.status_code, 400, msg=str(incomplete_response.data))
-        self.assertEquals(incomplete_response.data,
-            '"Not all player aliases in this pending tournament have been mapped to player ids."')
 
         self.cleanup_finalize_tournament_fixtures(fixtures)
 
-    @patch('server.get_user_from_request')
-    def test_finalize_tournament(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_finalize_tournament(self, mock_auth_user):
         fixtures = self.setup_finalize_tournament_fixtures()
         fixture_pending_tournaments = fixtures["pending_tournaments"]
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
 
         # finalize first pending tournament
         success_response = self.app.post(
@@ -809,9 +754,9 @@ class TestServer(unittest.TestCase):
         self.assertEquals(len(json_data['players']), len(tournament.players))
         self.assertEquals(len(json_data['matches']), len(tournament.matches))
 
-    @patch('server.get_user_from_request')
-    def test_get_tournament_pending(self,mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_get_tournament_pending(self,mock_auth_user):
+        mock_auth_user.return_value = self.user
         pending_tournament = self.norcal_dao.get_all_pending_tournaments(regions=['norcal'])[0]
         data = self.app.get('/norcal/tournaments/' + str(pending_tournament.id)).data
         json_data = json.loads(data)
@@ -832,12 +777,13 @@ class TestServer(unittest.TestCase):
 
     def test_get_tournament_pending_unauth(self):
         pending_tournament = self.norcal_dao.get_all_pending_tournaments(regions=['norcal'])[0]
-        data = self.app.get('/norcal/tournaments/' + str(pending_tournament.id)).data
-        self.assertEqual(data, '"Permission denied"', msg=data)
+        rv = self.app.get('/norcal/tournaments/' + str(pending_tournament.id))
+        self.assertEqual(rv.status, '403 FORBIDDEN')
+        
 
-    @patch('server.get_user_from_request')
-    def test_put_alias_mapping(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_put_alias_mapping(self, mock_auth_user):
+        mock_auth_user.return_value = self.user
         pending_tournament = self.norcal_dao.get_all_pending_tournaments(regions=['norcal'])[0]
         self.assertEquals(pending_tournament.regions, ['norcal'])
 
@@ -923,13 +869,13 @@ class TestServer(unittest.TestCase):
         self.assertEquals(ranking_entry['name'], self.norcal_dao.get_player_by_id(db_ranking_entry.player).name)
         self.assertTrue(ranking_entry['rating'] > -3.86)
 
-    @patch('server.get_user_from_request')
+    @patch('server.auth_user')
     @patch('server.datetime')
-    def test_post_rankings(self, mock_datetime, mock_get_user_from_request):
+    def test_post_rankings(self, mock_datetime, mock_auth_user):
         now = datetime(2014, 11, 2)
 
         mock_datetime.now.return_value = now
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
 
         data = self.app.post('/norcal/rankings').data
         json_data = json.loads(data)
@@ -939,13 +885,13 @@ class TestServer(unittest.TestCase):
         self.assertEquals(json_data['time'], db_ranking.time.strftime("%x"))
         self.assertEquals(len(json_data['ranking']), len(db_ranking.ranking))
 
-    @patch('server.get_user_from_request')
+    @patch('server.auth_user')
     @patch('server.datetime')
-    def test_post_rankings_with_params(self, mock_datetime, mock_get_user_from_request):
+    def test_post_rankings_with_params(self, mock_datetime, mock_auth_user):
         now = datetime(2014, 11, 2)
 
         mock_datetime.now.return_value = now
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
 
         the_data = {
             'ranking_num_tourneys_attended': 3,
@@ -960,16 +906,12 @@ class TestServer(unittest.TestCase):
         self.assertEquals(json_data['time'], db_ranking.time.strftime("%x"))
         self.assertEquals(len(json_data['ranking']), 0)
 
-    @patch('server.get_user_from_request')
-    def test_post_rankings_permission_denied(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
-
+    def test_post_rankings_permission_denied(self):
         response = self.app.post('/texas/rankings')
         self.assertEquals(response.status_code, 403)
-        self.assertEquals(response.data, '"Permission denied"')
 
-    @patch('server.get_user_from_request')
-    def test_put_rankings(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_rankings(self, mock_auth_user):
         now = datetime(2014, 11, 2)
 
         the_data = {
@@ -978,18 +920,16 @@ class TestServer(unittest.TestCase):
             'tournament_qualified_day_limit': 999
         }
 
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
 
-        data = self.app.put('/norcal/rankings',data=json.dumps(the_data), content_type='application/json').data
+        data = self.app.put('/norcal/rankings', data=json.dumps(the_data), content_type='application/json').data
         json_data = json.loads(data)
 
         self.assertEqual(json_data['ranking_num_tourneys_attended'], 3)
         self.assertEqual(json_data['ranking_activity_day_limit'], 90)
         self.assertEqual(json_data['tournament_qualified_day_limit'], 999)
 
-    @patch('server.get_user_from_request')
-    def test_put_rankings_permission_denied(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    def test_put_rankings_permission_denied(self):
 
         the_data = {
             'ranking_num_tourneys_attended': 3,
@@ -999,7 +939,6 @@ class TestServer(unittest.TestCase):
 
         response = self.app.put('/texas/rankings', data=json.dumps(the_data), content_type='application/json')
         self.assertEquals(response.status_code, 403)
-        self.assertEquals(response.data, '"Permission denied"')
 
     def test_get_matches(self):
         player = self.norcal_dao.get_player_by_alias('gar')
@@ -1071,18 +1010,18 @@ class TestServer(unittest.TestCase):
         self.assertEquals(match['tournament_name'], tournament.name)
         self.assertEquals(match['tournament_date'], tournament.date.strftime("%x"))
 
-    @patch('server.get_user_from_request')
-    def test_get_current_user(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_get_current_user(self, mock_auth_user):
+        mock_auth_user.return_value = self.user
         data = self.app.get('/users/session').data
         json_data = json.loads(data)
 
         self.assertEquals(json_data['id'], self.user_id)
 
-    @patch('server.get_user_from_request')
-    def test_put_tournament_name_change(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_tournament_name_change(self, mock_auth_user):
         #initial setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         #pick a tournament
         tournaments_from_db = dao.get_all_tournaments(regions=['norcal'])
@@ -1112,10 +1051,10 @@ class TestServer(unittest.TestCase):
         self.assertEquals(old_regions, the_tourney.regions)
         self.assertEquals(old_type, the_tourney.type)
 
-    @patch('server.get_user_from_request')
-    def test_put_tournament_everything_change(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_tournament_everything_change(self, mock_auth_user):
         #initial setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         #pick a tournament
         tournaments_from_db = dao.get_all_tournaments(regions=['norcal'])
@@ -1184,19 +1123,21 @@ class TestServer(unittest.TestCase):
         self.assertEquals(set(new_regions), set(the_tourney.regions))
         self.assertEquals(old_type, the_tourney.type)
 
-    def test_put_tournament_invalid_id(self):
+    @patch('server.auth_user')
+    def test_put_tournament_invalid_id(self, mock_auth_user):
         #construct info
+        mock_auth_user.return_value = self.user
         new_tourney_name = "jessesGodlikeTourney"
         raw_dict = {'name': new_tourney_name}
         test_data = json.dumps(raw_dict)
         # try sending one with an invalid tourney ID
         rv = self.app.put('/norcal/tournaments/' + str(ObjectId()), data=test_data, content_type='application/json')
-        self.assertEquals(rv.status, '404 NOT FOUND')
+        self.assertEquals(rv.status, '400 BAD REQUEST')
 
-    @patch('server.get_user_from_request')
-    def test_put_tournament_invalid_player_name(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_tournament_invalid_player_name(self, mock_auth_user):
         #initial setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         #pick a tournament
         tournaments_from_db = dao.get_all_tournaments(regions=['norcal'])
@@ -1209,10 +1150,10 @@ class TestServer(unittest.TestCase):
         rv = self.app.put('/norcal/tournaments/' + str(tourney_id), data=test_data, content_type='application/json')
         self.assertEquals(rv.status, '400 BAD REQUEST')
 
-    @patch('server.get_user_from_request')
-    def test_put_tournament_invalid_winner(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_tournament_invalid_winner(self, mock_auth_user):
         #initial setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         #pick a tournament
         tournaments_from_db = dao.get_all_tournaments(regions=['norcal'])
@@ -1225,10 +1166,10 @@ class TestServer(unittest.TestCase):
         rv = self.app.put('/norcal/tournaments/' + str(tourney_id), data=test_data, content_type='application/json')
         self.assertEquals(rv.status, '400 BAD REQUEST')
 
-    @patch('server.get_user_from_request')
-    def test_put_tournament_invalid_types_loser(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_tournament_invalid_types_loser(self, mock_auth_user):
         #initial setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         #pick a tournament
         tournaments_from_db = dao.get_all_tournaments(regions=['norcal'])
@@ -1241,10 +1182,10 @@ class TestServer(unittest.TestCase):
         rv = self.app.put('/norcal/tournaments/' + str(tourney_id), data=test_data, content_type='application/json')
         self.assertEquals(rv.status, '400 BAD REQUEST')
 
-    @patch('server.get_user_from_request')
-    def test_put_tournament_invalid_types_both(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_tournament_invalid_types_both(self, mock_auth_user):
         #initial setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         #pick a tournament
         tournaments_from_db = dao.get_all_tournaments(regions=['norcal'])
@@ -1257,10 +1198,10 @@ class TestServer(unittest.TestCase):
         rv = self.app.put('/norcal/tournaments/' + str(tourney_id), data=test_data, content_type='application/json')
         self.assertEquals(rv.status, '400 BAD REQUEST')
 
-    @patch('server.get_user_from_request')
-    def test_put_tournament_invalid_region(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_tournament_invalid_region(self, mock_auth_user):
         #initial setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         #pick a tournament
         tournaments_from_db = dao.get_all_tournaments(regions=['norcal'])
@@ -1273,10 +1214,10 @@ class TestServer(unittest.TestCase):
         rv = self.app.put('/norcal/tournaments/' + str(tourney_id), data=test_data, content_type='application/json')
         self.assertEquals(rv.status, '400 BAD REQUEST')
 
-    @patch('server.get_user_from_request')
-    def test_put_tournament_invalid_matches(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_tournament_invalid_matches(self, mock_auth_user):
         #initial setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         #pick a tournament
         tournaments_from_db = dao.get_all_tournaments(regions=['norcal'])
@@ -1289,20 +1230,17 @@ class TestServer(unittest.TestCase):
         rv = self.app.put('/norcal/tournaments/' + str(tourney_id), data=test_data, content_type='application/json')
         self.assertEquals(rv.status, '400 BAD REQUEST')
 
-    @patch('server.get_user_from_request')
-    def test_put_tournament_permission_denied(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    def test_put_tournament_permission_denied(self):
         dao = self.texas_dao
         tournaments_from_db = dao.get_all_tournaments(regions=['texas'])
         the_tourney = tournaments_from_db[0]
         response = self.app.put('/texas/tournaments/' + str(the_tourney.id), data = '{}', content_type='application/json')
         self.assertEquals(response.status_code, 403)
-        self.assertEquals(response.data, '"Permission denied"')
 
-    @patch('server.get_user_from_request')
-    def test_put_player_update_name(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_player_update_name(self, mock_auth_user):
         #setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         players = dao.get_all_players()
         the_player = players[0]
@@ -1325,10 +1263,10 @@ class TestServer(unittest.TestCase):
         self.assertEqual(set(the_player.regions), set(old_regions))
         self.assertEqual(the_player.name, new_name)
 
-    @patch('server.get_user_from_request')
-    def test_put_player_update_aliases(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_player_update_aliases(self, mock_auth_user):
         #setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         players = dao.get_all_players()
         the_player = players[0]
@@ -1357,10 +1295,10 @@ class TestServer(unittest.TestCase):
         self.assertEqual(the_player.ratings, old_ratings)
         self.assertEqual(set(the_player.regions), set(old_regions))
 
-    @patch('server.get_user_from_request')
-    def test_put_player_invalid_aliases(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_player_invalid_aliases(self, mock_auth_user):
         #setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         players = dao.get_all_players()
         the_player = players[0]
@@ -1374,10 +1312,10 @@ class TestServer(unittest.TestCase):
         rv = self.app.put('/norcal/players/' + str(the_player.id), data=test_data, content_type='application/json')
         self.assertEquals(rv.status, '400 BAD REQUEST')
 
-    @patch('server.get_user_from_request')
-    def test_put_player_update_regions(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_player_update_regions(self, mock_auth_user):
         #setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         players = dao.get_all_players()
         the_player = players[0]
@@ -1396,19 +1334,21 @@ class TestServer(unittest.TestCase):
         self.assertEqual(the_player.ratings, old_ratings)
         self.assertEqual(set(the_player.regions), set(new_regions))
 
-    def test_put_player_not_found(self):
+    @patch('server.auth_user')
+    def test_put_player_not_found(self, mock_auth_user):
         #construct info for test
+        mock_auth_user.return_value = self.user
         new_regions = ('norcal', 'nyc')
         raw_dict = {'regions': new_regions}
         test_data = json.dumps(raw_dict)
         #test player not found
         rv = self.app.put('/norcal/players/' + str(ObjectId()), data=test_data, content_type='application/json')
-        self.assertEquals(rv.status, '404 NOT FOUND')
+        self.assertEquals(rv.status, '400 BAD REQUEST')
 
-    @patch('server.get_user_from_request')
-    def test_put_player_nonstring_aliases(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_player_nonstring_aliases(self, mock_auth_user):
         #setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         players = dao.get_all_players()
         the_player = players[0]
@@ -1420,10 +1360,10 @@ class TestServer(unittest.TestCase):
         rv = self.app.put('/norcal/players/' + str(the_player.id), data=test_data, content_type='application/json')
         self.assertEquals(rv.status, '400 BAD REQUEST')
 
-    @patch('server.get_user_from_request')
-    def test_put_player_nonstring_regions(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_player_nonstring_regions(self, mock_auth_user):
         #setup
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         players = dao.get_all_players()
         the_player = players[0]
@@ -1437,9 +1377,9 @@ class TestServer(unittest.TestCase):
         rv = self.app.put('/norcal/players/' + str(the_player.id), data=test_data, content_type='application/json')
         self.assertEquals(rv.status, '400 BAD REQUEST')
 
-    @patch('server.get_user_from_request')
-    def test_put_merge(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_put_merge(self, mock_auth_user):
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         all_players = dao.get_all_players()
         player_one = all_players[0]
@@ -1469,11 +1409,11 @@ class TestServer(unittest.TestCase):
         self.assertEquals(the_merge.target_player_obj_id, player_one.id)
         self.assertEquals(the_merge.source_player_obj_id, player_two.id)
 
-    @patch('server.get_user_from_request')
-    def test_put_merge_not_admin(self, mock_get_user_from_request):
+    @patch('server.auth_user')
+    def test_put_merge_not_admin(self, mock_auth_user):
         old_admin_regions = self.user.admin_regions
         self.user.admin_regions = []
-        mock_get_user_from_request.return_value = self.user
+        mock_auth_user.return_value = self.user
         dao = self.texas_dao
         all_players = dao.get_all_players()
         player_one = all_players[0]
@@ -1481,22 +1421,22 @@ class TestServer(unittest.TestCase):
         raw_dict = {'target_player_id': str(player_one.id), 'source_player_id' : str(player_two.id) }
         test_data = json.dumps(raw_dict)
         rv = self.app.put('/texas/merges', data=str(test_data), content_type='application/json')
-        self.assertEquals(rv.data, "\"user is not an admin\"")
+        self.assertEquals(rv.status, "403 FORBIDDEN", msg=rv.status)
         self.user.admin_regions = old_admin_regions
 
-    @patch('server.get_user_from_request')
-    def test_put_merge_invalid_id(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_put_merge_invalid_id(self, mock_auth_user):
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         raw_dict = {'target_player_id': "abcd", 'source_player_id' : "adskj" }
         test_data = json.dumps(raw_dict)
         rv = self.app.put('/norcal/merges', data=str(test_data), content_type='application/json')
-        self.assertEquals(rv.data, "\"invalid ids, that wasn't an ObjectID\"", msg=rv.data)
+        self.assertEquals(rv.status, "400 BAD REQUEST", msg=rv.status)
 
 
-    @patch('server.get_user_from_request')
-    def test_put_merge_target_not_found(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_put_merge_target_not_found(self, mock_auth_user):
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         all_players = dao.get_all_players()
         player_one = all_players[0]
@@ -1504,12 +1444,12 @@ class TestServer(unittest.TestCase):
         raw_dict = {'target_player_id': "552f53650181b84aaaa01051", 'source_player_id' : str(player_two.id)  }
         test_data = json.dumps(raw_dict)
         rv = self.app.put('/norcal/merges', data=str(test_data), content_type='application/json')
-        self.assertEquals(rv.data, "\"target_player not found\"", msg=rv.data)
+        self.assertEquals(rv.status, "400 BAD REQUEST", msg=rv.status)
 
 
-    @patch('server.get_user_from_request')
-    def test_put_merge_source_not_found(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_put_merge_source_not_found(self, mock_auth_user):
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         all_players = dao.get_all_players()
         player_one = all_players[0]
@@ -1517,11 +1457,11 @@ class TestServer(unittest.TestCase):
         raw_dict = {'target_player_id': str(player_one.id), 'source_player_id' : "552f53650181b84aaaa01051"  }
         test_data = json.dumps(raw_dict)
         rv = self.app.put('/norcal/merges', data=str(test_data), content_type='application/json')
-        self.assertEquals(rv.data, "\"source_player not found\"", msg=rv.data)
+        self.assertEquals(rv.status, "400 BAD REQUEST", msg=rv.status)
 
-    @patch('server.get_user_from_request')
-    def test_post_tournament_from_tio(self, mock_get_user_from_request):
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_post_tournament_from_tio(self, mock_auth_user):
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
 
         raw_dict = {}
@@ -1552,9 +1492,9 @@ class TestServer(unittest.TestCase):
                 sweden_wins_count += 1
         self.assertEquals(sweden_wins_count, 2, msg="armada didn't double elim hax??")
 
-    @patch('server.get_user_from_request')
-    def test_post_tournament_from_tio_without_trim(self, mock_get_user_from_request): #TODO: rewrite to use new endpoint
-        mock_get_user_from_request.return_value = self.user
+    @patch('server.auth_user')
+    def test_post_tournament_from_tio_without_trim(self, mock_auth_user): #TODO: rewrite to use new endpoint
+        mock_auth_user.return_value = self.user
         dao = self.norcal_dao
         #print "all regions:", ' '.join( x.id for x in dao.get_all_regions(self.mongo_client))
         raw_dict = {}
@@ -1566,7 +1506,7 @@ class TestServer(unittest.TestCase):
         raw_dict['bracket'] = 'Bracket'
         the_data = json.dumps(raw_dict)
         response = self.app.post('/norcal/tournaments', data=the_data, content_type='application/json')
-        self.assertEquals(response.status_code, 503, msg=response.data)
+        self.assertEquals(response.status_code, 400, msg=response.data)
 
     def test_put_session(self):
         # TODO: refactor to use dao
@@ -1606,7 +1546,7 @@ class TestServer(unittest.TestCase):
         response = self.app.put('/users/session', data=the_data, content_type='application/json')
         self.assertEquals(response.status_code, 403, msg=response.data)
 
-    @patch('server.get_user_from_request')
+    @patch('server.auth_user')
     def test_delete_finalized_tournament(self, mock_get_user_from_access_token):
         mock_get_user_from_access_token.return_value = self.user
         tournament = self.norcal_dao.get_all_tournaments(regions=['norcal'])[0]
@@ -1614,7 +1554,7 @@ class TestServer(unittest.TestCase):
         self.assertEquals(response.status_code, 200)
         self.assertTrue(self.norcal_dao.get_tournament_by_id(tournament.id) is None, msg=self.norcal_dao.get_tournament_by_id(tournament.id))
 
-    @patch('server.get_user_from_request')
+    @patch('server.auth_user')
     def test_delete_pending_tournament(self, mock_get_user_from_access_token):
         mock_get_user_from_access_token.return_value = self.user
         tournament = self.norcal_dao.get_all_pending_tournaments(regions=['norcal'])[0]
@@ -1647,7 +1587,7 @@ class TestServer(unittest.TestCase):
         raw_dict['new_pass'] = "newRip"
         the_data = json.dumps(raw_dict)
         response = self.app.put('/user', data=the_data, content_type='application/json')
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 400)
 
         raw_dict['old_pass'] = "rip"
         raw_dict['new_pass'] = "newRip"
