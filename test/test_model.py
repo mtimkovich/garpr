@@ -217,6 +217,7 @@ class TestTournament(unittest.TestCase):
                         self.player_3, self.player_4]
         self.matches = [self.match_1, self.match_2]
         self.regions = ['norcal', 'texas']
+        self.excluded = False
 
         self.tournament_json_dict = {
             '_id': self.id,
@@ -228,7 +229,8 @@ class TestTournament(unittest.TestCase):
             'players': self.player_ids,
             'orig_ids': self.player_ids,
             'matches': [m.dump(context='db') for m in self.matches],
-            'regions': self.regions
+            'regions': self.regions,
+            'excluded': self.excluded
         }
         self.tournament = Tournament(
             id=self.id,
@@ -240,7 +242,8 @@ class TestTournament(unittest.TestCase):
             raw_id=self.raw_id,
             players=self.player_ids,
             orig_ids=self.player_ids,
-            matches=self.matches)
+            matches=self.matches,
+            excluded=self.excluded)
 
     def test_replace_player(self):
         self.assertTrue(self.player_3_id in self.tournament.players)
@@ -407,6 +410,7 @@ class TestPendingTournament(unittest.TestCase):
         self.matches = [self.match_1, self.match_2]
         self.regions = ['norcal', 'texas']
         self.url = 'http://challonge.com/test'
+        self.excluded = False
 
         self.pending_tournament_json_dict = {
             '_id': self.id,
@@ -418,6 +422,7 @@ class TestPendingTournament(unittest.TestCase):
             'matches': [m.dump(context='db') for m in self.matches],
             'regions': self.regions,
             'alias_to_id_map': [am.dump(context='db') for am in self.alias_to_id_map],
+            'excluded':False,
             'url': self.url
         }
         self.pending_tournament = PendingTournament(
@@ -430,6 +435,7 @@ class TestPendingTournament(unittest.TestCase):
             raw_id=self.raw_id,
             players=self.players,
             matches=self.matches,
+            excluded=self.excluded,
             alias_to_id_map=self.alias_to_id_map)
 
     def test_dump(self):

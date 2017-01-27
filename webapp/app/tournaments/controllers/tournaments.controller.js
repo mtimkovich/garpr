@@ -14,6 +14,78 @@ angular.module('app.tournaments').controller("TournamentsController", function($
 
     $scope.smashGGImportMessage = "";
 
+    $scope.isMatchCurrentlyExcluded = function(tournament){
+        var excluded = tournament.excluded;
+
+        if(excluded){
+            var lineId = 'tournament_line_' + tournament.id;
+            var lineElement = document.getElementById(lineId);
+            lineElement.className = 'tournament_line excluded ng-scope';
+        }
+
+        return excluded;
+    }
+
+    $scope.changeTournamentExclusion = function(tournament){
+
+        //var idx = $scope.sessionService.indexOf(tournament);
+        var url = hostname + $routeParams.region + '/tournaments/' + tournament.id;
+
+        var checkboxId = 'exclude_tournament_checkbox_' + tournament.id;
+        var lineId = 'tournament_line_' + tournament.id;
+
+        var checkboxElement = document.getElementById(checkboxId);
+        var lineElement = document.getElementById(lineId);
+
+        var postParams = {
+            excluded_tf: false
+        }
+
+        // is currently selected
+        if (checkboxElement.checked) {
+          // TODO send true to the api
+          postParams.excluded_tf = true;
+          $scope.sessionService.authenticatedPost(url, postParams,
+            (data) => {
+                // TODO remove tournament from excluded list
+
+                // TODO paint the row grey
+                lineElement.className += ' excluded'
+                $scope.regionService.setTournamentExcluded(tournament.id, true);
+                return;
+            },
+            (err) => {
+                if(err){
+                    console.log(err.message);
+                }
+            })
+        }
+        else {
+          // TODO send false to the api
+          $scope.sessionService.authenticatedPost(url, postParams,
+            (data) => {
+                // TODO add tournament to excluded list
+
+                // TODO unpaint the grey row
+                lineElement.className = '';
+                lineElement.className = 'tournament_line ng-scope';
+
+                $scope.regionService.setTournamentExcluded(tournament.id, false);
+                return;
+            },
+            (err) => {
+                if(err){
+                    console.log(err.message);
+                }
+            })
+        }
+    };
+
+
+    $scope.toggleExcludedTournament = function(tournament) {
+
+    };
+
     $scope.open = function() {
         $scope.disableButtons = false;
         $scope.modalInstance = $modal.open({

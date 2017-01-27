@@ -82,6 +82,9 @@ tournament_import_parser.add_argument('tio_file', type=str)
 tournament_import_parser.add_argument('tio_bracket_name', type=str)
 tournament_import_parser.add_argument('included_phases', type=list)
 
+tournament_exclusion_parser = reqparse.RequestParser()
+tournament_exclusion_parser.add_argument('excluded_tf', type=str)
+
 pending_tournament_put_parser = reqparse.RequestParser()
 pending_tournament_put_parser.add_argument('name', type=str)
 pending_tournament_put_parser.add_argument('players', type=list)
@@ -373,7 +376,8 @@ class TournamentListResource(restful.Resource):
         only_properties = ('id',
                            'name',
                            'date',
-                           'regions')
+                           'regions',
+                           'excluded')
 
         # temporary fix
         all_tournament_jsons = []
@@ -381,6 +385,7 @@ class TournamentListResource(restful.Resource):
             try:
                 all_tournament_jsons.append(t.dump(context='web',
                                                    only=only_properties))
+
             except:
                 print 'error inserting tournament', t
 
@@ -645,6 +650,30 @@ class TournamentResource(restful.Resource):
             dao.delete_tournament(tournament_to_delete)
 
         return {"success": True}
+
+    def post(self, region, id):
+        """
+        This post request changes a flag for the indicated tournament
+        determining if it is Excluded a tournament from ranking calculation
+        """
+
+        args = tournament_exclusion_parser.parse_args()
+        excluded = (args['excluded_tf'].lower() == 'true')
+
+        dao = Dao(region, mongo_client=mongo_client)
+        if not dao:
+            return 'Dao not found', 404
+        user = get_user_from_request(request, dao)
+        if not user:
+            return 'Permission denied', 403
+
+        try:
+            dao.set_tournament_exclusion_by_tournament_id(ObjectId(id), excluded)
+            return 200
+        except:
+            return 'Error', 400
+
+
 
 
 class PendingTournamentResource(restful.Resource):

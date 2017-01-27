@@ -281,6 +281,15 @@ class Dao(object):
             except Exception as e:
                 print('Could not attain match. ' + str(e))
 
+    def set_tournament_exclusion_by_tournament_id(self, tournament_id, excluded):
+        if self.tournaments_col.find_one({'_id': tournament_id}):
+            self.tournaments_col.update({'_id': tournament_id},
+                                    {'$set':
+                                        {
+                                            'excluded': excluded
+                                        }
+                                    })
+
 
     def set_match_exclusion_by_tournament_id_and_match_id(self, tournament_id, match_id, excluded):
         # TODO ENHANCE THIS ALGORITHM TO ONLY UPDATE MATCH

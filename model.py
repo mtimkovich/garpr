@@ -132,7 +132,8 @@ class Tournament(orm.Document):
               ('raw_id', orm.ObjectIDField()),
               ('matches', orm.ListField(orm.DocumentField(Match))),
               ('players', orm.ListField(orm.ObjectIDField())),
-              ('orig_ids', orm.ListField(orm.ObjectIDField()))]
+              ('orig_ids', orm.ListField(orm.ObjectIDField())),
+              ('excluded', orm.BooleanField(default=False))]
 
     def validate_document(self):
         # check: set of players in players = set of players in matches
@@ -214,6 +215,8 @@ class Tournament(orm.Document):
             matches.append(m)
             counter+=1
 
+        excluded = False
+
         return cls(
             id=pending_tournament.id,
             name=pending_tournament.name,
@@ -224,7 +227,8 @@ class Tournament(orm.Document):
             raw_id=pending_tournament.raw_id,
             matches=matches,
             players=players,
-            orig_ids=players)
+            orig_ids=players,
+            excluded=excluded)
 
 
 class PendingTournament(orm.Document):
@@ -239,7 +243,8 @@ class PendingTournament(orm.Document):
               ('raw_id', orm.ObjectIDField()),
               ('matches', orm.ListField(orm.DocumentField(AliasMatch))),
               ('players', orm.ListField(orm.StringField())),
-              ('alias_to_id_map', orm.ListField(orm.DocumentField(AliasMapping)))]
+              ('alias_to_id_map', orm.ListField(orm.DocumentField(AliasMapping))),
+              ('excluded', orm.BooleanField(default=False))]
 
     def validate_document(self):
         # check: set of aliases = set of aliases in matches

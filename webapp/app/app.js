@@ -7,11 +7,6 @@ var app = angular.module('app',
         'app.tools',
         'app.tournaments']);
 
-
-
-
-
-
 app.config(function ($httpProvider) {
     $httpProvider.defaults.withCredentials = true;
     $httpProvider.defaults.useXDomain = true;
