@@ -216,6 +216,7 @@ angular.module('app.tournaments').controller("TournamentDetailController", funct
     }
     // TODO submission checks! check to make sure everything in $scope.playerData is an object (not a string. string = partially typed box)
 
+
     $scope.isMatchCurrentlyExcluded = function(match){
         var excluded = match.excluded;
 
@@ -250,6 +251,7 @@ angular.module('app.tournaments').controller("TournamentDetailController", funct
             excluded_tf : matchCheckbox.checked
         }
 
+        var match_id = match.match_id;
         url = hostname + $routeParams.region + '/tournaments/' + $scope.tournamentId + '/excludeMatch';
 
         if(matchCheckbox.checked){
@@ -257,9 +259,11 @@ angular.module('app.tournaments').controller("TournamentDetailController", funct
             $scope.sessionService.authenticatedPost(url, postParams,
                 (data) => {
                     // TODO gray out the row
-                    winnerElement.className = 'excluded';
-                    loserElement.className = 'excluded';
-                    return false;
+                    var i = _.findLastIndex($scope.tournament.matches, {match_id: match_id});
+                    var match = $scope.tournament.matches[i];
+                    match.excluded = true;
+                    $scope.tournament.matches[i] = match;
+                    return;
                },
                 () => {
                     excludeFailure();
@@ -273,8 +277,13 @@ angular.module('app.tournaments').controller("TournamentDetailController", funct
                     // TODO ungray the row
                     winnerElement.className = 'success';
                     loserElement.className = 'danger';
-                    alert('Match Included Successfully!');
-                    return false;
+
+                    var i = _.findLastIndex($scope.tournament.matches, {match_id: match_id});
+                    var match = $scope.tournament.matches[i];
+                    match.excluded = false;
+                    $scope.tournament.matches[i] = match;
+
+                    return;
                 },
                 () => {
                     excludeFailure();

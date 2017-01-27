@@ -123,7 +123,8 @@
                     </th>
                 </tr>
                 <tr ng-repeat="match in tournament.matches" class="tournament_match_line">
-                    <td class="success" id="winner_{{ match.match_id }}">
+                    <td class="success" id="winner_{{ match.match_id }}"
+                        ng-class="{excluded: tournament.excluded == true}">
                         <a href="#/{{regionService.region.id}}/players/{{match.winner_id}}">
                             {{match.winner_name}}
                         </a>
@@ -131,7 +132,8 @@
                     <td ng-show="sessionService.isAdmin()" width="5%">
                         <span ng-click="swapWinnerLoser(match)"  class="glyphicon glyphicon-resize-horizontal" style="color:black; font-size:2.5em"></span>
                     </td>
-                    <td class="danger" id="loser_{{ match.match_id }}">
+                    <td class="danger" id="loser_{{ match.match_id }}"
+                        ng-class="{excluded: tournament.excluded == true}">
                         <a href="#/{{regionService.region.id}}/players/{{match.loser_id}}">
                             {{match.loser_name}}
                         </a>
