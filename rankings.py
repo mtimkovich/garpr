@@ -7,7 +7,11 @@ import model
 import rating_calculators
 
 
-def generate_ranking(dao, now=datetime.now(), day_limit=60, num_tourneys=2, tournament_qualified_day_limit=999):
+def generate_ranking(dao,
+                     now=datetime.now(),
+                     day_limit=60,
+                     num_tourneys=2,
+                     tournament_qualified_day_limit=999):
     player_date_map = {}
     player_id_to_player_map = {}
 
@@ -50,8 +54,6 @@ def generate_ranking(dao, now=datetime.now(), day_limit=60, num_tourneys=2, tour
 
                 winner = player_id_to_player_map[match.winner]
                 loser = player_id_to_player_map[match.loser]
-
-
                 rating_calculators.update_trueskill_ratings(
                     dao.region_id, winner=winner, loser=loser)
 

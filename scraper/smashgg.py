@@ -6,10 +6,7 @@ from model import AliasMatch
 # https://smash.gg/tournament/<tournament-name>/brackets/<event-id>/<phase-id>/<phase-group-id>/
 PHASE_URL = "https://api.smash.gg/phase/%s?expand[0]=groups"
 EVENT_URL = "https://api.smash.gg/tournament/%s/event/%s?expand[0]=groups&expand[1]=entrants"
-GROUP_URL = "https://api.smash.gg/phase_group/%s?expand[0]=sets&expand[1]=entrants&expand[2]=matches&expand[3]=seeds" # noqa
-
-
-
+GROUP_URL = "https://api.smash.gg/phase_group/%s?expand[0]=sets&expand[1]=entrants&expand[2]=matches&expand[3]=seeds"  # noqa
 SET_TIME_PROPERTIES = ['startedAt', 'completedAt']
 
 
@@ -46,7 +43,8 @@ class SmashGGScraper(object):
         # AND INSTANTIATE THE DICTIONARY THAT HOLDS THE RAW
         # JSON DUMPED FROM THE API
 
-        self.event_dict = SmashGGScraper.get_event_dict(self.event_name, self.phase_name)
+        self.event_dict = SmashGGScraper.get_event_dict(self.event_name,
+                                                        self.phase_name)
 
         self.group_sets = []
         for phase in self.included_phases:
@@ -128,9 +126,10 @@ class SmashGGScraper(object):
 
     def get_smashgg_players(self):
         """
-        :return: and edit the local list of SmashGGPlayer objects that encapsulate important information about
-        the participants of the tournament, including their name, region, smashtag,
-        tournament entrant id, and overall smashgg id
+        :return: and edit the local list of SmashGGPlayer objects that
+        encapsulate important information about the participants of the
+        tournament, including their name, region, smashtag, tournament entrant
+        id, and overall smashgg id
         """
         self.players = []
         entrants = self.event_dict['entities']['entrants']
@@ -160,9 +159,10 @@ class SmashGGScraper(object):
 
     def get_smashgg_matches(self):
         """
-        :return: a list of SmashGGMatch objects that encapsulate more data about the match
-        than just the winner and loser. Could be useful for additional ranking metrics
-        like how far into the tournament or how many matches were played.
+        :return: a list of SmashGGMatch objects that encapsulate more data
+        about the match than just the winner and loser. Could be useful for
+        additional ranking metrics like how far into the tournament or
+        how many matches were played.
         """
         self.matches = []
         for group_dict in self.group_dicts:
@@ -186,7 +186,8 @@ class SmashGGScraper(object):
                     cur_time = match.get(prop, None)
                     if cur_time:
                         self.date = min(
-                            self.date, datetime.datetime.fromtimestamp(cur_time))
+                            self.date,
+                            datetime.datetime.fromtimestamp(cur_time))
 
                 try:
                     round_name = match.get("fullRoundText", None)
@@ -310,7 +311,15 @@ class SmashGGScraper(object):
 
 class SmashGGPlayer(object):
 
-    def __init__(self, smashgg_id, entrant_id, name, smash_tag, region, country, state, final_placement):
+    def __init__(self,
+                 smashgg_id,
+                 entrant_id,
+                 name,
+                 smash_tag,
+                 region,
+                 country,
+                 state,
+                 final_placement):
         """
         :param smashgg_id:      The Global id that a player is mapped to on the website
         :param entrant_id:      The id assigned to an entrant for the given tournament

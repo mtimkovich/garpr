@@ -22,6 +22,7 @@ MATCHES_JSON_FILE = 'test/test_scraper/data/matches.json'
 # MIOM | SFAT has spaces before and after
 PARTICIPANTS_JSON_FILE = 'test/test_scraper/data/participants.json'
 
+
 class TestChallongeScraper(unittest.TestCase):
     @patch('scraper.challonge.requests', spec=requests)
     def setUp(self, mock_requests):
@@ -46,9 +47,9 @@ class TestChallongeScraper(unittest.TestCase):
         mock_matches_response.json.return_value = self.matches_json_dict
         mock_participants_response.json.return_value = self.participants_json_dict
 
-        expected_tournament_url = scraper.challonge.TOURNAMENT_URL % TOURNAMENT_ID;
-        expected_matches_url = scraper.challonge.MATCHES_URL % TOURNAMENT_ID;
-        expected_participants_url = scraper.challonge.PARTICIPANTS_URL % TOURNAMENT_ID;
+        expected_tournament_url = scraper.challonge.TOURNAMENT_URL % TOURNAMENT_ID
+        expected_matches_url = scraper.challonge.MATCHES_URL % TOURNAMENT_ID
+        expected_participants_url = scraper.challonge.PARTICIPANTS_URL % TOURNAMENT_ID
 
         mock_requests_return_values = {
                 (expected_tournament_url, TEMPLATE_API_KEY): mock_tournament_response,
@@ -57,7 +58,8 @@ class TestChallongeScraper(unittest.TestCase):
         }
         mock_requests.get.side_effect = lambda url, **kwargs: mock_requests_return_values[(url, kwargs['params']['api_key'])]
 
-        self.scraper = ChallongeScraper(TOURNAMENT_ID, TEMPLATE_CONFIG_FILE_PATH)
+        self.scraper = ChallongeScraper(TOURNAMENT_ID,
+                                        TEMPLATE_CONFIG_FILE_PATH)
 
     def test_get_raw(self):
         raw = self.scraper.get_raw()
@@ -71,15 +73,24 @@ class TestChallongeScraper(unittest.TestCase):
         self.assertEquals(self.scraper.get_name(), 'SF Game Night 21')
 
     def test_get_date(self):
-        self.assertEquals(self.scraper.get_date().replace(tzinfo=None), datetime(2014, 10, 14, 20, 39, 30))
+        self.assertEquals(self.scraper.get_date().replace(tzinfo=None),
+                          datetime(2014, 10, 14, 20, 39, 30))
 
     def test_get_matches(self):
         matches = self.scraper.get_matches()
         self.assertEquals(len(matches), 81)
-        self.assertEquals(matches[0], AliasMatch(winner='Tiamat', loser='Sharkboi'))
-        self.assertEquals(matches[-1], AliasMatch(winner='Shroomed', loser='GC | Silentwolf'))
-        self.assertEquals(matches[-2], AliasMatch(winner='GC | Silentwolf', loser='Shroomed'))
-        self.assertEquals(matches[-3], AliasMatch(winner='GC | Silentwolf', loser='MIOM | SFAT'))
+        self.assertEquals(matches[0],
+                          AliasMatch(winner='Tiamat',
+                          loser='Sharkboi'))
+        self.assertEquals(matches[-1],
+                          AliasMatch(winner='Shroomed',
+                          loser='GC | Silentwolf'))
+        self.assertEquals(matches[-2],
+                          AliasMatch(winner='GC | Silentwolf',
+                          loser='Shroomed'))
+        self.assertEquals(matches[-3],
+                          AliasMatch(winner='GC | Silentwolf',
+                          loser='MIOM | SFAT'))
 
         # make sure none of the matches have a None
         for m in matches:

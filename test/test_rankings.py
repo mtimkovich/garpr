@@ -9,6 +9,7 @@ from mock import patch
 
 delta = .001
 
+
 class TestRankings(unittest.TestCase):
     def setUp(self):
         self.region_id = 'norcal'
@@ -55,15 +56,24 @@ class TestRankings(unittest.TestCase):
                 ratings={'norcal': Rating()},
                 regions=['norcal'],
                 id=self.player_5_id)
-
-        self.players = [self.player_1, self.player_2, self.player_3, self.player_4, self.player_5]
-
+        self.players = [
+                self.player_1,
+                self.player_2,
+                self.player_3,
+                self.player_4,
+                self.player_5
+        ]
         self.tournament_id_1 = ObjectId()
         self.tournament_type_1 = 'tio'
         self.tournament_raw_1 = 'raw1'
         self.tournament_date_1 = datetime(2013, 10, 16)
         self.tournament_name_1 = 'tournament 1'
-        self.tournament_players_1 = [self.player_1_id, self.player_2_id, self.player_3_id, self.player_4_id]
+        self.tournament_players_1 = [
+                self.player_1_id,
+                self.player_2_id,
+                self.player_3_id,
+                self.player_4_id
+        ]
         self.tournament_matches_1 = [
                 Match(winner=self.player_1_id, loser=self.player_2_id),
                 Match(winner=self.player_3_id, loser=self.player_4_id)
@@ -76,7 +86,12 @@ class TestRankings(unittest.TestCase):
         self.tournament_raw_2 = 'raw2'
         self.tournament_date_2 = datetime(2013, 10, 10)
         self.tournament_name_2 = 'tournament 2'
-        self.tournament_players_2 = [self.player_5_id, self.player_2_id, self.player_3_id, self.player_4_id]
+        self.tournament_players_2 = [
+                        self.player_5_id,
+                        self.player_2_id,
+                        self.player_3_id,
+                        self.player_4_id
+        ]
         self.tournament_matches_2 = [
                 Match(winner=self.player_5_id, loser=self.player_2_id),
                 Match(winner=self.player_3_id, loser=self.player_4_id)
@@ -117,13 +132,21 @@ class TestRankings(unittest.TestCase):
         now = datetime(2013, 10, 17)
 
         # assert rankings before they get reset
-        self.assertEquals(self.dao.get_player_by_id(self.player_1_id).ratings, self.player_1.ratings)
-        self.assertEquals(self.dao.get_player_by_id(self.player_2_id).ratings, self.player_2.ratings)
-        self.assertEquals(self.dao.get_player_by_id(self.player_3_id).ratings, self.player_3.ratings)
-        self.assertEquals(self.dao.get_player_by_id(self.player_4_id).ratings, self.player_4.ratings)
-        self.assertEquals(self.dao.get_player_by_id(self.player_5_id).ratings, self.player_5.ratings)
+        self.assertEquals(self.dao.get_player_by_id(self.player_1_id).ratings,
+                          self.player_1.ratings)
+        self.assertEquals(self.dao.get_player_by_id(self.player_2_id).ratings,
+                          self.player_2.ratings)
+        self.assertEquals(self.dao.get_player_by_id(self.player_3_id).ratings,
+                          self.player_3.ratings)
+        self.assertEquals(self.dao.get_player_by_id(self.player_4_id).ratings,
+                          self.player_4.ratings)
+        self.assertEquals(self.dao.get_player_by_id(self.player_5_id).ratings,
+                          self.player_5.ratings)
 
-        rankings.generate_ranking(self.dao, now=now, day_limit=30, num_tourneys=1)
+        rankings.generate_ranking(self.dao,
+                                  now=now,
+                                  day_limit=30,
+                                  num_tourneys=1)
 
         # assert rankings after ranking calculation
         self.assertAlmostEquals(self.dao.get_player_by_id(self.player_1_id).ratings['norcal'].mu,
@@ -135,7 +158,7 @@ class TestRankings(unittest.TestCase):
         self.assertAlmostEquals(self.dao.get_player_by_id(self.player_2_id).ratings['norcal'].sigma,
                                 6.464, delta=delta)
         self.assertAlmostEquals(self.dao.get_player_by_id(self.player_3_id).ratings['norcal'].mu,
-                                2, delta=delta) #changing this b/c of new in regionon only stuff, lol
+                                2, delta=delta)  # changing this b/c of new in region on only stuff, lol
         self.assertAlmostEquals(self.dao.get_player_by_id(self.player_3_id).ratings['norcal'].sigma,
                                 3, delta=delta)
         self.assertAlmostEquals(self.dao.get_player_by_id(self.player_4_id).ratings['norcal'].mu,
@@ -163,7 +186,6 @@ class TestRankings(unittest.TestCase):
         # the ranking should not have any excluded players
         self.assertEquals(len(ranking_list), 3)
 
-
         entry = ranking_list[0]
         self.assertEquals(entry.rank, 1)
         self.assertEquals(entry.player, self.player_5_id)
@@ -186,11 +208,14 @@ class TestRankings(unittest.TestCase):
         self.assertAlmostEquals(entry.rating, -1.349, delta=delta)
         '''
 
-    # players that only played in the first tournament will be excluded for inactivity
+    # players that only played in the first tournament will be excluded for
+    # inactivity
     def test_generate_rankings_excluded_for_inactivity(self):
         now = datetime(2013, 11, 25)
-
-        rankings.generate_ranking(self.dao, now=now, day_limit=45, num_tourneys=1)
+        rankings.generate_ranking(self.dao,
+                                  now=now,
+                                  day_limit=45,
+                                  num_tourneys=1)
 
         ranking = self.dao.get_latest_ranking()
 

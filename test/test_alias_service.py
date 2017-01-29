@@ -12,6 +12,7 @@ from pymongo import MongoClient
 DATABASE_NAME = 'garpr_test'
 CONFIG_LOCATION = 'config/config.ini'
 
+
 class TestAliasService(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -57,7 +58,10 @@ class TestAliasService(unittest.TestCase):
                 regions=['norcal'],
                 id=self.player_4_id)
 
-        self.players = [self.player_1, self.player_2, self.player_3, self.player_4]
+        self.players = [self.player_1,
+                        self.player_2,
+                        self.player_3,
+                        self.player_4]
 
         self.user_id_1 = 'abc123'
         self.user_admin_regions_1 = ['norcal']
@@ -72,12 +76,15 @@ class TestAliasService(unittest.TestCase):
         self.users = [self.user_1]
 
         self.region_1 = Region(id='norcal', display_name='Norcal')
-        Dao.insert_region(self.region_1, self.mongo_client, database_name=DATABASE_NAME)
-        self.norcal_dao = Dao('norcal', self.mongo_client, database_name=DATABASE_NAME)
+        Dao.insert_region(self.region_1,
+                          self.mongo_client,
+                          database_name=DATABASE_NAME)
+        self.norcal_dao = Dao('norcal',
+                              self.mongo_client,
+                              database_name=DATABASE_NAME)
 
         for player in self.players:
             self.norcal_dao.insert_player(player)
-
 
     def tearDown(self):
         self.mongo_client.drop_database(DATABASE_NAME)
@@ -99,7 +106,9 @@ class TestAliasService(unittest.TestCase):
                 },
                 "garpr | gar": {
                     "player": None,
-                    "suggestions": [self.player_1, self.player_3, self.player_4],
+                    "suggestions": [self.player_1,
+                                    self.player_3,
+                                    self.player_4],
                 },
                 "g a r r": {
                     "player": None,
@@ -108,7 +117,8 @@ class TestAliasService(unittest.TestCase):
             })
 
     def test_get_top_suggestion_for_aliases(self):
-        suggestions = alias_service.get_top_suggestion_for_aliases(self.norcal_dao, ['gar', 'garpr | gar'])
+        suggestions = alias_service.get_top_suggestion_for_aliases(
+                                    self.norcal_dao, ['gar', 'garpr | gar'])
         expected_suggestions = {
             "gar": self.player_1,
             "garpr | gar": self.player_1,

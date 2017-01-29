@@ -18,7 +18,9 @@ MATCHES_URL = os.path.join(BASE_CHALLONGE_API_URL, '%s', 'matches.json')
 
 class ChallongeScraper(object):
 
-    def __init__(self, tournament_id, config_file_path=config.DEFAULT_CONFIG_PATH):
+    def __init__(self,
+                 tournament_id,
+                 config_file_path=config.DEFAULT_CONFIG_PATH):
         self.tournament_id = tournament_id
         self.config = config.Config(config_file_path=config_file_path)
         self.api_key = self.config.get_challonge_api_key()
@@ -55,9 +57,10 @@ class ChallongeScraper(object):
         return iso8601.parse_date(self.get_raw()['tournament']['tournament']['created_at'])
 
     def get_matches(self):
-        # sometimes challonge seems to use the "group_player_ids" parameter of "participant" instead
-        # of the "id" parameter of "participant" in the "matches" api.
-        # not sure exactly when this happens, but the following code checks for both
+        # sometimes challonge seems to use the "group_player_ids" parameter of
+        # "participant" instead of the "id" parameter of "participant" in the
+        # "matches" api. not sure exactly when this happens, but the following
+        # code checks for both
         player_map = dict()
         for p in self.get_raw()['participants']:
             if p['participant'].get('name'):

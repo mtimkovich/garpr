@@ -3,12 +3,14 @@ from config.config import Config
 
 TEMPLATE_CONFIG_FILE = 'config/config.ini.template'
 
+
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.config = Config(TEMPLATE_CONFIG_FILE)
 
     def test_get_mongo_url(self):
-        self.assertEquals(self.config.get_mongo_url(), 'mongodb://USER:PASSWORD@HOSTNAME/AUTH_DB')
+        self.assertEquals(self.config.get_mongo_url(),
+                          'mongodb://USER:PASSWORD@HOSTNAME/AUTH_DB')
 
     def test_get_db_host(self):
         self.assertEquals(self.config.get_db_host(), 'HOSTNAME')

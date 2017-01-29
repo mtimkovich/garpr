@@ -3,6 +3,7 @@ import rating_calculators
 from bson.objectid import ObjectId
 from model import Player, Rating
 
+
 class TestRatingCalculators(unittest.TestCase):
     def setUp(self):
         self.player_1_id = ObjectId()
@@ -21,7 +22,9 @@ class TestRatingCalculators(unittest.TestCase):
                 id=self.player_2_id)
 
     def test_update_trueskill_ratings(self):
-        rating_calculators.update_trueskill_ratings(self.region_id, winner=self.player_1, loser=self.player_2)
+        rating_calculators.update_trueskill_ratings(self.region_id,
+                                                    winner=self.player_1,
+                                                    loser=self.player_2)
 
         self.assertTrue(self.player_1.ratings[self.region_id].mu > 25)
         self.assertTrue(self.player_1.ratings['texas'].mu == 25)

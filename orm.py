@@ -141,14 +141,16 @@ class DictField(Field):
 
     @serialize_super(none_value=dict)
     def serialize(self, value, context, obj):
-        return {self.from_field.serialize(k, context, obj): self.to_field.serialize(v, context, obj)
+        return {self.from_field.serialize(k, context, obj):
+                self.to_field.serialize(v, context, obj)
                 for k, v in value.items()}
 
     @unserialize_super(none_value=dict)
     def unserialize(self, value, context, data):
         if not isinstance(value, dict):
             return dict()
-        return {self.from_field.unserialize(k, context, data): self.to_field.unserialize(v, context, data)
+        return {self.from_field.unserialize(k, context, data):
+                self.to_field.unserialize(v, context, data)
                 for k, v in value.items()}
 
     @validate_super
@@ -177,7 +179,9 @@ class DocumentField(Field):
     @unserialize_super()
     def unserialize(self, value, context, data):
         try:
-            return self.document_type().load(value, context, validate_on_load=False)
+            return self.document_type().load(value,
+                                             context,
+                                             validate_on_load=False)
         except:
             return None
 
@@ -350,7 +354,11 @@ class Document(object):
     def __ne__(self, other):
         return not self == other
 
-    def dump(self, context=None, exclude=None, only=None, validate_on_dump=True):
+    def dump(self,
+             context=None,
+             exclude=None,
+             only=None,
+             validate_on_dump=True):
         return_dict = {}
 
         if validate_on_dump:

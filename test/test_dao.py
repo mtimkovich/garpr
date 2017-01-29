@@ -86,7 +86,11 @@ class TestDAO(unittest.TestCase):
         self.tournament_date_1 = datetime(2013, 10, 16)
         self.tournament_name_1 = 'tournament 1'
         self.tournament_players_1 = [
-            self.player_1_id, self.player_2_id, self.player_3_id, self.player_4_id]
+            self.player_1_id,
+            self.player_2_id,
+            self.player_3_id,
+            self.player_4_id
+        ]
         self.tournament_matches_1 = [
             Match(winner=self.player_1_id, loser=self.player_2_id),
             Match(winner=self.player_3_id, loser=self.player_4_id)
@@ -100,7 +104,11 @@ class TestDAO(unittest.TestCase):
         self.tournament_date_2 = datetime(2013, 10, 10)
         self.tournament_name_2 = 'tournament 2'
         self.tournament_players_2 = [
-            self.player_5_id, self.player_2_id, self.player_3_id, self.player_4_id]
+            self.player_5_id,
+            self.player_2_id,
+            self.player_3_id,
+            self.player_4_id
+        ]
         self.tournament_matches_2 = [
             Match(winner=self.player_5_id, loser=self.player_2_id),
             Match(winner=self.player_3_id, loser=self.player_4_id)
@@ -136,7 +144,11 @@ class TestDAO(unittest.TestCase):
         self.pending_tournament_date_1 = datetime(2013, 10, 11)
         self.pending_tournament_name_1 = 'pending tournament 1'
         self.pending_tournament_players_1 = [
-            self.player_1.name, self.player_2.name, self.player_3.name, self.player_4.name]
+            self.player_1.name,
+            self.player_2.name,
+            self.player_3.name,
+            self.player_4.name
+        ]
         self.pending_tournament_matches_1 = [
             AliasMatch(winner=self.player_1.name, loser=self.player_2.name),
             AliasMatch(winner=self.player_3.name, loser=self.player_4.name)
@@ -171,13 +183,19 @@ class TestDAO(unittest.TestCase):
             region='norcal',
             time=self.ranking_time_1,
             tournaments=self.tournament_ids,
-            ranking=[self.ranking_entry_1, self.ranking_entry_2, self.ranking_entry_3])
+            ranking=[self.ranking_entry_1,
+                     self.ranking_entry_2,
+                     self.ranking_entry_3]
+            )
         self.ranking_2 = Ranking(
             id=ObjectId(),
             region='norcal',
             time=self.ranking_time_2,
             tournaments=self.tournament_ids,
-            ranking=[self.ranking_entry_1, self.ranking_entry_2, self.ranking_entry_4])
+            ranking=[self.ranking_entry_1,
+                     self.ranking_entry_2,
+                     self.ranking_entry_4]
+            )
         self.ranking_3 = Ranking(
             id=ObjectId(),
             region='norcal',
@@ -297,7 +315,8 @@ class TestDAO(unittest.TestCase):
             'mango'), [self.player_3])
 
         self.assertEquals(
-            self.norcal_dao.get_players_by_alias_from_all_regions('miom|sfat'), [])
+            self.norcal_dao.get_players_by_alias_from_all_regions('miom|sfat'),
+            [])
         self.assertEquals(
             self.norcal_dao.get_players_by_alias_from_all_regions(''), [])
 
@@ -475,8 +494,8 @@ class TestDAO(unittest.TestCase):
                           self.pending_tournament_regions_1)
 
     def test_get_all_pending_tournaments_for_region(self):
-        pending_tournaments = self.norcal_dao.get_all_pending_tournaments(regions=[
-                                                                          'norcal'])
+        pending_tournaments = self.norcal_dao.get_all_pending_tournaments(
+                regions=['norcal'])
 
         self.assertEquals(len(pending_tournaments), 1)
 
@@ -887,7 +906,8 @@ class TestDAO(unittest.TestCase):
         the_merge_redux = dao.get_merge(merge_id)
 
         self.assertEqual(the_merge.source_player_obj_id,
-                         the_merge_redux.source_player_obj_id, msg=the_merge_redux)
+                         the_merge_redux.source_player_obj_id,
+                         msg=the_merge_redux)
         self.assertEqual(the_merge.target_player_obj_id,
                          the_merge_redux.target_player_obj_id)
         self.assertEqual(the_merge.id, the_merge_redux.id)
