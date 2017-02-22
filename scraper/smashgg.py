@@ -136,19 +136,24 @@ class SmashGGScraper(object):
             final_placement = player.get("final_placement", None)
             smashgg_id = None
 
-            for sid in player.get("participantIds", []):
+            doubles = tag.split(' / ')
+
+            for sid, tag in zip(player.get("participantIds", []), doubles):
                 smashgg_id = sid
 
-            player = SmashGGPlayer(
-                smashgg_id=smashgg_id,
-                entrant_id=entrant_id,
-                name=name,
-                smash_tag=tag,
-                region=region,
-                state=state,
-                country=country,
-                final_placement=final_placement)
-            self.players.append(player)
+                player = SmashGGPlayer(
+                    smashgg_id=smashgg_id,
+                    entrant_id=entrant_id,
+                    name=name,
+                    smash_tag=tag,
+                    region=region,
+                    state=state,
+                    country=country,
+                    final_placement=final_placement)
+                self.players.append(player)
+
+        print len(self.players)
+        print self.players
 
     def get_smashgg_matches(self):
         """

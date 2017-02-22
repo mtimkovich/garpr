@@ -362,6 +362,8 @@ class TournamentListResource(restful.Resource):
         except Exception as ex:
             err('Scraper encountered an error: ' + str(ex))
 
+            return
+
         if not pending_tournament or not raw_file:
             err('Scraper encountered an error.')
 
