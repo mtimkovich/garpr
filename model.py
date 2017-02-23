@@ -249,12 +249,23 @@ class PendingTournament(orm.Document):
     def validate_document(self):
         # check: set of aliases = set of aliases in matches
         players_aliases = set(self.players)
-        matches_aliases = {match.winner for match in self.matches} | \
-                          {match.loser for match in self.matches}
+        matches_aliases = set()
+
+        # split(' / ') only matters for doubles matches
+        for m in self.matches:
+            for p in m.winner.split(' / '):
+                matches_aliases.add(p)
+            for p in m.loser.split(' / '):
+                matches_aliases.add(p)
+
         mapping_aliases = {mapping.player_alias for mapping in self.alias_to_id_map}
 
-        if players_aliases != matches_aliases:
-            return False, "set of players in players differs from set of players in matches"
+        # This isn't working for players who enter but get DQed for their matches
+        # if players_aliases != matches_aliases:
+        #     return False, "set of players in players differs from set of players in matches"
+
+        if not matches_aliases.issubset(players_aliases):
+            return False, "matches contains players not in matches"
 
         # check: set of aliases in mapping is subset of player aliases
         if not mapping_aliases.issubset(players_aliases):

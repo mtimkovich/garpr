@@ -63,9 +63,9 @@ class SmashGGScraper(object):
 
         self.player_lookup = {}
         for player in self.players:
-            if player.entrant_id not in player_lookup:
-                player_lookup[player.entrant_id] = []
-            player_lookup[player.entrant_id].append(player)
+            if player.entrant_id not in self.player_lookup:
+                self.player_lookup[player.entrant_id] = []
+            self.player_lookup[player.entrant_id].append(player)
 
 
         self.date = datetime.datetime.now()
@@ -99,7 +99,7 @@ class SmashGGScraper(object):
         return sorted(list(set([player.smash_tag for player in self.players])))
 
     def team_name(self, team):
-        return ' / '.join(team)
+        return ' / '.join([i.smash_tag for i in team])
 
     def get_matches(self):
         """
@@ -121,7 +121,7 @@ class SmashGGScraper(object):
                 continue
 
             return_match = AliasMatch(
-                winner=team_name(winner), loser=team_name(loser))
+                winner=self.team_name(winner), loser=self.team_name(loser))
             return_matches.append(return_match)
 
         return return_matches
@@ -146,7 +146,7 @@ class SmashGGScraper(object):
             final_placement = player.get("final_placement", None)
             smashgg_id = None
 
-            if is_doubles:
+            if self.is_doubles:
                 doubles = tag.split(' / ')
             else:
                 doubles = [tag]
@@ -164,9 +164,6 @@ class SmashGGScraper(object):
                     country=country,
                     final_placement=final_placement)
                 self.players.append(player)
-
-        print len(self.players)
-        print self.players
 
     def get_smashgg_matches(self):
         """
