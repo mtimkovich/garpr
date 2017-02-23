@@ -42,6 +42,8 @@ class SmashGGScraper(object):
             self.path)
         self.name = SmashGGScraper.get_tournament_name_from_url(self.path)
 
+        self.is_doubles = '-doubles' in self.phase_name
+
         # DEFINE OUR TARGET URL ENDPOINT FOR THE SMASHGG API
         # AND INSTANTIATE THE DICTIONARY THAT HOLDS THE RAW
         # JSON DUMPED FROM THE API
@@ -58,8 +60,13 @@ class SmashGGScraper(object):
 
         # DATA STRUCTURES THAT HOLD IMPORTANT THINGS
         self.get_smashgg_players()
-        self.player_lookup = {
-            player.entrant_id: player for player in self.players}
+
+        self.player_lookup = {}
+        for player in self.players:
+            if player.entrant_id not in player_lookup:
+                player_lookup[player.entrant_id] = []
+            player_lookup[player.entrant_id].append(player)
+
 
         self.date = datetime.datetime.now()
         self.get_smashgg_matches()
@@ -91,6 +98,9 @@ class SmashGGScraper(object):
         """
         return sorted(list(set([player.smash_tag for player in self.players])))
 
+    def team_name(self, team):
+        return ' / '.join(team)
+
     def get_matches(self):
         """
         :return: the list of AliasMatch objects that represents every match
@@ -111,7 +121,7 @@ class SmashGGScraper(object):
                 continue
 
             return_match = AliasMatch(
-                winner=winner.smash_tag, loser=loser.smash_tag)
+                winner=team_name(winner), loser=team_name(loser))
             return_matches.append(return_match)
 
         return return_matches
@@ -136,7 +146,10 @@ class SmashGGScraper(object):
             final_placement = player.get("final_placement", None)
             smashgg_id = None
 
-            doubles = tag.split(' / ')
+            if is_doubles:
+                doubles = tag.split(' / ')
+            else:
+                doubles = [tag]
 
             for sid, tag in zip(player.get("participantIds", []), doubles):
                 smashgg_id = sid
@@ -194,7 +207,7 @@ class SmashGGScraper(object):
                     print 'Could not find extra details for match'
 
                 smashgg_match = SmashGGMatch(
-                    round_name, winner_id, loser_id, round_num, best_of)
+                    round_name, winner_id, loser_id, round_num, best_of, self.is_doubles)
 
                 if match['isGF']:
                     grand_finals_matches.append(smashgg_match)
@@ -363,18 +376,20 @@ class SmashGGPlayer(object):
 
 class SmashGGMatch(object):
 
-    def __init__(self, roundName, winner_id, loser_id, roundNumber, bestOf):
+    def __init__(self, roundName, winner_id, loser_id, roundNumber, bestOf, is_doubles):
         """
-        :param winner_id: Entrant id of the winner of the match
-        :param loser_id:  Entrant id of the loser of the match
-        :param round:     Round of the bracket this match took place
-        :param bestOf:    Best of this many matches
+        :param winner_id:  Entrant id of the winner of the match
+        :param loser_id:   Entrant id of the loser of the match
+        :param round:      Round of the bracket this match took place
+        :param bestOf:     Best of this many matches
+        :param is_doubles: Whether or not this was a doubles match
         """
         self.roundName = roundName
         self.winner_id = winner_id
         self.loser_id = loser_id
         self.roundNumber = roundNumber
         self.bestOf = bestOf
+        self.is_doubles = is_doubles
 
 
 class SmashGGEvent(object):
